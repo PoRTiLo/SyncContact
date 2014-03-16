@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+  <string name="app_name">SyncContact</string>
+  <string name="action_settings">Settings</string>
+  <string name="title_section1">Section 1</string>
+  <string name="title_section2">Section 2</string>
+  <string name="title_section3">Section 3</string>
+
+  <!-- MainActivity -->
+  <string name="main_contact">Contacts</string>
+  <string name="main_server">Server</string>
+  <string name="main_help">Help</string>
+  <string name="main_settings">Settings</string>
+  
+  <!-- SyncAuthenticatorActivity -->
+  
+  <string name="add_account_main">Create new connection to LDAP Server</string>
+  
+  <string name="add_account_host">Host</string>
+  <string name="add_account_encryption">Encryption</string>
+  <string name="add_account_port">Port</string>
+  <string name="add_account_dn">Bind DN</string>
+  <string name="add_account_name">Bind DN</string>
+  <string name="add_account_password">Bind Password</string>
+  
+  <string name="add_account_next">Next</string>
+  <string name="add_account_back">Back</string>
+  
+</resources>

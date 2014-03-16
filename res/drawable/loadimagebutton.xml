@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector
+xmlns:android="http://schemas.android.com/apk/res/android">
+<item
+ android:state_focused="true"
+ android:state_pressed="false"
+ android:layout_height="20dp" 
+android:layout_width="20dp"
+ android:drawable="@drawable/a" />
+<item
+ android:state_focused="true"
+ android:state_pressed="true"
+ android:layout_height="20dp" 
+android:layout_width="20dp"
+ android:drawable="@drawable/a" />
+<item
+ android:state_focused="false"
+ android:state_pressed="true"
+ android:layout_height="20dp" 
+android:layout_width="20dp"
+ android:drawable="@drawable/a" />
+<item  
+ android:drawable="@drawable/a" 
+ android:layout_height="20dp" 
+android:layout_width="20dp"
+ />
+</selector>
