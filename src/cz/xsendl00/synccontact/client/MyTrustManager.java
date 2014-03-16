@@ -71,8 +71,6 @@ public final class MyTrustManager implements X509TrustManager {
     SHA1 = d;
   }
 
-
-
   // Indicates whether to examine the validity dates for the certificate in
   // addition to whether the certificate has been previously trusted.
   private final boolean examineValidityDates;
@@ -82,9 +80,6 @@ public final class MyTrustManager implements X509TrustManager {
   // certificate signature to a flag that indicates whether the certificate has
   // already been manually trusted even if it is outside of the validity window.
   private final ConcurrentHashMap<String,Boolean> acceptedCerts;
-
-  // The print stream that will be used to display the prompt.
-  //private final PrintStream out;
 
   // The path to the file to which the set of accepted certificates should be
   // persisted.
@@ -162,7 +157,9 @@ public final class MyTrustManager implements X509TrustManager {
    * @throws  IOException  If a problem occurs.
    */
   private void writeCacheFile() throws IOException {
+    
     final File tempFile = new File(acceptedCertsFile + ".new");
+    Log.d("info", tempFile.getAbsolutePath());
     BufferedWriter w = null;
     try {
       w = new BufferedWriter(new FileWriter(tempFile));
@@ -171,7 +168,6 @@ public final class MyTrustManager implements X509TrustManager {
         w.write(certBytes);
         w.newLine();
       }
-      Log.e("FILE", "value:" + w.toString());
     } finally {
       if (w != null) {
         w.close();

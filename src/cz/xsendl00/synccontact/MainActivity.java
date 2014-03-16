@@ -36,7 +36,7 @@ public class MainActivity extends Activity {
   
   private void conf(RelativeLayout f) {
     int x = (int) f.getRight()/2;
-    int y = (int) (f.getBottom()-52)/5;
+    int y = (int) (f.getBottom())/5;
     map = (Button) findViewById(R.id.button_map);
     map.getLayoutParams().height = y*3;
     map.getLayoutParams().width = x;
