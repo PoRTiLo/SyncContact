@@ -5,9 +5,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import cz.xsendl00.synccontact.client.Contact;
-import cz.xsendl00.synccontact.client.ServerUtilities;
-import cz.xsendl00.synccontact.platform.ContactManager;
 import cz.xsendl00.synccontact.utils.Constants;
 
 import android.accounts.Account;
@@ -19,7 +16,6 @@ import android.content.ContentProviderClient;
 import android.content.Context;
 import android.content.SyncResult;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 
 
@@ -41,7 +37,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
 
 		Log.d(TAG, "Start the sync.");
-		List<Contact> users = new ArrayList<Contact>();
+		//List<Contact> users = new ArrayList<Contact>();
 		String authtoken = null;
 		try {
 		  

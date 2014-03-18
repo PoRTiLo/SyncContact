@@ -2,18 +2,18 @@ package cz.xsendl00.synccontact.client;
 
 import android.text.TextUtils;
 
-/**
- * Data container for an address.
- * 
- * @author <a href="mailto:daniel.weisser@gmx.de">Daniel Weisser</a>
- */
+
 public class Address {
 
+  private AddressType type;
 	private String street = "";
 	private String city = "";
+	private String pobox = "";
+	private String region;
 	private String state = "";
 	private String zip = "";
 	private String country = "";
+	private String extendedAddress;
 
 	public String getStreet() {
 		return street;
@@ -94,5 +94,37 @@ public class Address {
 		}
 		return false;
 	}
+
+  public AddressType getType() {
+    return type;
+  }
+
+  public void setType(AddressType type) {
+    this.type = type;
+  }
+
+  public String getRegion() {
+    return region;
+  }
+
+  public void setRegion(String region) {
+    this.region = region;
+  }
+
+  public String getExtendedAddress() {
+    return extendedAddress;
+  }
+
+  public void setExtendedAddress(String extendedAddress) {
+    this.extendedAddress = extendedAddress;
+  }
+
+  public String getPobox() {
+    return pobox;
+  }
+
+  public void setPobox(String pobox) {
+    this.pobox = pobox;
+  }
 
 }
