@@ -59,4 +59,42 @@ public class Constants {
   public static final String WORK_COUNTRY = "workCountry";
   public static final String WORK_EXTENDED_ADDRESS = "workExtendeAddress";
   public static final String WEBSITE = "website";
+  
+  /* Person */
+  public static final String SN = "sn";
+  public static final String CN = "cn";
+  public static final String USER_PASSWORD = "userPassword";
+  public static final String TELEPHONE_NUMBER = "telephoneNumber";
+  public static final String SEE_ALSO = "seeAlso";
+  public static final String DESCRIPTION = "description";
+  
+  /* OrganizationalPerson */
+  public static final String TITLE = "title";
+  public static final String X12_ADDRESS = "x121Address";
+  public static final String REGISTRED_ADDRESS = "registeredAddress";
+  public static final String DESTINATION_INDICATOR = "destinationIndicator";
+  public static final String INTERNATIONAL_SDN_NUMBER = "internationaliSDNNumber";
+  public static final String FASCIMILE_TELEPHONE_NUMBER = "facsimileTelephoneNumber";
+  public static final String PREFERRED_DELIVERY_METHOD = "preferredDeliveryMethod";
+  public static final String TELEX_NUMBER = "telexNumber";
+  
+  public static final String POST_OFFICE_BOX = "postOfficeBox";
+  public static final String POSTAL_CODE = "postalCode";
+  public static final String POSTAL_ADDRESS = "postalAddress";
+  public static final String PHYSICAL_DELIVERY_OFFICE_NAME = "physicalDeliveryOfficeName";
+  public static final String OU = "ou";
+  public static final String ST = "st";
+  public static final String L = "l";
+  
+  /* InetOrgPerson */
+  public static final String CAR_LICENCE = "carLicense";
+  public static final String DEPARTMENT_NUMBER = "departmentNumber";
+  public static final String DISPLAY_NAME = "displayName";
+  public static final String EMPLOYEE_NUMBER = "employeeNumber";
+  public static final String EMPLOYEE_TYPE = "employeeType";
+  public static final String JPEG_PHOTO = "jpegPhoto";
+  public static final String PREFERRED_LANGUAGE = "preferredLanguage";
+  public static final String USER_SMIME_CERTIFICATE = "userSMIMECertificate";
+  public static final String USER_PKCS12 = "userPKCS12";
+  
 }

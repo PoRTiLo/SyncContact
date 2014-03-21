@@ -1,5 +1,7 @@
 package cz.xsendl00.synccontact.client;
 
+import cz.xsendl00.synccontact.utils.Constants;
+
 /**
  * The 'person' object class is the basis of an entry that represents a
    human being.
@@ -14,13 +16,14 @@ package cz.xsendl00.synccontact.client;
 public class Person {
 
   //MUST
-  private String cn;
-  private String sn;
+  private String cn = Constants.CN;
+  private String sn = Constants.SN;
   //MAY
-  private String userPassword;
-  private String telephoneNumber;
-  private String seeAlso;
-  private String description;
+  private String userPassword = Constants.USER_PASSWORD;
+  private String telephoneNumber = Constants.TELEPHONE_NUMBER;
+  private String seeAlso = Constants.SEE_ALSO;
+  private String description = Constants.DESCRIPTION;
+  
   public String getCn() {
     return cn;
   }

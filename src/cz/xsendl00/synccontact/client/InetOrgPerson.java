@@ -1,4 +1,7 @@
 package cz.xsendl00.synccontact.client;
+
+import cz.xsendl00.synccontact.utils.Constants;
+
 /**
  * Definition of the inetOrgPerson LDAP Object Class.
  * 
@@ -23,7 +26,7 @@ public class InetOrgPerson extends OrganizationalPerson {
       SUBSTR caseIgnoreSubstringsMatch
       SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
   */
-  private String carLicense;
+  private String carLicense = Constants.CAR_LICENCE;
   
   /*
   ( 2.16.840.1.113730.3.1.2
@@ -33,7 +36,7 @@ public class InetOrgPerson extends OrganizationalPerson {
     SUBSTR caseIgnoreSubstringsMatch
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
    */
-  private String departmentNumber;
+  private String departmentNumber = Constants.DEPARTMENT_NUMBER;
   
   /*
    * ( 2.16.840.1.113730.3.1.241
@@ -44,7 +47,7 @@ public class InetOrgPerson extends OrganizationalPerson {
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
     SINGLE-VALUE )
    */
-  private String displayName;
+  private String displayName = Constants.DISPLAY_NAME;
   
   /*
    * ( 2.16.840.1.113730.3.1.3
@@ -55,7 +58,7 @@ public class InetOrgPerson extends OrganizationalPerson {
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
     SINGLE-VALUE )
    */
-  private String employeeNumber;
+  private String employeeNumber = Constants.EMPLOYEE_NUMBER;
   
   /*
    * ( 2.16.840.1.113730.3.1.4
@@ -65,7 +68,7 @@ public class InetOrgPerson extends OrganizationalPerson {
     SUBSTR caseIgnoreSubstringsMatch
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
    */
-  private String employeeType;
+  private String employeeType = Constants.EMPLOYEE_NUMBER;
   
   /*
    * ( 0.9.2342.19200300.100.1.60
@@ -73,7 +76,7 @@ public class InetOrgPerson extends OrganizationalPerson {
     DESC 'a JPEG image'
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.28 )
    */
-  private String jpegPhoto;
+  private String jpegPhoto = Constants.JPEG_PHOTO;
   
   /*
    * ( 2.16.840.1.113730.3.1.39
@@ -84,7 +87,7 @@ public class InetOrgPerson extends OrganizationalPerson {
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
     SINGLE-VALUE )
    */
-  private String preferredLanguage;
+  private String preferredLanguage = Constants.PREFERRED_LANGUAGE;
   
   /*
    * ( 2.16.840.1.113730.3.1.40
@@ -92,7 +95,7 @@ public class InetOrgPerson extends OrganizationalPerson {
     DESC 'signed message used to support S/MIME'
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.5 )
    */
-  private String userSMIMECertificate;
+  private String userSMIMECertificate = Constants.USER_SMIME_CERTIFICATE;
   
   /*
    * ( 2.16.840.1.113730.3.1.216
@@ -100,7 +103,7 @@ public class InetOrgPerson extends OrganizationalPerson {
     DESC 'PKCS #12 PFX PDU for exchange of personal identity information'
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.5 )
    */
-  private String userPKCS12;
+  private String userPKCS12 = Constants.USER_PKCS12;
 
   public String getCarLicense() {
     return carLicense;

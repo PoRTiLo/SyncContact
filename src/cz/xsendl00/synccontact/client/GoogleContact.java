@@ -50,6 +50,7 @@ public class GoogleContact extends InetOrgPerson {
     addressHome.setStreet(Constants.HOME_STREET);
     addressHome.setZip(Constants.HOME_POSTAL_CODE);
     address.add(addressHome);
+    
     Address addressWork = new Address();
     addressWork.setCity(Constants.WORK_CITY);
     addressWork.setType(AddressType.WORK);
@@ -60,6 +61,12 @@ public class GoogleContact extends InetOrgPerson {
     addressWork.setStreet(Constants.WORK_STREET);
     addressWork.setZip(Constants.WORK_POSTAL_CODE);
     address.add(addressWork);
+    
+    Address addressPostal = new Address();
+    addressWork.setType(AddressType.POSTAL);
+    addressWork.setPobox(Constants.POST_OFFICE_BOX);
+    addressWork.setZip(Constants.POSTAL_CODE);
+    address.add(addressPostal);
   }
   
 

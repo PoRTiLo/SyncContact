@@ -1,5 +1,7 @@
 package cz.xsendl00.synccontact.client;
 
+import cz.xsendl00.synccontact.utils.Constants;
+
 /**
  * The 'organizationalPerson' object class is the basis of an entry that
    represents a person in relation to an organization.
@@ -18,23 +20,22 @@ package cz.xsendl00.synccontact.client;
 public class OrganizationalPerson extends Person {
 
   //MAY
-  private String title;
-  private String x121Address;
-  private String registeredAddress;
-  private String destinationIndicator;
-  private String telephoneNumber;
-  private String internationaliSDNNumber;
-  private String facsimileTelephoneNumber;
-  private String preferredDeliveryMethod;
-  private String telexNumber;
-  private String street;
-  private String postOfficeBox;
-  private String postalCode;
-  private String postalAddress;
-  private String physicalDeliveryOfficeName;
-  private String ou;
-  private String st;
-  private String l;
+  private String title = Constants.TITLE;
+  private String x121Address = Constants.X12_ADDRESS;
+  private String registeredAddress = Constants.REGISTRED_ADDRESS;
+  private String destinationIndicator = Constants.DESTINATION_INDICATOR;
+  private String internationaliSDNNumber = Constants.INTERNATIONAL_SDN_NUMBER;
+  private String facsimileTelephoneNumber = Constants.FASCIMILE_TELEPHONE_NUMBER;
+  private String preferredDeliveryMethod = Constants.PREFERRED_DELIVERY_METHOD;
+  
+  private String telexNumber = Constants.TELEX_NUMBER;
+  private String postOfficeBox = Constants.POST_OFFICE_BOX;
+  private String postalCode = Constants.POSTAL_CODE;
+  private String postalAddress = Constants.POSTAL_ADDRESS;
+  private String physicalDeliveryOfficeName = Constants.PHYSICAL_DELIVERY_OFFICE_NAME;
+  private String ou = Constants.OU;
+  private String st = Constants.ST;
+  private String l = Constants.L;
   /**
    * @return the title
    */
@@ -65,12 +66,6 @@ public class OrganizationalPerson extends Person {
   public void setDestinationIndicator(String destinationIndicator) {
     this.destinationIndicator = destinationIndicator;
   }
-  public String getTelephoneNumber() {
-    return telephoneNumber;
-  }
-  public void setTelephoneNumber(String telephoneNumber) {
-    this.telephoneNumber = telephoneNumber;
-  }
   public String getInternationaliSDNNumber() {
     return internationaliSDNNumber;
   }
@@ -94,12 +89,6 @@ public class OrganizationalPerson extends Person {
   }
   public void setTelexNumber(String telexNumber) {
     this.telexNumber = telexNumber;
-  }
-  public String getStreet() {
-    return street;
-  }
-  public void setStreet(String street) {
-    this.street = street;
   }
   public String getPostalCode() {
     return postalCode;
