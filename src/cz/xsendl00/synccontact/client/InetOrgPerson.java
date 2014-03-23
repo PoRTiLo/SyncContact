@@ -14,11 +14,49 @@ import cz.xsendl00.synccontact.utils.Constants;
    inetOrgPerson for use in LDAP and X.500 directory services that
    extends the X.521 standard organizationalPerson class to meet these
    needs.
+ *
+ * # inetOrgPerson
+# The inetOrgPerson represents people who are associated with an
+# organization in some way.  It is a structural class and is derived
+# from the organizationalPerson which is defined in X.521 [X521].
+objectclass ( 2.16.840.1.113730.3.2.2
+   NAME 'inetOrgPerson'
+   DESC 'RFC2798: Internet Organizational Person'
+   SUP organizationalPerson
+   STRUCTURAL
+   MAY ( audio $ businessCategory $ carLicense $ departmentNumber $
+    displayName $ employeeNumber $ employeeType $ givenName $
+    homePhone $ homePostalAddress $ initials $ jpegPhoto $
+    labeledURI $ mail $ manager $ mobile $ o $ pager $ photo $
+    roomNumber $ secretary $ uid $ userCertificate $
+    x500uniqueIdentifier $ preferredLanguage $
+    userSMIMECertificate $ userPKCS12 )
+   )
  * 
  * @author portilo
  *
  */
+
+
 public class InetOrgPerson extends OrganizationalPerson {
+  private String audio = Constants.AUDIO;
+  private String businessCategory = Constants.BUSSINES_CATEGORY;
+  private String givenName = Constants.GIVEN_NAME;
+  private String initials = Constants.INITIALS;
+  private String homePhone = Constants.HOME_PHONE;
+  private String homePostalAddress = Constants.HOME_POSTAL_ADDRESS;
+  private String labeledURI = Constants.LABELED_URI;
+  private String mail = Constants.MAIL;
+  private String manager = Constants.MANAGER;
+  private String mobile = Constants.MOBILE;
+  private String o = Constants.O;
+  private String pager = Constants.PAGER;
+  private String photo = Constants.PHOTO;
+  private String roomNumber = Constants.ROOM_NUMBER;
+  private String secretary = Constants.SECRETARY;
+  private String uid = Constants.UID;
+  private String userCertificate = Constants.USER_CERTIFICATE;
+  private String x500uniqueIdentifier = Constants.X500_UNIQUE_IDENTIFIER;
   /*
   ( 2.16.840.1.113730.3.1.1 NAME 'carLicense'
       DESC 'vehicle license or registration plate'
@@ -175,5 +213,149 @@ public class InetOrgPerson extends OrganizationalPerson {
 
   public void setUserPKCS12(String userPKCS12) {
     this.userPKCS12 = userPKCS12;
+  }
+
+  public String getAudio() {
+    return audio;
+  }
+
+  public void setAudio(String audio) {
+    this.audio = audio;
+  }
+
+  public String getBusinessCategory() {
+    return businessCategory;
+  }
+
+  public void setBusinessCategory(String businessCategory) {
+    this.businessCategory = businessCategory;
+  }
+
+  public String getGivenName() {
+    return givenName;
+  }
+
+  public void setGivenName(String givenName) {
+    this.givenName = givenName;
+  }
+
+  public String getInitials() {
+    return initials;
+  }
+
+  public void setInitials(String initials) {
+    this.initials = initials;
+  }
+
+  public String getHomePhone() {
+    return homePhone;
+  }
+
+  public void setHomePhone(String homePhone) {
+    this.homePhone = homePhone;
+  }
+
+  public String getHomePostalAddress() {
+    return homePostalAddress;
+  }
+
+  public void setHomePostalAddress(String homePostalAddress) {
+    this.homePostalAddress = homePostalAddress;
+  }
+
+  public String getLabeledURI() {
+    return labeledURI;
+  }
+
+  public void setLabeledURI(String labeledURI) {
+    this.labeledURI = labeledURI;
+  }
+
+  public String getMail() {
+    return mail;
+  }
+
+  public void setMail(String mail) {
+    this.mail = mail;
+  }
+
+  public String getManager() {
+    return manager;
+  }
+
+  public void setManager(String manager) {
+    this.manager = manager;
+  }
+
+  public String getMobile() {
+    return mobile;
+  }
+
+  public void setMobile(String mobile) {
+    this.mobile = mobile;
+  }
+
+  public String getO() {
+    return o;
+  }
+
+  public void setO(String o) {
+    this.o = o;
+  }
+
+  public String getPager() {
+    return pager;
+  }
+
+  public void setPager(String pager) {
+    this.pager = pager;
+  }
+
+  public String getPhoto() {
+    return photo;
+  }
+
+  public void setPhoto(String photo) {
+    this.photo = photo;
+  }
+
+  public String getRoomNumber() {
+    return roomNumber;
+  }
+
+  public void setRoomNumber(String roomNumber) {
+    this.roomNumber = roomNumber;
+  }
+
+  public String getSecretary() {
+    return secretary;
+  }
+
+  public void setSecretary(String secretary) {
+    this.secretary = secretary;
+  }
+
+  public String getUid() {
+    return uid;
+  }
+
+  public void setUid(String uid) {
+    this.uid = uid;
+  }
+
+  public String getUserCertificate() {
+    return userCertificate;
+  }
+
+  public void setUserCertificate(String userCertificate) {
+    this.userCertificate = userCertificate;
+  }
+
+  public String getX500uniqueIdentifier() {
+    return x500uniqueIdentifier;
+  }
+
+  public void setX500uniqueIdentifier(String x500uniqueIdentifier) {
+    this.x500uniqueIdentifier = x500uniqueIdentifier;
   }
 }

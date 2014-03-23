@@ -1,6 +1,8 @@
 package cz.xsendl00.synccontact.client;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import cz.xsendl00.synccontact.utils.Constants;
@@ -20,7 +22,7 @@ public class GoogleContact extends InetOrgPerson {
   private String website = Constants.WEBSITE;
   
   
-  private List<Address> address;
+  private LinkedHashMap<AddressType, Address> address;
   
   
   
@@ -38,18 +40,17 @@ public class GoogleContact extends InetOrgPerson {
   public static String COUNTRY = "COUNTRY";
 
   public void init() {
-    address = new ArrayList<Address>();
+    address = new LinkedHashMap<AddressType, Address>();
     Address addressHome = new Address();
     addressHome.setCity(Constants.HOME_CITY);
     addressHome.setType(AddressType.HOME);
     addressHome.setCountry(Constants.HOME_COUNTRY);
     addressHome.setExtendedAddress(Constants.HOME_EXTENDED_ADDRESS);
     addressHome.setPobox(Constants.HOME_POBOX);
-    //addressHome.setRegion(Constants.home)
-    //addressHome.setState(Constants.home)
+    addressHome.setRegion(Constants.HOME_REGION);
     addressHome.setStreet(Constants.HOME_STREET);
     addressHome.setZip(Constants.HOME_POSTAL_CODE);
-    address.add(addressHome);
+    address.put(AddressType.HOME, addressHome);
     
     Address addressWork = new Address();
     addressWork.setCity(Constants.WORK_CITY);
@@ -60,13 +61,13 @@ public class GoogleContact extends InetOrgPerson {
     addressWork.setRegion(Constants.WORK_REGION);
     addressWork.setStreet(Constants.WORK_STREET);
     addressWork.setZip(Constants.WORK_POSTAL_CODE);
-    address.add(addressWork);
+    address.put(AddressType.WORK, addressWork);
     
     Address addressPostal = new Address();
     addressWork.setType(AddressType.POSTAL);
     addressWork.setPobox(Constants.POST_OFFICE_BOX);
     addressWork.setZip(Constants.POSTAL_CODE);
-    address.add(addressPostal);
+    address.put(AddressType.POSTAL, addressPostal);
   }
   
 
@@ -248,5 +249,9 @@ public class GoogleContact extends InetOrgPerson {
 
   public void setWebsite(String website) {
     this.website = website;
+  }
+  
+  public LinkedHashMap<AddressType, Address> getAddress() {
+    return this.address;
   }
 }

@@ -30,8 +30,6 @@ public class OrganizationalPerson extends Person {
   
   private String telexNumber = Constants.TELEX_NUMBER;
   private String postOfficeBox = Constants.POST_OFFICE_BOX;
-  private String postalCode = Constants.POSTAL_CODE;
-  private String postalAddress = Constants.POSTAL_ADDRESS;
   private String physicalDeliveryOfficeName = Constants.PHYSICAL_DELIVERY_OFFICE_NAME;
   private String ou = Constants.OU;
   private String st = Constants.ST;
@@ -90,23 +88,11 @@ public class OrganizationalPerson extends Person {
   public void setTelexNumber(String telexNumber) {
     this.telexNumber = telexNumber;
   }
-  public String getPostalCode() {
-    return postalCode;
-  }
-  public void setPostalCode(String postalCode) {
-    this.postalCode = postalCode;
-  }
   public String getPostOfficeBox() {
     return postOfficeBox;
   }
   public void setPostOfficeBox(String postOfficeBox) {
     this.postOfficeBox = postOfficeBox;
-  }
-  public String getPostalAddress() {
-    return postalAddress;
-  }
-  public void setPostalAddress(String postalAddress) {
-    this.postalAddress = postalAddress;
   }
   public String getPhysicalDeliveryOfficeName() {
     return physicalDeliveryOfficeName;

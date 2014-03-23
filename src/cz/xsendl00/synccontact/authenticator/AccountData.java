@@ -1,5 +1,7 @@
 package cz.xsendl00.synccontact.authenticator;
 
+import android.util.Log;
+
 
 public class AccountData {
   private String name;
@@ -49,6 +51,13 @@ public class AccountData {
   
   public String getHost() {
     return host;
+  }
+  
+  public void setBaseDNs(String[] baseDNs) {
+    this.baseDn = "";
+    for(String str : baseDNs) {
+      this.baseDn += str; 
+    }
   }
   
   public String getBaseDn() {

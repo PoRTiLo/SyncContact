@@ -16,7 +16,9 @@ import cz.xsendl00.synccontact.utils.Constants;
 public class Person {
 
   //MUST
+  // commonName
   private String cn = Constants.CN;
+  // surname
   private String sn = Constants.SN;
   //MAY
   private String userPassword = Constants.USER_PASSWORD;
