@@ -1,8 +1,5 @@
 package cz.xsendl00.synccontact.authenticator;
 
-import android.util.Log;
-
-
 public class AccountData {
   private String name;
   private String password;
@@ -11,6 +8,7 @@ public class AccountData {
   private String baseDn;
   private Integer encryption;
   private boolean newAccount = true;
+  private String searchFilter;
   
   public AccountData() {
   }
@@ -64,6 +62,10 @@ public class AccountData {
     return baseDn;
   }
   
+  public void setBaseDn(String base) {
+    this.baseDn = base;
+  }
+  
   public Integer getPort() {
     return port;
   }
@@ -86,5 +88,13 @@ public class AccountData {
 
   public void setNewAccount(boolean newAccount) {
     this.newAccount = newAccount;
+  }
+
+  public String getSearchFilter() {
+    return searchFilter;
+  }
+
+  public void setSearchFilter(String searchFilter) {
+    this.searchFilter = searchFilter;
   }
 }

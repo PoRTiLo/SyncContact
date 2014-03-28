@@ -1,14 +1,30 @@
 
 package cz.xsendl00.synccontact.client;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.RootDSE;
+import com.unboundid.ldap.sdk.SearchResult;
+import com.unboundid.ldap.sdk.SearchResultEntry;
+import com.unboundid.ldap.sdk.SearchScope;
+import com.xsendl00.synccontact.R;
+
 import cz.xsendl00.synccontact.AddServerActivity;
+import cz.xsendl00.synccontact.adapter.SyncService;
+import cz.xsendl00.synccontact.authenticator.AccountData;
 
 public class ServerUtilities {
 	
@@ -51,18 +67,19 @@ public class ServerUtilities {
       }
     });
 }
-/*
-	public static List<Contact> fetchContacts(final ServerInstance ldapServer, final String baseDN, final String searchFilter, final Bundle mappingBundle,
-			final Date mLastUpdated, final Context context) {
-		final ArrayList<Contact> friendList = new ArrayList<Contact>();
+
+	public static List<GoogleContact> fetchContacts(final ServerInstance ldapServer, final AccountData accountData, final Bundle mappingBundle, 
+	    final Date lastUpdated, final Context context) {
+		final ArrayList<GoogleContact> friendList = new ArrayList<GoogleContact>();
 		LDAPConnection connection = null;
 		try {
-			connection = ldapServer.getConnection();
-			SearchResult searchResult = connection.search(baseDN, SearchScope.SUB, searchFilter, getUsedAttributes(mappingBundle));
+			connection = ldapServer.getConnection(null, context);
+			SearchResult searchResult = connection.search(accountData.getBaseDn(), SearchScope.SUB, accountData.getSearchFilter(), getUsedAttributes(mappingBundle));
 			Log.i(TAG, searchResult.getEntryCount() + " entries returned.");
 
 			for (SearchResultEntry e : searchResult.getSearchEntries()) {
-				Contact u = Contact.valueOf(e, mappingBundle);
+			  Log.i(TAG, e.toString());
+				GoogleContact u = GoogleContact.valueOf(e, mappingBundle);
 				if (u != null) {
 					friendList.add(u);
 				}
@@ -87,8 +104,7 @@ public class ServerUtilities {
 
 		return friendList;
 	}
-*/
-	/*
+
 	private static String[] getUsedAttributes(Bundle mappingBundle) {
 		ArrayList<String> ldapAttributes = new ArrayList<String>();
 		String[] ldapArray = new String[mappingBundle.size()];
@@ -98,7 +114,7 @@ public class ServerUtilities {
 		ldapArray = ldapAttributes.toArray(ldapArray);
 		return ldapArray;
 	}
-*/
+
 
   public static Thread attemptAuth(final ServerInstance ldapServer, final Handler handler, final Context context) {
     final Runnable runnable = new Runnable() {

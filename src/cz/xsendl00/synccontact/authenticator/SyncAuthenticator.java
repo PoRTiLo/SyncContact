@@ -28,9 +28,9 @@ public class SyncAuthenticator extends AbstractAccountAuthenticator {
     Log.i(TAG, "addAccount()");
     final Intent intent = new Intent(mContext, AddServerActivity.class);
     
-    intent.putExtra(AddServerActivity.ARG_ACCOUNT_TYPE, accountType);
-    intent.putExtra(AddServerActivity.ARG_AUTH_TYPE, authTokenType);
-    intent.putExtra(AddServerActivity.ARG_IS_ADDING_NEW_ACCOUNT, true);
+    intent.putExtra(Constants.PAR_ACCOUNT_TYPE, accountType);
+    intent.putExtra(Constants.PAR_AUTHTOKEN_TYPE, authTokenType);
+    intent.putExtra(Constants.PAR_IS_ADDING_NEW_ACCOUNT, true);
     
     intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
     final Bundle bundle = new Bundle();
@@ -91,8 +91,8 @@ public class SyncAuthenticator extends AbstractAccountAuthenticator {
     // an intent to display our AuthenticatorActivity.
     final Intent intent = new Intent(mContext, AddServerActivity.class);
     intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
-    intent.putExtra(AddServerActivity.ARG_ACCOUNT_TYPE, account.type);
-    intent.putExtra(AddServerActivity.ARG_AUTH_TYPE, authTokenType);
+    intent.putExtra(Constants.PAR_ACCOUNT_TYPE, account.type);
+    intent.putExtra(Constants.PAR_AUTHTOKEN_TYPE, authTokenType);
     final Bundle bundle = new Bundle();
     bundle.putParcelable(AccountManager.KEY_INTENT, intent);
     return bundle;
@@ -114,9 +114,9 @@ public class SyncAuthenticator extends AbstractAccountAuthenticator {
   @Override
   public Bundle updateCredentials(AccountAuthenticatorResponse response, Account account, String authTokenType, Bundle options) throws NetworkErrorException {
     final Intent intent = new Intent(mContext, AddServerActivity.class);
-    intent.putExtra(AddServerActivity.ARG_USERNAME, account.name);
-    intent.putExtra(AddServerActivity.ARG_AUTH_TYPE, authTokenType);
-    intent.putExtra(AddServerActivity.ARG_CONFIRMCREDENTIALS, false);
+    intent.putExtra(Constants.PAR_USERNAME, account.name);
+    intent.putExtra(Constants.PAR_AUTHTOKEN_TYPE, authTokenType);
+    intent.putExtra(Constants.PAR_CONFIRMCREDENTIALS, false);
     final Bundle bundle = new Bundle();
     bundle.putParcelable(AccountManager.KEY_INTENT, intent);
     return bundle;

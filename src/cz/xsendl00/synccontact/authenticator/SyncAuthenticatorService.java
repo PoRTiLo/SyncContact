@@ -14,10 +14,6 @@ public class SyncAuthenticatorService extends Service {
   }
 
   @Override
-  public void onDestroy() {
-  }
-
-  @Override
   public IBinder onBind(Intent intent) {
     return syncAuthenticator.getIBinder();
   }

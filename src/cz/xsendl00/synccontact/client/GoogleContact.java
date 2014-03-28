@@ -5,9 +5,14 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import android.os.Bundle;
+
+import com.unboundid.ldap.sdk.ReadOnlyEntry;
+
 import cz.xsendl00.synccontact.utils.Constants;
 
 public class GoogleContact extends InetOrgPerson {
+  
   private String additionalName = Constants.ADDITIONAL_NAME;
   private String namePrefix = Constants.NAME_PREFIX;
   private String nameSuffix = Constants.NAME_SUFFIX;
@@ -21,10 +26,7 @@ public class GoogleContact extends InetOrgPerson {
   private String workPhone = Constants.WORK_PHONE;
   private String website = Constants.WEBSITE;
   
-  
   private LinkedHashMap<AddressType, Address> address;
-  
-  
   
   public static String FIRSTNAME = "FIRSTNAME";
   public static String LASTNAME = "LASTNAME";
@@ -80,10 +82,10 @@ public class GoogleContact extends InetOrgPerson {
    *            Mapping bundle for the LDAP attribute names.
    * @return user The new instance of LDAP user created from the LDAP data.
    */
-  /*
-  public static Contact valueOf(ReadOnlyEntry user, Bundle mB) {
-    Contact c = new Contact();
-    try {
+  
+  public static GoogleContact valueOf(ReadOnlyEntry user, Bundle mB) {
+    GoogleContact c = new GoogleContact();
+    /*try {
       c.setDn(user.getDN());
       c.setFirstName(user.hasAttribute(mB.getString(FIRSTNAME)) ? user.getAttributeValue(mB.getString(FIRSTNAME)) : null);
       c.setLastName(user.hasAttribute(mB.getString(LASTNAME)) ? user.getAttributeValue(mB.getString(LASTNAME)) : null);
@@ -127,10 +129,10 @@ public class GoogleContact extends InetOrgPerson {
       }
     } catch (final Exception ex) {
       Log.i("User", "Error parsing LDAP user object" + ex.toString());
-    }
+    }*/
     return c;
   }
-*/
+
 
   public String getAdditionalName() {
     return additionalName;

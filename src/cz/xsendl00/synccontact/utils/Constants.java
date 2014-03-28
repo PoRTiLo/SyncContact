@@ -126,6 +126,8 @@ public class Constants {
   public static final String PAR_PORT = "port";
   public static final String PAR_ENCRYPTION = "encryption";
   public static final String PAR_AUTHTOKEN_TYPE = "authtokenType";
+  public static final String PAR_ACCOUNT_TYPE = "accountType";
+  public static final String PAR_IS_ADDING_NEW_ACCOUNT= "newContact";
   public static final String PAR_SEARCHFILTER = "searchFilter";
   public static final String PAR_BASEDN = "baseDN";
   public static final String PAR_MAPPING = "map_";

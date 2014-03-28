@@ -1,12 +1,11 @@
 package cz.xsendl00.synccontact;
 
-import java.util.LinkedHashMap;
-
 import com.xsendl00.synccontact.R;
 
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.client.Address;
 import cz.xsendl00.synccontact.client.AddressType;
+import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.client.GoogleContact;
 import cz.xsendl00.synccontact.client.ServerInstance;
 import cz.xsendl00.synccontact.client.ServerUtilities;
@@ -40,16 +39,7 @@ import android.widget.AdapterView.OnItemSelectedListener;
 public class AddServerActivity extends AccountAuthenticatorActivity {
   
   private static final String TAG = "AddServerActivity";
-  
-  public static final String ARG_ACCOUNT_TYPE = "accountType";
-  public static final String ARG_AUTH_TYPE = "authtokenType";
-  public static final String ARG_IS_ADDING_NEW_ACCOUNT= "newContact";
-  public static final String ARG_USERNAME = "username";
-  public static final String ARG_PASSWORD = "password";
-  public static final String ARG_CONFIRMCREDENTIALS = "confirmCredentials";
-  public static final String ARG_PORT = "port";
-  public static final String ARG_HOST = "host";
-  public static final String ARG_ENCRYPTION = "encryption";
+
   public static final String HOST = "192.168.0.103";
   public static final String DN = "cn=admin,dc=synccontact,dc=xsendl00,dc=cz";
   public static final String PASS = "synccontact";
@@ -179,11 +169,11 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
   private void fillValueFromIntent() {
     final Intent intent = getIntent();
     this.accountData = new AccountData();
-    this.accountData.setPort(intent.getIntExtra((ARG_PORT), 389));
-    this.accountData.setHost(intent.getStringExtra(ARG_HOST));
-    this.accountData.setName(intent.getStringExtra(ARG_USERNAME));
-    this.accountData.setPassword(intent.getStringExtra(ARG_PASSWORD));
-    this.accountData.setEncryption(intent.getIntExtra(ARG_ENCRYPTION, 0));
+    this.accountData.setPort(intent.getIntExtra((Constants.PAR_PORT), 389));
+    this.accountData.setHost(intent.getStringExtra(Constants.PAR_HOST));
+    this.accountData.setName(intent.getStringExtra(Constants.PAR_USERNAME));
+    this.accountData.setPassword(intent.getStringExtra(Constants.PAR_PASSWORD));
+    this.accountData.setEncryption(intent.getIntExtra(Constants.PAR_ENCRYPTION, 0));
     this.accountData.setNewAccount(this.accountData.getName() == null);
   }
   
@@ -269,10 +259,11 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
       userData.putString(Constants.PAR_PORT, accountData.getPort().toString());
       userData.putString(Constants.PAR_HOST, accountData.getHost());
       userData.putString(Constants.PAR_ENCRYPTION, accountData.getEncryption().toString());
-      //userData.putString(PARAM_SEARCHFILTER, mSearchFilter);
+      userData.putString(Constants.PAR_SEARCHFILTER, accountData.getSearchFilter());
       userData.putString(Constants.PAR_BASEDN, accountData.getBaseDn());
       
-      GoogleContact gcMapping = new GoogleContact(); 
+      GoogleContact gcMapping = new GoogleContact();
+      gcMapping.init();
       // Mappings for LDAP data
       // person 
       userData.putString(Constants.PAR_MAPPING + Constants.CN, gcMapping.getCn());
@@ -290,7 +281,6 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
       userData.putString(Constants.PAR_MAPPING + Constants.INTERNATIONAL_SDN_NUMBER, gcMapping.getInternationaliSDNNumber());
       userData.putString(Constants.PAR_MAPPING + Constants.FASCIMILE_TELEPHONE_NUMBER, gcMapping.getFacsimileTelephoneNumber());
       userData.putString(Constants.PAR_MAPPING + Constants.PREFERRED_DELIVERY_METHOD, gcMapping.getPreferredDeliveryMethod());
-      
       userData.putString(Constants.PAR_MAPPING + Constants.TELEX_NUMBER, gcMapping.getTelexNumber());
       userData.putString(Constants.PAR_MAPPING + Constants.PHYSICAL_DELIVERY_OFFICE_NAME, gcMapping.getPhysicalDeliveryOfficeName());
       userData.putString(Constants.PAR_MAPPING + Constants.OU, gcMapping.getOu());
@@ -364,12 +354,12 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
       userData.putString(Constants.PAR_MAPPING + Constants.POSTAL_CODE, postal.getZip());
       userData.putString(Constants.PAR_MAPPING + Constants.POSTAL_ADDRESS, postal.getExtendedAddress());
       
-      Log.i(TAG, userData.toString());
+      //Log.i(TAG, userData.toString());
       accountManager.addAccountExplicitly(account, accountData.getPassword(), userData);
 
       // Set contacts sync for this account.
       ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
-      //ContactManager.makeGroupVisible(account.name, getContentResolver());
+      ContactManager.makeGroupVisible(account.name, getContentResolver());
     } else {
       accountManager.setPassword(account, accountData.getPassword());
     }
