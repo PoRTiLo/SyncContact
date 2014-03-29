@@ -8,7 +8,7 @@ public class AccountData {
   private String baseDn;
   private Integer encryption;
   private boolean newAccount = true;
-  private String searchFilter;
+  private String searchFilter = "(objectClass=googleContact)";
   
   public AccountData() {
   }

@@ -35,8 +35,8 @@
       <meta-data android:name="android.accounts.AccountAuthenticator"
         android:resource="@xml/authenticator" />
     </service>
-    <!-- 
-    <service android:name="de.danielweisser.android.ldapsync.syncadapter.SyncService"
+    
+    <service android:name="cz.xsendl00.synccontact.adapter.SyncService"
       android:exported="true">
       <intent-filter>
         <action android:name="android.content.SyncAdapter" />
@@ -44,7 +44,7 @@
       <meta-data android:name="android.content.SyncAdapter"
         android:resource="@xml/syncadapter" />
     </service>
-     -->
+    
     
     <activity
       android:name="cz.xsendl00.synccontact.AddServerActivity"

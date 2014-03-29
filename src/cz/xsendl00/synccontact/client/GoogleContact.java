@@ -6,9 +6,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import android.os.Bundle;
+import android.provider.ContactsContract.Contacts;
 
+import com.unboundid.ldap.sdk.AddRequest;
 import com.unboundid.ldap.sdk.ReadOnlyEntry;
+import com.unboundid.ldif.LDIFException;
 
+import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.utils.Constants;
 
 public class GoogleContact extends InetOrgPerson {
@@ -132,6 +136,8 @@ public class GoogleContact extends InetOrgPerson {
     }*/
     return c;
   }
+  
+  
 
 
   public String getAdditionalName() {

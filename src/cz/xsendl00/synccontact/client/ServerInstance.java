@@ -13,6 +13,7 @@ import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.ResultCode;
 import com.unboundid.ldap.sdk.extensions.StartTLSExtendedRequest;
 import com.unboundid.util.ssl.SSLUtil;
+import com.unboundid.util.ssl.TrustAllTrustManager;
 
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.utils.Constants;
@@ -74,7 +75,7 @@ public class ServerInstance implements Serializable {
 
     if (accountData.getEncryption() == Constants.STARTTLS_INT) {
       Log.d(TAG, "Trying to connect with: STARTLS");
-      final SSLUtil sslUtil = new SSLUtil(new MyTrustManager(context.getFilesDir().getPath().toString() + Constants.CERT_NAME, handler, context));
+      final SSLUtil sslUtil = new SSLUtil(new TrustAllTrustManager());//new MyTrustManager(context.getFilesDir().getPath().toString() + Constants.CERT_NAME, handler, context));
       try {
         final ExtendedResult r = conn.processExtendedOperation(new StartTLSExtendedRequest(sslUtil.createSSLContext()));
         if (r.getResultCode() != ResultCode.SUCCESS) {

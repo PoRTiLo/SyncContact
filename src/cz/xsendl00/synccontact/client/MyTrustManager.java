@@ -156,7 +156,7 @@ public final class MyTrustManager implements X509TrustManager {
    *
    * @throws  IOException  If a problem occurs.
    */
-  private void writeCacheFile() throws IOException {
+  private void writeCacheFile() {
     
     final File tempFile = new File(acceptedCertsFile + ".new");
     Log.d("info", tempFile.getAbsolutePath());
@@ -168,9 +168,18 @@ public final class MyTrustManager implements X509TrustManager {
         w.write(certBytes);
         w.newLine();
       }
+
+    } catch (IOException e) {
+      Log.e("errrrrrrrrrrrrrrrrrro", e.toString());
+      e.printStackTrace();
     } finally {
       if (w != null) {
-        w.close();
+        try {
+          w.close();
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
       }
     }
 

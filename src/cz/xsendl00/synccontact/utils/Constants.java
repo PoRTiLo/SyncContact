@@ -3,6 +3,10 @@ package cz.xsendl00.synccontact.utils;
 
 public class Constants {
   
+  /* Name of setting file */
+  public static final String PREFS_NAME = "SyncContactSetting";
+  public static final String SET_SYNC_CONTACT = "SetSyncContact";
+  
   public static final String ACCOUNT_TYPE = "cz.xsendl00.synccontact";
 
   /**
@@ -131,4 +135,12 @@ public class Constants {
   public static final String PAR_SEARCHFILTER = "searchFilter";
   public static final String PAR_BASEDN = "baseDN";
   public static final String PAR_MAPPING = "map_";
+  
+  /**/
+  public static final String DN = "dn";
+  public static final String OBJECT_CLASS_GOOGLE = "objectClass: googleContact";
+  public static final String OBJECT_CLASS_INET = "objectClass: inetOrgPerson";
+  public static final String OBJECT_CLASS_ORG ="objectClass: organizationalPerson";
+  public static final String OBJECT_CLASS_PERSON ="objectClass: person";
+  public static final String OBJECT_CLASS_TOP = "objectClass: top";
 }

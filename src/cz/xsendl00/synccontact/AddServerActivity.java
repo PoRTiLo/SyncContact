@@ -40,7 +40,7 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
   
   private static final String TAG = "AddServerActivity";
 
-  public static final String HOST = "192.168.0.103";
+  public static final String HOST = "192.168.0.102";
   public static final String DN = "cn=admin,dc=synccontact,dc=xsendl00,dc=cz";
   public static final String PASS = "synccontact";
   
@@ -363,6 +363,7 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     } else {
       accountManager.setPassword(account, accountData.getPassword());
     }
+    ServerUtilities.updateContacts(new ServerInstance(accountData), accountData, handler, AddServerActivity.this);
     
     final Intent intent = new Intent();
     authToken = accountData.getPassword();
