@@ -19,24 +19,22 @@ public class ContactTabListener<T extends Fragment> implements TabListener {
     * @param clz  The fragment's Class, used to instantiate the fragment
     */
   public ContactTabListener(Activity activity, String tag, Class<T> clz) {
-      mActivity = activity;
-      mTag = tag;
-      mClass = clz;
+    mActivity = activity;
+    mTag = tag;
+    mClass = clz;
   }
-
-  /* The following are each of the ActionBar.TabListener callbacks */
 
   @Override
   public void onTabSelected(Tab tab, FragmentTransaction ft) {
-      // Check if the fragment is already initialized
-      if (mFragment == null) {
-          // If not, instantiate and add it to the activity
-          mFragment = Fragment.instantiate(mActivity, mClass.getName());
-          ft.add(android.R.id.content, mFragment, mTag);
-      } else {
-          // If it exists, simply attach it in order to show it
-          ft.attach(mFragment);
-      }
+    // Check if the fragment is already initialized
+    if (mFragment == null) {
+      // If not, instantiate and add it to the activity
+      mFragment = Fragment.instantiate(mActivity, mClass.getName());
+      ft.add(android.R.id.content, mFragment, mTag);
+    } else {
+      // If it exists, simply attach it in order to show it
+      ft.attach(mFragment);
+    }
   }
 
   @Override
@@ -47,10 +45,5 @@ public class ContactTabListener<T extends Fragment> implements TabListener {
   }
 
   @Override
-  public void onTabReselected(Tab tab, FragmentTransaction ft) {
-    // TODO Auto-generated method stub
-    
-  }
-
- 
+  public void onTabReselected(Tab tab, FragmentTransaction ft) {}
 }
