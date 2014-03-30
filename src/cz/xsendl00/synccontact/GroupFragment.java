@@ -6,30 +6,29 @@ import java.util.LinkedHashMap;
 import com.xsendl00.synccontact.R;
 
 import cz.xsendl00.synccontact.database.GroupSQL;
-import cz.xsendl00.synccontact.utils.ContactShow;
-import cz.xsendl00.synccontact.utils.Group;
+import cz.xsendl00.synccontact.utils.ContactRow;
+import cz.xsendl00.synccontact.utils.GroupRow;
 
-import android.database.Cursor;
+import android.content.Intent;
 import android.os.Bundle;
-import android.provider.ContactsContract.CommonDataKinds;
-import android.provider.ContactsContract.Data;
-import android.provider.ContactsContract.CommonDataKinds.GroupMembership;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.AdapterView.OnItemClickListener;
 
 
 public class GroupFragment extends Fragment implements android.widget.CompoundButton.OnCheckedChangeListener {
 
   private static final String TAG = "GroupFrgment";
-  private LinkedHashMap<Group, ArrayList<ContactShow>> groupMemberList;
+  private LinkedHashMap<GroupRow, ArrayList<ContactRow>> groupMemberList;
   private ListView listRow;
-  private RowAdapter adapter;
-  private ArrayList<Group> groupsList;
+  private RowGroupAdapter adapter;
+  private ArrayList<GroupRow> groupsList;
   ArrayList<String> checkedValue;
   private static Integer i = 0;
 
@@ -45,48 +44,44 @@ public class GroupFragment extends Fragment implements android.widget.CompoundBu
   
   public void onResume() {
     super.onResume();
-    listRow =  (ListView)getActivity().findViewById(R.id.list);
+    listRow =  (ListView)getActivity().findViewById(R.id.list_group);
     
-    adapter = new RowAdapter(getActivity().getApplicationContext(), this.groupsList, this);
+    adapter = new RowGroupAdapter(getActivity().getApplicationContext(), this.groupsList, this);
     
     listRow.setAdapter(adapter);
+    
+    if (listRow != null) {
+      listRow.setOnItemClickListener(new OnItemClickListener() {
+       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+         Log.i(TAG, "ciclick on position: "+position);
+         Log.i(TAG, groupsList.get(position).getName());
+         Log.i(TAG, (groupMemberList.get(groupsList.get(position)).toString()));
+         // TODO: show list of contact
+         //   Intent i = new Intent(getApplicationContext(), ShowSightsDetail.class);
+         //   i.putExtra("sight_id", sight_id);
+         //   startActivity(i);
+          }
+      });
+  }
   }
   
   private void fetchGroup() {
     GroupSQL db = new GroupSQL(getActivity());
-    
     db.fillGroups(this.groupsList);
-    
   }
   
   private void initContactList() {
     
     Log.i(TAG, "init" + i.toString());
     i++;
-    groupMemberList = new LinkedHashMap<Group,ArrayList<ContactShow>>();
-    this.groupsList = Group.fetchGroups(getActivity().getContentResolver());
-    for (Group group : groupsList) {
-      ArrayList<ContactShow> groupMembers =new ArrayList<ContactShow>();
-      groupMembers.addAll(fetchGroupMembers(group.getId()));
+    groupMemberList = new LinkedHashMap<GroupRow,ArrayList<ContactRow>>();
+    this.groupsList = GroupRow.fetchGroups(getActivity().getContentResolver());
+    for (GroupRow group : groupsList) {
+      ArrayList<ContactRow> groupMembers =new ArrayList<ContactRow>();
+      groupMembers.addAll(ContactRow.fetchGroupMembers(getActivity().getContentResolver(), group.getId()));
       group.setSize(groupMembers.size());
       groupMemberList.put(group, groupMembers);
     }
-  }
-  
-  private ArrayList<ContactShow> fetchGroupMembers(String groupId){
-    ArrayList<ContactShow> groupMembers = new ArrayList<ContactShow>();
-    String where = CommonDataKinds.GroupMembership.GROUP_ROW_ID + "=" +groupId + " AND " + 
-        CommonDataKinds.GroupMembership.MIMETYPE + "='" + CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE + "'";
-    String[] projection = new String[]{GroupMembership.RAW_CONTACT_ID, Data.DISPLAY_NAME};
-    Cursor cursor = getActivity().getContentResolver().query(Data.CONTENT_URI, projection, where,null, Data.DISPLAY_NAME + " COLLATE LOCALIZED ASC");
-    while (cursor.moveToNext()) {
-      ContactShow contactShow = new ContactShow();
-      contactShow.setName(cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME)));
-      contactShow.setId(cursor.getString(cursor.getColumnIndex(GroupMembership.RAW_CONTACT_ID)));
-      groupMembers.add(contactShow);
-    } 
-    cursor.close();
-    return groupMembers;
   }
 
   @Override
@@ -94,7 +89,7 @@ public class GroupFragment extends Fragment implements android.widget.CompoundBu
     int pos = (Integer)buttonView.getTag();
     //Log.i(TAG, "Pos ["+pos+"]");         
     if (pos != ListView.INVALID_POSITION) {
-      Group p = groupsList.get(pos);
+      GroupRow p = groupsList.get(pos);
       if (p.isSync() != isChecked) {
         GroupSQL db = new GroupSQL(getActivity());
         p.setSync(isChecked);

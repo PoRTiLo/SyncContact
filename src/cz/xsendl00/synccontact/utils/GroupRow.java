@@ -8,22 +8,22 @@ import android.content.ContentResolver;
 import android.database.Cursor;
 import android.provider.ContactsContract;
 
-public class Group {
+public class GroupRow {
   private String name;
   private String id;
   private Integer idTable;
   private Integer size;
   private Boolean sync;
   
-  public Group() {
+  public GroupRow() {
     this(null, null, null, false, null);
   }
   
-  public Group(String name, String id) {
+  public GroupRow(String name, String id) {
     this(name, id, null, false, null);
   }
   
-  public Group(String name, String id, Integer size, boolean sync, Integer idTable) {
+  public GroupRow(String name, String id, Integer size, boolean sync, Integer idTable) {
     this.setId(id);
     this.setName(name);
     this.setSize(size);
@@ -61,12 +61,12 @@ public class Group {
     
   }
   
-  public static ArrayList<Group> fetchGroups(ContentResolver contentResolver){
+  public static ArrayList<GroupRow> fetchGroups(ContentResolver contentResolver){
     String[] projection = new String[]{ContactsContract.Groups._ID, ContactsContract.Groups.TITLE};
     Cursor cursor = contentResolver.query(ContactsContract.Groups.CONTENT_URI, projection, null, null, null);
-    ArrayList<Group> groupsList = new ArrayList<Group>();
+    ArrayList<GroupRow> groupsList = new ArrayList<GroupRow>();
     while (cursor.moveToNext()) {
-      groupsList.add(new Group(
+      groupsList.add(new GroupRow(
         cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.TITLE)), 
         cursor.getString(cursor.getColumnIndex(ContactsContract.Groups._ID))
         )
@@ -74,9 +74,9 @@ public class Group {
     }
     cursor.close();
     
-    Collections.sort(groupsList,new Comparator<Group>() {
+    Collections.sort(groupsList,new Comparator<GroupRow>() {
       @Override
-      public int compare(Group lhs, Group rhs) {
+      public int compare(GroupRow lhs, GroupRow rhs) {
         return rhs.getName().compareTo(lhs.getName()) < 0 ? 0 : -1;
       }
     });

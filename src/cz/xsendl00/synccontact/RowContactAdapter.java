@@ -2,32 +2,32 @@ package cz.xsendl00.synccontact;
 
 import java.util.ArrayList;
 
-import com.xsendl00.synccontact.R;
-import cz.xsendl00.synccontact.utils.Group;
-
 import android.app.Activity;
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
-public class RowAdapter extends BaseAdapter {
+import com.xsendl00.synccontact.R;
+
+import cz.xsendl00.synccontact.utils.ContactRow;
+
+
+public class RowContactAdapter extends BaseAdapter {
 
   private static final String TAG = "RowADAPTER";
   
   private Context context;
-  private ArrayList<Group> data;
+  private ArrayList<ContactRow> data;
   ViewHolder holder;
-  GroupFragment a;
+  ContactFragment par;
   
-  public RowAdapter(Context context, ArrayList<Group> data, GroupFragment a) {
+  public RowContactAdapter(Context context, ArrayList<ContactRow> data, ContactFragment par) {
     super();
-    this.a = a;
+    this.par = par;
     this.data = data;
     this.context = context;
   }
@@ -46,8 +46,8 @@ public class RowAdapter extends BaseAdapter {
   
   /*private view holder class*/
   private class ViewHolder {
-    TextView groupName;
-    TextView groupSize;
+    TextView contactName;
+    TextView contactGroup;
     CheckBox checkSync;
   }
 
@@ -57,21 +57,21 @@ public class RowAdapter extends BaseAdapter {
     LayoutInflater inflater = (LayoutInflater)context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
     
     if (convertView == null) {
-      convertView = inflater.inflate(R.layout.row_group, null);
+      convertView = inflater.inflate(R.layout.row_contact, null);
       holder = new ViewHolder();
-      holder.groupName = (TextView)convertView.findViewById(R.id.row_group_name);
-      holder.groupSize = (TextView)convertView.findViewById(R.id.row_group_size);
-      holder.checkSync = (CheckBox)convertView.findViewById(R.id.row_group_sync);
+      holder.contactName = (TextView)convertView.findViewById(R.id.row_contact_name);
+      holder.contactGroup = (TextView)convertView.findViewById(R.id.row_conatct_in_group);
+      holder.checkSync = (CheckBox)convertView.findViewById(R.id.row_contact_sync);
       convertView.setTag(holder);
     } else {
       holder = (ViewHolder) convertView.getTag();
     }
     holder.checkSync.setTag(position);
-    holder.checkSync.setOnCheckedChangeListener( (GroupFragment) a);
-    Group group = (Group) getItem(position);
-    holder.groupName.setText(group.getName());
-    holder.groupSize.setText("Number of contact: " + group.getSize());
-    holder.checkSync.setChecked(group.isSync());
+    holder.checkSync.setOnCheckedChangeListener( (ContactFragment) par);
+    ContactRow contact = (ContactRow) getItem(position);
+    holder.contactName.setText(contact.getName());
+    //holder.groupSize.setText("Number of contact: " + group.getSize());
+    holder.checkSync.setChecked(contact.isSync());
     return convertView;
   }
 }

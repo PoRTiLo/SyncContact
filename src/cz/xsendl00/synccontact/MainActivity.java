@@ -9,8 +9,8 @@ import java.util.LinkedHashMap;
 import com.xsendl00.synccontact.R;
 
 import cz.xsendl00.synccontact.utils.Constants;
-import cz.xsendl00.synccontact.utils.ContactShow;
-import cz.xsendl00.synccontact.utils.Group;
+import cz.xsendl00.synccontact.utils.ContactRow;
+import cz.xsendl00.synccontact.utils.GroupRow;
 
 
 import android.app.Activity;
@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
   private Button help;
   private Boolean setsyntContact;
   
-  private LinkedHashMap<Group, ArrayList<ContactShow>> groupList;
+  private LinkedHashMap<GroupRow, ArrayList<ContactRow>> groupList;
 
   private static final String TAG = "MainActivity";
   

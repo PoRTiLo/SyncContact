@@ -3,7 +3,7 @@ package cz.xsendl00.synccontact.database;
 import java.util.ArrayList;
 import java.util.List;
 
-import cz.xsendl00.synccontact.utils.Group;
+import cz.xsendl00.synccontact.utils.GroupRow;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -50,7 +50,7 @@ public class GroupSQL extends SQLiteOpenHelper {
   }
   
   //Adding new group
-  public void addContact(Group group) {
+  public void addContact(GroupRow group) {
     SQLiteDatabase db = this.getWritableDatabase();
     
     ContentValues values = new ContentValues();
@@ -65,7 +65,7 @@ public class GroupSQL extends SQLiteOpenHelper {
   }
 
   //Getting single group
-  public Group getGroup(int id) {
+  public GroupRow getGroup(int id) {
     SQLiteDatabase db = this.getReadableDatabase();
     
     Cursor cursor = db.query(GROUP_TABLE_NAME, new String[] { GROUP_KEY_ID,
@@ -74,18 +74,18 @@ public class GroupSQL extends SQLiteOpenHelper {
     if (cursor != null) {
         cursor.moveToFirst();
     }
-    return new Group(cursor.getString(1), cursor.getString(4), cursor.getInt(2), cursor.getInt(3)>0, cursor.getInt(0));
+    return new GroupRow(cursor.getString(1), cursor.getString(4), cursor.getInt(2), cursor.getInt(3)>0, cursor.getInt(0));
   }
 
   //Getting All Groups
-  public List<Group> getAllGroups() {
-    List<Group> groupList = new ArrayList<Group>();
+  public List<GroupRow> getAllGroups() {
+    List<GroupRow> groupList = new ArrayList<GroupRow>();
     String selectQuery = "SELECT  * FROM " + GROUP_TABLE_NAME;
     SQLiteDatabase db = this.getWritableDatabase();
     Cursor cursor = db.rawQuery(selectQuery, null);
     if (cursor.moveToFirst()) {
       do {
-        Group group = new Group();
+        GroupRow group = new GroupRow();
         group.setIdTable(cursor.getInt(0));
         group.setName(cursor.getString(1));
         group.setSize(cursor.getInt(2));
@@ -108,7 +108,7 @@ public class GroupSQL extends SQLiteOpenHelper {
     return cursor.getCount();
   }
   // Updating single group
-  public int updateContact(Group group) {
+  public int updateContact(GroupRow group) {
     SQLiteDatabase db = this.getWritableDatabase();
     
     ContentValues values = new ContentValues();
@@ -121,17 +121,17 @@ public class GroupSQL extends SQLiteOpenHelper {
   }
 
   // Deleting single group
-  public void deleteContact(Group group) {
+  public void deleteContact(GroupRow group) {
     SQLiteDatabase db = this.getWritableDatabase();
     db.delete(GROUP_TABLE_NAME, GROUP_KEY_ID + " = ?", new String[] { String.valueOf(group.getIdTable()) });
     db.close();
   }
   
-  public void fillGroups(ArrayList<Group> groups) {
-    List<Group> grTable = getAllGroups();
-    for (Group gr : groups) {
+  public void fillGroups(ArrayList<GroupRow> groups) {
+    List<GroupRow> grTable = getAllGroups();
+    for (GroupRow gr : groups) {
       boolean found = false;
-      for (Group grT : grTable) {
+      for (GroupRow grT : grTable) {
         //Log.i(TAG, gr.getId() +":"+ grT.getId());
         if (gr.getId().equals(grT.getId())) {
           gr.setSync(grT.isSync());

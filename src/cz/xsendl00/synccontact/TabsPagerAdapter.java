@@ -14,7 +14,7 @@ public class TabsPagerAdapter extends FragmentPagerAdapter {
   public Fragment getItem(int index) {
     switch (index) {
       case 0: return new GroupFragment();
-      case 1: return new ContactFragmnet();
+      case 1: return new ContactFragment();
       default: return null;
     }
   }
