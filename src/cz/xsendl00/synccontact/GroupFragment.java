@@ -5,7 +5,7 @@ import java.util.LinkedHashMap;
 
 import com.xsendl00.synccontact.R;
 
-import cz.xsendl00.synccontact.database.GroupSQL;
+import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
 
@@ -62,11 +62,11 @@ public class GroupFragment extends Fragment implements android.widget.CompoundBu
          //   startActivity(i);
           }
       });
-  }
+    }
   }
   
   private void fetchGroup() {
-    GroupSQL db = new GroupSQL(getActivity());
+    HelperSQL db = new HelperSQL(getActivity());
     db.fillGroups(this.groupsList);
   }
   
@@ -91,7 +91,7 @@ public class GroupFragment extends Fragment implements android.widget.CompoundBu
     if (pos != ListView.INVALID_POSITION) {
       GroupRow p = groupsList.get(pos);
       if (p.isSync() != isChecked) {
-        GroupSQL db = new GroupSQL(getActivity());
+        HelperSQL db = new HelperSQL(getActivity());
         p.setSync(isChecked);
         db.updateContact(p);
       }

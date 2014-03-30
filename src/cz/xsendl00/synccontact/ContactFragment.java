@@ -1,13 +1,11 @@
 package cz.xsendl00.synccontact;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import com.xsendl00.synccontact.R;
 
-import cz.xsendl00.synccontact.database.GroupSQL;
+import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.ContactRow;
-import cz.xsendl00.synccontact.utils.GroupRow;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -32,11 +30,17 @@ public class ContactFragment extends Fragment implements android.widget.Compound
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View rootView = inflater.inflate(R.layout.fragment_contact, container, false);
     initContact();
+    fetchContact();
     return rootView;
   }
 
   private void initContact() {
     contactList = ContactRow.fetchAllContact(getActivity().getContentResolver());
+  }
+  
+  private void fetchContact() {
+    HelperSQL db = new HelperSQL(getActivity());
+    db.fillContacts(this.contactList);
   }
   
   public void onResume() {
@@ -68,9 +72,9 @@ public class ContactFragment extends Fragment implements android.widget.Compound
     if (pos != ListView.INVALID_POSITION) {
       ContactRow p = contactList.get(pos);
       if (p.isSync() != isChecked) {
-        //GroupSQL db = new GroupSQL(getActivity());
+        HelperSQL db = new HelperSQL(getActivity());
         p.setSync(isChecked);
-        //db.updateContact(p);
+        db.updateContact(p);
       }
     } 
     //Log.i(TAG, groupsList.toString());

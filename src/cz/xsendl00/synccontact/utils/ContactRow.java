@@ -23,6 +23,10 @@ public class ContactRow {
     this(id, name, false, null, null);
   }
   
+  public ContactRow(String id, String name, Boolean sync, Integer idTable) {
+    this(id, name, sync, null, idTable);
+  }
+  
   public ContactRow(String id, String name, Boolean sync, String[] groups, Integer idTable) {
     this.id = id;
     this.name = name;
