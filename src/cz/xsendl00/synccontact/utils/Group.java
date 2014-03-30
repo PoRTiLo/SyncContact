@@ -7,23 +7,28 @@ import java.util.Comparator;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.provider.ContactsContract;
-import android.util.Log;
 
 public class Group {
   private String name;
   private String id;
+  private Integer idTable;
   private Integer size;
+  private Boolean sync;
   
-  private static final String TAG = "Group";
-  
-  public Group(String name, String id) {
-    this(name, id, null);
+  public Group() {
+    this(null, null, null, false, null);
   }
   
-  public Group(String name, String id, Integer size) {
+  public Group(String name, String id) {
+    this(name, id, null, false, null);
+  }
+  
+  public Group(String name, String id, Integer size, boolean sync, Integer idTable) {
     this.setId(id);
     this.setName(name);
     this.setSize(size);
+    this.sync = sync;
+    this.setIdTable(idTable);
   }
 
   public String getName() {
@@ -52,7 +57,7 @@ public class Group {
   
   @Override
   public String toString() {
-    return "Id: "+id + ", name: " + name + ", zise: " + size;
+    return "Id: "+id + ", name: " + name + ", size: " + size + ", sync: " + sync + ", tableId:" + idTable;
     
   }
   
@@ -75,7 +80,22 @@ public class Group {
         return rhs.getName().compareTo(lhs.getName()) < 0 ? 0 : -1;
       }
     });
-    Log.i(TAG, groupsList.toString());
     return groupsList;
+  }
+
+  public Boolean isSync() {
+    return sync;
+  }
+
+  public void setSync(Boolean sync) {
+    this.sync = sync;
+  }
+
+  public Integer getIdTable() {
+    return idTable;
+  }
+
+  public void setIdTable(Integer idTable) {
+    this.idTable = idTable;
   }
 }

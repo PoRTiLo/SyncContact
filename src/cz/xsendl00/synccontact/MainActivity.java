@@ -47,49 +47,7 @@ public class MainActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
     loadPreferences();
-    //pokus();
-    initContactList();
-    //Log.i(TAG, groupList.toString());
   }
-  
-  private ArrayList<ContactShow> fetchGroupMembers(String groupId){
-    ArrayList<ContactShow> groupMembers = new ArrayList<ContactShow>();
-    String where = CommonDataKinds.GroupMembership.GROUP_ROW_ID + "=" +groupId + " AND " + 
-        CommonDataKinds.GroupMembership.MIMETYPE + "='" + CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE + "'";
-    String[] projection = new String[]{GroupMembership.RAW_CONTACT_ID, Data.DISPLAY_NAME};
-    Cursor cursor = getContentResolver().query(Data.CONTENT_URI, projection, where,null, Data.DISPLAY_NAME + " COLLATE LOCALIZED ASC");
-    while (cursor.moveToNext()) {
-      ContactShow contactShow = new ContactShow();
-      contactShow.setName(cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME)));
-      contactShow.setId(cursor.getString(cursor.getColumnIndex(GroupMembership.RAW_CONTACT_ID)));
-      /*Cursor phoneFetchCursor = getContentResolver().query(Phone.CONTENT_URI,new String[]{Phone.NUMBER,Phone.DISPLAY_NAME,Phone.TYPE}, 
-          Phone.CONTACT_ID+"=" + contactShow.getId(), null, null);
-      int i = 0;
-      while (phoneFetchCursor.moveToNext()) {
-        Log.i(TAG, "tady:"+i++ + phoneFetchCursor.getString(phoneFetchCursor.getColumnIndex(Phone.DISPLAY_NAME)) + ":" +cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME)));
-        contactShow.setPhoneNumber(phoneFetchCursor.getString(phoneFetchCursor.getColumnIndex(Phone.NUMBER)));
-        contactShow.setPhoneDisplayName(phoneFetchCursor.getString(phoneFetchCursor.getColumnIndex(Phone.DISPLAY_NAME)));
-        contactShow.setPhoneType(phoneFetchCursor.getString(phoneFetchCursor.getColumnIndex(Phone.TYPE)));
-      }
-      phoneFetchCursor.close();*/
-      groupMembers.add(contactShow);
-    } 
-    cursor.close();
-    return groupMembers;
-  }
-  
-  private void initContactList(){
-    groupList = new LinkedHashMap<Group,ArrayList<ContactShow>>();
-    ArrayList<Group> groupsList = Group.fetchGroups(getContentResolver());
-      for (Group group : groupsList) {;
-        ArrayList<ContactShow> groupMembers =new ArrayList<ContactShow>();
-        groupMembers.addAll(fetchGroupMembers(group.getId()));
-        group.setSize(groupMembers.size());
-        groupList.put(group, groupMembers);
-      }
-}
-  
-  
   
   @Override
   public void onWindowFocusChanged(boolean hasFocus) {
@@ -146,4 +104,10 @@ public class MainActivity extends Activity {
 	  Intent intent = new Intent(this, ContactsListActivity.class);
 	  startActivity(intent);
   }
+  
+  public void startHelpActivity(View view) {
+    Intent intent = new Intent(this, SelectContactListActivity.class);
+    startActivity(intent);
+  }
+  
 }

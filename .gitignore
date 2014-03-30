@@ -23,5 +23,8 @@ local.properties
 proguard/
 
 #lib source
-libs/src/
-libs/docs/
+libs/unboudid/
+libs/v4/
+libs/*properties
+
+*~
