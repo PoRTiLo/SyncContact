@@ -1,5 +1,15 @@
 package cz.xsendl00.synccontact.authenticator;
 
+import java.io.IOException;
+
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
+import android.content.Context;
+import android.util.Log;
+import cz.xsendl00.synccontact.utils.Constants;
+
 public class AccountData {
   private String name;
   private String password;
@@ -96,5 +106,39 @@ public class AccountData {
 
   public void setSearchFilter(String searchFilter) {
     this.searchFilter = searchFilter;
+  }
+  
+  public String toString() {
+    return  "name: " + name + ", password: no show :), port: " + port + ", host: " + host + ", baseDn: " + baseDn + 
+        ", encryption: " + encryption + ", newAccount: " + newAccount + ", filter: " + searchFilter;
+  }
+  
+  public static AccountData getAccountData(Context context) {
+    AccountData accountData = new AccountData();
+    AccountManager manager = AccountManager.get(context);
+    Account[] accounts = manager.getAccountsByType(Constants.ACCOUNT_TYPE);
+    // TODO : mel by byt jen jeden, ale rasdsi poresit
+    for (Account account : accounts) {
+      try {
+        accountData.setPassword(manager.blockingGetAuthToken(account, Constants.AUTHTOKEN_TYPE, true));
+        accountData.setHost(manager.getUserData(account, Constants.PAR_HOST));
+        accountData.setName(manager.getUserData(account, Constants.PAR_USERNAME));
+        accountData.setSearchFilter(manager.getUserData(account, Constants.PAR_SEARCHFILTER));
+        accountData.setBaseDn(manager.getUserData(account, Constants.PAR_BASEDN));
+        accountData.setPort(Integer.parseInt(manager.getUserData(account, Constants.PAR_PORT)));
+        accountData.setEncryption(Integer.parseInt(manager.getUserData(account, Constants.PAR_ENCRYPTION)));
+      } catch (OperationCanceledException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch (AuthenticatorException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+    Log.i("AccountData", accountData.toString());
+    return accountData;
   }
 }

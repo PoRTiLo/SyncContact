@@ -28,6 +28,7 @@ import cz.xsendl00.synccontact.AddServerActivity;
 import cz.xsendl00.synccontact.adapter.SyncService;
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.utils.Constants;
+import cz.xsendl00.synccontact.utils.Mapping;
 
 public class ServerUtilities {
 	
@@ -92,6 +93,19 @@ public class ServerUtilities {
     }
     return null;
     
+  }
+  
+  
+  
+  public static void addContactsToServer(final ServerInstance ldapServer, Handler handler, final Context context) {
+    LDAPConnection connection = null;
+    try {
+      connection = ldapServer.getConnection(handler, context);
+      connection.add(Mapping.mappingRequest(ldapServer.getAccountdData().getBaseDn()));
+    } catch (LDAPException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
   public static void updateContacts(final ServerInstance ldapServer, final AccountData accountData, Handler handler, final Context context) {

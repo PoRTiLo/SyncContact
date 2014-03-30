@@ -111,6 +111,7 @@ public class HelperSQL extends SQLiteOpenHelper {
         groupList.add(group);
       } while (cursor.moveToNext());
     }
+    db.close();
     return groupList;
   }
 
@@ -121,6 +122,7 @@ public class HelperSQL extends SQLiteOpenHelper {
     Cursor cursor = db.rawQuery(countQuery, null);
     cursor.close();
 
+    db.close();
     return cursor.getCount();
   }
 
@@ -134,7 +136,9 @@ public class HelperSQL extends SQLiteOpenHelper {
     values.put(GROUP_KEY_ID_GROUP, group.getId());
     values.put(GROUP_KEY_SIZE, group.getSize());
     //Log.i(TAG, "update:" + group.toString());
-    return db.update(GROUP_TABLE_NAME, values, GROUP_KEY_ID + " = ?", new String[] { String.valueOf(group.getIdTable()) });
+    int res = db.update(GROUP_TABLE_NAME, values, GROUP_KEY_ID + " = ?", new String[] { String.valueOf(group.getIdTable()) });
+    db.close();
+    return res;
   }
 
   // Deleting single group
@@ -205,6 +209,7 @@ public class HelperSQL extends SQLiteOpenHelper {
         contactList.add(new ContactRow(cursor.getString(3), cursor.getString(1), cursor.getInt(2)>0, cursor.getInt(0)));
       } while (cursor.moveToNext());
     }
+    db.close();
     return contactList;
   }
   
@@ -227,7 +232,9 @@ public class HelperSQL extends SQLiteOpenHelper {
     values.put(CONTACT_KEY_SYNC, contact.isSync());
     values.put(CONTACT_KEY_ID_CONTACT, contact.getId());
     //Log.i(TAG, "update:" + group.toString());
-    return db.update(CONTACT_TABLE_NAME, values, CONTACT_KEY_ID + " = ?", new String[] { String.valueOf(contact.getIdTable()) });
+    int res = db.update(CONTACT_TABLE_NAME, values, CONTACT_KEY_ID + " = ?", new String[] { String.valueOf(contact.getIdTable()) });
+    db.close();
+    return res;
   }
   
   // Deleting single contact

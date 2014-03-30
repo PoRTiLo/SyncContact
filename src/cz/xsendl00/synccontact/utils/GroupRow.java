@@ -7,6 +7,7 @@ import java.util.Comparator;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.provider.ContactsContract;
+import android.util.Log;
 
 public class GroupRow {
   private String name;
@@ -14,6 +15,7 @@ public class GroupRow {
   private Integer idTable;
   private Integer size;
   private Boolean sync;
+  private static ArrayList<GroupRow> groups = null;
   
   public GroupRow() {
     this(null, null, null, false, null);
@@ -61,26 +63,28 @@ public class GroupRow {
     
   }
   
+  // TODO: list init only once, but what will be happen if add new group?
   public static ArrayList<GroupRow> fetchGroups(ContentResolver contentResolver){
-    String[] projection = new String[]{ContactsContract.Groups._ID, ContactsContract.Groups.TITLE};
-    Cursor cursor = contentResolver.query(ContactsContract.Groups.CONTENT_URI, projection, null, null, null);
-    ArrayList<GroupRow> groupsList = new ArrayList<GroupRow>();
-    while (cursor.moveToNext()) {
-      groupsList.add(new GroupRow(
-        cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.TITLE)), 
-        cursor.getString(cursor.getColumnIndex(ContactsContract.Groups._ID))
-        )
-      );
-    }
-    cursor.close();
-    
-    Collections.sort(groupsList,new Comparator<GroupRow>() {
-      @Override
-      public int compare(GroupRow lhs, GroupRow rhs) {
-        return rhs.getName().compareTo(lhs.getName()) < 0 ? 0 : -1;
+    if (groups == null) {
+      String[] projection = new String[]{ContactsContract.Groups._ID, ContactsContract.Groups.TITLE};
+      Cursor cursor = contentResolver.query(ContactsContract.Groups.CONTENT_URI, projection, null, null, null);
+      groups = new ArrayList<GroupRow>();
+      while (cursor.moveToNext()) {
+        groups.add(new GroupRow(
+          cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.TITLE)), 
+          cursor.getString(cursor.getColumnIndex(ContactsContract.Groups._ID))
+          )
+        );
       }
-    });
-    return groupsList;
+      cursor.close();
+      Collections.sort(groups,new Comparator<GroupRow>() {
+        @Override
+        public int compare(GroupRow lhs, GroupRow rhs) {
+          return rhs.getName().compareTo(lhs.getName()) < 0 ? 0 : -1;
+        }
+      });
+    }
+    return groups;
   }
 
   public Boolean isSync() {

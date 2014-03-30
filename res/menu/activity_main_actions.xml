@@ -4,19 +4,19 @@
     <item android:id="@+id/action_search"
           android:icon="@drawable/ic_action_search"
           android:title="sear"
-          android:showAsAction="ifRoom"/>
+          android:showAsAction="ifRoom|withText"/>
      
     <!-- Location Found -->
     <item android:id="@+id/action_location_found"
           android:icon="@drawable/ic_action_location_found"
           android:title="found"
-          android:showAsAction="ifRoom" />
+          android:showAsAction="ifRoom|withText" />
      
     <!-- Refresh -->
     <item android:id="@+id/action_refresh"
           android:icon="@drawable/ic_action_refresh"
           android:title="ref"
-          android:showAsAction="ifRoom" />
+          android:showAsAction="ifRoom|withText" />
      
     <!-- Help -->
     <item android:id="@+id/action_help"

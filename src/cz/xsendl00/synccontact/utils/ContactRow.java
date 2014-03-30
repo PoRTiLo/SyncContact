@@ -13,6 +13,7 @@ public class ContactRow {
   
   private static final String TAG = "ContactShow";
   
+  private static ArrayList<ContactRow> contacts = null;
   private String name;
   private String id;
   private Boolean sync;
@@ -72,27 +73,26 @@ public class ContactRow {
   }
   
   public static ArrayList<ContactRow> fetchAllContact(ContentResolver contentResolver) {
-    ArrayList<ContactRow> contacts = new ArrayList<ContactRow>();
-    
-    String[] projection = new String[]{GroupMembership.RAW_CONTACT_ID, Data.DISPLAY_NAME, CommonDataKinds.GroupMembership.GROUP_ROW_ID };
-    Cursor cursor = contentResolver.query(Data.CONTENT_URI, projection, null, null, Data.DISPLAY_NAME + " COLLATE LOCALIZED ASC");
-    while (cursor.moveToNext()) {
-      ContactRow contactShow = new ContactRow(cursor.getString(cursor.getColumnIndex(GroupMembership.RAW_CONTACT_ID)),
-          cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME)));
-      boolean found = false;
-      for (ContactRow co : contacts) {
-        if ( co.getId().equals(contactShow.getId())) {
-          found = true;
-        } else {
-          
+    if (contacts == null) {
+      contacts = new ArrayList<ContactRow>(); 
+      String[] projection = new String[]{GroupMembership.RAW_CONTACT_ID, Data.DISPLAY_NAME, CommonDataKinds.GroupMembership.GROUP_ROW_ID };
+      Cursor cursor = contentResolver.query(Data.CONTENT_URI, projection, null, null, Data.DISPLAY_NAME + " COLLATE LOCALIZED ASC");
+      while (cursor.moveToNext()) {
+        ContactRow contactShow = new ContactRow(cursor.getString(cursor.getColumnIndex(GroupMembership.RAW_CONTACT_ID)),
+            cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME)));
+        boolean found = false;
+        for (ContactRow co : contacts) {
+          if ( co.getId().equals(contactShow.getId())) {
+            found = true;
+          } else {
+            
+          }
+        }
+        if( !found) {
+          contacts.add(contactShow);
         }
       }
-      if( !found) {
-        contacts.add(contactShow);
-      }
-      //Log.i(TAG, cursor.getString(cursor.getColumnIndex(CommonDataKinds.GroupMembership.GROUP_ROW_ID)));
     }
-    //Log.i(TAG, "all user:" + contacts.toString());
     Log.i(TAG, "all user:" + contacts.size());
     return contacts;
   }

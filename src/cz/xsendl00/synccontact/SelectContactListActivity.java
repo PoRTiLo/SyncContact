@@ -2,18 +2,32 @@ package cz.xsendl00.synccontact;
 
 import com.xsendl00.synccontact.R;
 
+import cz.xsendl00.synccontact.authenticator.AccountData;
+import cz.xsendl00.synccontact.client.ServerInstance;
+import cz.xsendl00.synccontact.client.ServerUtilities;
+import cz.xsendl00.synccontact.utils.Constants;
+
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
 public class SelectContactListActivity extends FragmentActivity implements ActionBar.TabListener {
 
+  private static final String TAG = "SelectContactListActivity"; 
+  
+  private final Handler handler = new Handler();
   private ActionBar actionBar;
   private ViewPager viewPager;
   private TabsPagerAdapter mAdapter;
@@ -63,7 +77,7 @@ public class SelectContactListActivity extends FragmentActivity implements Actio
     // Take appropriate action for each action item click
     switch (item.getItemId()) {
       case R.id.action_search:
-        // search action
+        sync();
         return true;
       case R.id.action_location_found:
         // location found
@@ -83,8 +97,31 @@ public class SelectContactListActivity extends FragmentActivity implements Actio
     }
   }
 
+  // sync all contact
+  // upload all contact to server
+  private void sync() {
+    UpdateTask rt = new UpdateTask();
+    rt.execute();
+    Log.i(TAG, "sync");
+  }
 
-
+  private class UpdateTask extends AsyncTask<Void, Void, Boolean> {
+    private ProgressDialog progressDialog;
+    @Override
+    protected Boolean doInBackground(Void...params) {
+      ServerUtilities.addContactsToServer(new ServerInstance(AccountData.getAccountData(getApplicationContext())), handler, SelectContactListActivity.this);
+      return true;
+    }
+    protected void onPostExecute(Boolean bool) {
+      progressDialog.dismiss();
+    }
+    
+    protected void onPreExecute() {
+      super.onPreExecute();
+      progressDialog = ProgressDialog.show(SelectContactListActivity.this, "Downloading...","Downloading data from server", true);
+    }
+  }
+  
   @Override
   public void onTabReselected(Tab tab, FragmentTransaction ft) {}
 

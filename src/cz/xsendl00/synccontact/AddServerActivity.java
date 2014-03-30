@@ -10,6 +10,7 @@ import cz.xsendl00.synccontact.client.GoogleContact;
 import cz.xsendl00.synccontact.client.ServerInstance;
 import cz.xsendl00.synccontact.client.ServerUtilities;
 import cz.xsendl00.synccontact.utils.Constants;
+import cz.xsendl00.synccontact.utils.Mapping;
 
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
@@ -254,105 +255,9 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     
     // if new account
     if (accountData.isNewAccount()) {
-      Bundle userData = new Bundle();
-      userData.putString(Constants.PAR_USERNAME, accountData.getName());
-      userData.putString(Constants.PAR_PORT, accountData.getPort().toString());
-      userData.putString(Constants.PAR_HOST, accountData.getHost());
-      userData.putString(Constants.PAR_ENCRYPTION, accountData.getEncryption().toString());
-      userData.putString(Constants.PAR_SEARCHFILTER, accountData.getSearchFilter());
-      userData.putString(Constants.PAR_BASEDN, accountData.getBaseDn());
-      
       GoogleContact gcMapping = new GoogleContact();
       gcMapping.init();
-      // Mappings for LDAP data
-      // person 
-      userData.putString(Constants.PAR_MAPPING + Constants.CN, gcMapping.getCn());
-      userData.putString(Constants.PAR_MAPPING + Constants.SN, gcMapping.getSn());
-      userData.putString(Constants.PAR_MAPPING + Constants.USER_PASSWORD, gcMapping.getUserPassword());
-      userData.putString(Constants.PAR_MAPPING + Constants.TELEPHONE_NUMBER, gcMapping.getTelephoneNumber());
-      userData.putString(Constants.PAR_MAPPING + Constants.SEE_ALSO, gcMapping.getSeeAlso());
-      userData.putString(Constants.PAR_MAPPING + Constants.DESCRIPTION, gcMapping.getDescription());
-      
-      // OrganizationalPerson
-      userData.putString(Constants.PAR_MAPPING + Constants.TITLE, gcMapping.getTitle());
-      userData.putString(Constants.PAR_MAPPING + Constants.X12_ADDRESS, gcMapping.getX121Address());
-      userData.putString(Constants.PAR_MAPPING + Constants.REGISTRED_ADDRESS, gcMapping.getRegisteredAddress());
-      userData.putString(Constants.PAR_MAPPING + Constants.DESTINATION_INDICATOR, gcMapping.getDestinationIndicator());
-      userData.putString(Constants.PAR_MAPPING + Constants.INTERNATIONAL_SDN_NUMBER, gcMapping.getInternationaliSDNNumber());
-      userData.putString(Constants.PAR_MAPPING + Constants.FASCIMILE_TELEPHONE_NUMBER, gcMapping.getFacsimileTelephoneNumber());
-      userData.putString(Constants.PAR_MAPPING + Constants.PREFERRED_DELIVERY_METHOD, gcMapping.getPreferredDeliveryMethod());
-      userData.putString(Constants.PAR_MAPPING + Constants.TELEX_NUMBER, gcMapping.getTelexNumber());
-      userData.putString(Constants.PAR_MAPPING + Constants.PHYSICAL_DELIVERY_OFFICE_NAME, gcMapping.getPhysicalDeliveryOfficeName());
-      userData.putString(Constants.PAR_MAPPING + Constants.OU, gcMapping.getOu());
-      userData.putString(Constants.PAR_MAPPING + Constants.ST, gcMapping.getSt());
-      userData.putString(Constants.PAR_MAPPING + Constants.L, gcMapping.getL());
-      
-      // InetOrgPerson
-      userData.putString(Constants.PAR_MAPPING + Constants.AUDIO, gcMapping.getAudio());
-      userData.putString(Constants.PAR_MAPPING + Constants.BUSSINES_CATEGORY, gcMapping.getBusinessCategory());
-      userData.putString(Constants.PAR_MAPPING + Constants.CAR_LICENCE, gcMapping.getCarLicense());
-      userData.putString(Constants.PAR_MAPPING + Constants.DEPARTMENT_NUMBER, gcMapping.getDepartmentNumber());
-      userData.putString(Constants.PAR_MAPPING + Constants.DISPLAY_NAME, gcMapping.getDisplayName());
-      userData.putString(Constants.PAR_MAPPING + Constants.EMPLOYEE_NUMBER, gcMapping.getEmployeeNumber());
-      userData.putString(Constants.PAR_MAPPING + Constants.EMPLOYEE_TYPE, gcMapping.getEmployeeType());
-      userData.putString(Constants.PAR_MAPPING + Constants.GIVEN_NAME, gcMapping.getGivenName());
-      userData.putString(Constants.PAR_MAPPING + Constants.HOME_PHONE, gcMapping.getHomePhone());
-      userData.putString(Constants.PAR_MAPPING + Constants.HOME_POSTAL_ADDRESS, gcMapping.getHomePostalAddress());
-      userData.putString(Constants.PAR_MAPPING + Constants.INITIALS, gcMapping.getInitials());
-      userData.putString(Constants.PAR_MAPPING + Constants.JPEG_PHOTO, gcMapping.getJpegPhoto());
-      userData.putString(Constants.PAR_MAPPING + Constants.LABELED_URI, gcMapping.getLabeledURI());
-      userData.putString(Constants.PAR_MAPPING + Constants.MAIL, gcMapping.getMail());
-      userData.putString(Constants.PAR_MAPPING + Constants.MANAGER, gcMapping.getManager());
-      userData.putString(Constants.PAR_MAPPING + Constants.MOBILE, gcMapping.getMobile());
-      userData.putString(Constants.PAR_MAPPING + Constants.O, gcMapping.getO());
-      userData.putString(Constants.PAR_MAPPING + Constants.PAGER, gcMapping.getPager());
-      userData.putString(Constants.PAR_MAPPING + Constants.PHOTO, gcMapping.getPhoto());
-      userData.putString(Constants.PAR_MAPPING + Constants.ROOM_NUMBER, gcMapping.getRoomNumber());
-      userData.putString(Constants.PAR_MAPPING + Constants.SECRETARY, gcMapping.getSecretary());
-      userData.putString(Constants.PAR_MAPPING + Constants.UID, gcMapping.getUid());
-      userData.putString(Constants.PAR_MAPPING + Constants.USER_CERTIFICATE, gcMapping.getUserCertificate());
-      userData.putString(Constants.PAR_MAPPING + Constants.X500_UNIQUE_IDENTIFIER, gcMapping.getX500uniqueIdentifier());
-      userData.putString(Constants.PAR_MAPPING + Constants.PREFERRED_LANGUAGE, gcMapping.getPreferredLanguage());
-      userData.putString(Constants.PAR_MAPPING + Constants.USER_SMIME_CERTIFICATE, gcMapping.getUserSMIMECertificate());
-      userData.putString(Constants.PAR_MAPPING + Constants.USER_PKCS12, gcMapping.getUserPKCS12());
-      userData.putString(Constants.PAR_MAPPING + Constants.GIVEN_NAME, gcMapping.getGivenName());
-      
-      //GoogleContatc
-      userData.putString(Constants.PAR_MAPPING + Constants.ADDITIONAL_NAME, gcMapping.getAdditionalName());
-      userData.putString(Constants.PAR_MAPPING + Constants.NAME_PREFIX, gcMapping.getNamePrefix());
-      userData.putString(Constants.PAR_MAPPING + Constants.NAME_SUFFIX, gcMapping.getNameSuffix());
-      userData.putString(Constants.PAR_MAPPING + Constants.NICKNAME, gcMapping.getNickname());
-      userData.putString(Constants.PAR_MAPPING + Constants.SHORT_NAME, gcMapping.getShortName());
-      userData.putString(Constants.PAR_MAPPING + Constants.MAIDEN_NAME, gcMapping.getMaidenName());
-      userData.putString(Constants.PAR_MAPPING + Constants.GENDER, gcMapping.getGender());
-      userData.putString(Constants.PAR_MAPPING + Constants.NOTES, gcMapping.getNotes());
-      userData.putString(Constants.PAR_MAPPING + Constants.HOME_MAIL, gcMapping.getHomeMail());
-      userData.putString(Constants.PAR_MAPPING + Constants.WORK_MAIL, gcMapping.getWorkMail());
-      userData.putString(Constants.PAR_MAPPING + Constants.WORK_PHONE, gcMapping.getWorkPhone());
-      userData.putString(Constants.PAR_MAPPING + Constants.WEBSITE, gcMapping.getWebsite());
-      //GoogleContact - Home address
-      Address home = gcMapping.getAddress().get(AddressType.HOME);
-      userData.putString(Constants.PAR_MAPPING + Constants.HOME_CITY, home.getCity());
-      userData.putString(Constants.PAR_MAPPING + Constants.HOME_COUNTRY, home.getCountry());
-      userData.putString(Constants.PAR_MAPPING + Constants.HOME_EXTENDED_ADDRESS, home.getExtendedAddress());
-      userData.putString(Constants.PAR_MAPPING + Constants.HOME_POBOX, home.getPobox());
-      userData.putString(Constants.PAR_MAPPING + Constants.HOME_REGION, home.getRegion());
-      userData.putString(Constants.PAR_MAPPING + Constants.HOME_STREET, home.getStreet());
-      userData.putString(Constants.PAR_MAPPING + Constants.HOME_POSTAL_CODE, home.getZip());
-      //GoogleContact - Work address
-      Address work = gcMapping.getAddress().get(AddressType.WORK);
-      userData.putString(Constants.PAR_MAPPING + Constants.WORK_CITY, work.getCity());
-      userData.putString(Constants.PAR_MAPPING + Constants.WORK_COUNTRY, work.getCountry());
-      userData.putString(Constants.PAR_MAPPING + Constants.WORK_EXTENDED_ADDRESS, work.getExtendedAddress());
-      userData.putString(Constants.PAR_MAPPING + Constants.WORK_POBOX, work.getPobox());
-      userData.putString(Constants.PAR_MAPPING + Constants.WORK_REGION, work.getRegion());
-      userData.putString(Constants.PAR_MAPPING + Constants.WORK_STREET, work.getStreet());
-      userData.putString(Constants.PAR_MAPPING + Constants.WORK_POSTAL_CODE, work.getZip());
-      //GoogleContact - postal address
-      Address postal = gcMapping.getAddress().get(AddressType.POSTAL);
-      userData.putString(Constants.PAR_MAPPING + Constants.POST_OFFICE_BOX, gcMapping.getPostOfficeBox());
-      userData.putString(Constants.PAR_MAPPING + Constants.POSTAL_CODE, postal.getZip());
-      userData.putString(Constants.PAR_MAPPING + Constants.POSTAL_ADDRESS, postal.getExtendedAddress());
+      Bundle userData = Mapping.mapingTo(gcMapping, accountData);
       
       //Log.i(TAG, userData.toString());
       accountManager.addAccountExplicitly(account, accountData.getPassword(), userData);
@@ -363,7 +268,7 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     } else {
       accountManager.setPassword(account, accountData.getPassword());
     }
-    ServerUtilities.updateContacts(new ServerInstance(accountData), accountData, handler, AddServerActivity.this);
+    //ServerUtilities.updateContacts(new ServerInstance(accountData), accountData, handler, AddServerActivity.this);
     
     final Intent intent = new Intent();
     authToken = accountData.getPassword();
