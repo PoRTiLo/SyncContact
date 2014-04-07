@@ -101,7 +101,7 @@ public class ServerUtilities {
     LDAPConnection connection = null;
     try {
       connection = ldapServer.getConnection(handler, context);
-      connection.add(Mapping.mappingRequest(ldapServer.getAccountdData().getBaseDn()));
+      //connection.add(Mapping.mappingRequest(context.getContentResolver(), ldapServer.getAccountdData().getBaseDn()));
     } catch (LDAPException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();

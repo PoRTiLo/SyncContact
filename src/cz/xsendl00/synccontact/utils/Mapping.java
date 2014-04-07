@@ -5,7 +5,10 @@ import com.unboundid.ldif.LDIFException;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.content.ContentResolver;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.util.Log;
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.client.Address;
@@ -206,7 +209,26 @@ public class Mapping {
     return userMapping; 
   }
   
-  public static AddRequest mappingRequest(String baseDn) {
+  public static AddRequest mappingRequest(ContentResolver cr, String id, String baseDn) {
+    //Cursor cursor = ContactDetail.fetchAllDataOfContact(cr);
+    //Log.i("aaa", cursor.toString());
+    /*
+    Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
+            null, null, null, null);
+    if (cur.getCount() > 0) {
+  while (cur.moveToNext()) {
+      String idC = cur.getString(
+                    cur.getColumnIndex(ContactsContract.Contacts._ID));
+String name = cur.getString(
+                    cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+if (Integer.parseInt(cur.getString(cur.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
+    //Query phone here.  Covered next
+      }
+        }
+}
+    */
+    
+    
     try {
       AddRequest addRequest = new AddRequest(
         Constants.DN + ": " + "cn=pokus,ou=users," + baseDn,
@@ -227,3 +249,24 @@ public class Mapping {
     return null;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

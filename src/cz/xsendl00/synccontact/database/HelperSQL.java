@@ -141,6 +141,21 @@ public class HelperSQL extends SQLiteOpenHelper {
     return res;
   }
 
+  // Updating single group
+  public int updateAccount() {
+    SQLiteDatabase db = this.getWritableDatabase();
+    
+    ContentValues values = new ContentValues();
+    values.put(GROUP_KEY_GROUP, group.getName());
+    values.put(GROUP_KEY_SYNC, group.isSync());
+    values.put(GROUP_KEY_ID_GROUP, group.getId());
+    values.put(GROUP_KEY_SIZE, group.getSize());
+    //Log.i(TAG, "update:" + group.toString());
+    int res = db.update(GROUP_TABLE_NAME, values, GROUP_KEY_ID + " = ?", new String[] { String.valueOf(group.getIdTable()) });
+    db.close();
+    return res;
+  }
+  
   // Deleting single group
   public void deleteContact(GroupRow group) {
     SQLiteDatabase db = this.getWritableDatabase();

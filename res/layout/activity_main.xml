@@ -45,7 +45,7 @@
       android:background="@drawable/main_button1"
       android:drawablePadding="-15sp"
       android:drawableTop="@drawable/add"
-      android:onClick="startAddSightActivity"
+      android:onClick="startMap"
       android:paddingTop="52sp"
       android:text="@string/main_settings" >
     </Button>
