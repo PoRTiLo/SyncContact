@@ -7,7 +7,13 @@ import com.xsendl00.synccontact.R;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.ContactRow;
 
+import android.content.ContentProviderOperation;
+import android.content.ContentUris;
+import android.content.OperationApplicationException;
 import android.os.Bundle;
+import android.os.RemoteException;
+import android.provider.ContactsContract;
+import android.provider.ContactsContract.RawContacts;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -68,9 +74,10 @@ public class ContactFragment extends Fragment implements android.widget.Compound
   @Override
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
     int pos = (Integer)buttonView.getTag();
-    //Log.i(TAG, "Pos ["+pos+"]");         
+           
     if (pos != ListView.INVALID_POSITION) {
       ContactRow p = contactList.get(pos);
+      //Log.i(TAG, "Pos ["+pos+"]"+p.isSync() + isChecked);  
       if (p.isSync() != isChecked) {
         HelperSQL db = new HelperSQL(getActivity());
         p.setSync(isChecked);

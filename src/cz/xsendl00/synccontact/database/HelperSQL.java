@@ -3,18 +3,26 @@ package cz.xsendl00.synccontact.database;
 import java.util.ArrayList;
 import java.util.List;
 
+import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
+import android.content.ContentProviderOperation;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.os.RemoteException;
+import android.provider.ContactsContract;
+import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
 
 public class HelperSQL extends SQLiteOpenHelper {
 
-  private static final String TAG = "GroupSQL";
+  private static final String TAG = "HelperSQL";
   
   private static final String DATABASE_NAME = "SyncContact";
   private static final int DATABASE_VERSION = 1;
@@ -38,15 +46,22 @@ public class HelperSQL extends SQLiteOpenHelper {
   private static final String CONTACT_KEY_ID_CONTACT = "contact_id";
   private static final String CONTACT_KEY_NAME = "contactName";
   private static final String CONTACT_KEY_SYNC = "sync";
+  private static final String CONTACT_KEY_ACCOUNT_NAME = "account_name_previous";
+  private static final String CONTACT_KEY_ACCOUNT_TYPE = "account_type_previous";
   
   private static final String CREATE_CONTACT_TABLE = "CREATE TABLE IF NOT EXISTS " + CONTACT_TABLE_NAME + 
       " (" + CONTACT_KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
       CONTACT_KEY_NAME + " TEXT, " +
-      CONTACT_KEY_SYNC + " INTEGER," +
+      CONTACT_KEY_SYNC + " INTEGER, " +
+      CONTACT_KEY_ACCOUNT_NAME + " TEXT, " +
+      CONTACT_KEY_ACCOUNT_TYPE + " TEXT, " +
       CONTACT_KEY_ID_CONTACT + " TEXT " +");";
+  
+  private Context context;
   
   public HelperSQL(Context context) {
       super(context, DATABASE_NAME, null, DATABASE_VERSION);
+      this.context = context;
   }
 
   /* Create table*/
@@ -66,7 +81,7 @@ public class HelperSQL extends SQLiteOpenHelper {
   }
   
   //Adding new group
-  public void addContact(GroupRow group) {
+  public void addGroup(GroupRow group) {
     SQLiteDatabase db = this.getWritableDatabase();
     
     ContentValues values = new ContentValues();
@@ -140,24 +155,29 @@ public class HelperSQL extends SQLiteOpenHelper {
     db.close();
     return res;
   }
-
-  // Updating single group
-  public int updateAccount() {
-    SQLiteDatabase db = this.getWritableDatabase();
+/*
+  public static ContentProviderOperation updateRawContactStatus() {
+    ArrayList<ContentProviderOperation> ops = 
+        new ArrayList<ContentProviderOperation>();
+     ops.add(
+    ContentProviderOperation.newUpdate(ContentUris.withAppendedId(rawContactUri, rawContactId))
+          .withValue(RawContacts.ACCOUNT_NAME, status)
+          .withValue(RawContacts.ACCOUNT_TYPE, status).build()
+          );
+     
+     try {
+       getContentResolver().
+          applyBatch(ContactsContract.AUTHORITY, ops);
+    } catch (RemoteException e) {
+       // do s.th.
+    } catch (OperationApplicationException e) {
+       // do s.th.
+    }
     
-    ContentValues values = new ContentValues();
-    values.put(GROUP_KEY_GROUP, group.getName());
-    values.put(GROUP_KEY_SYNC, group.isSync());
-    values.put(GROUP_KEY_ID_GROUP, group.getId());
-    values.put(GROUP_KEY_SIZE, group.getSize());
-    //Log.i(TAG, "update:" + group.toString());
-    int res = db.update(GROUP_TABLE_NAME, values, GROUP_KEY_ID + " = ?", new String[] { String.valueOf(group.getIdTable()) });
-    db.close();
-    return res;
-  }
-  
+  } 
+  */
   // Deleting single group
-  public void deleteContact(GroupRow group) {
+  public void deleteGroup(GroupRow group) {
     SQLiteDatabase db = this.getWritableDatabase();
     db.delete(GROUP_TABLE_NAME, GROUP_KEY_ID + " = ?", new String[] { String.valueOf(group.getIdTable()) });
     db.close();
@@ -180,7 +200,7 @@ public class HelperSQL extends SQLiteOpenHelper {
       }
       if ( !found ) {
        //Log.i(TAG, "add to db: " + gr.toString());
-        addContact(gr);
+        addGroup(gr);
       }
     }
   }
@@ -193,6 +213,8 @@ public class HelperSQL extends SQLiteOpenHelper {
     values.put(CONTACT_KEY_NAME, contact.getName());
     values.put(CONTACT_KEY_SYNC, contact.isSync());
     values.put(CONTACT_KEY_ID_CONTACT, contact.getId());
+    values.put(CONTACT_KEY_ACCOUNT_NAME, contact.getAccouNamePrevious());
+    values.put(CONTACT_KEY_ACCOUNT_TYPE, contact.getAccouTypePrevious());
  
     // Inserting Row
     db.insert(CONTACT_TABLE_NAME, null, values);
@@ -204,12 +226,12 @@ public class HelperSQL extends SQLiteOpenHelper {
     SQLiteDatabase db = this.getReadableDatabase();
     
     Cursor cursor = db.query(CONTACT_TABLE_NAME, new String[] { CONTACT_KEY_ID,
-        CONTACT_KEY_NAME, CONTACT_KEY_SYNC, CONTACT_KEY_ID_CONTACT }, CONTACT_KEY_ID + "=?",
+        CONTACT_KEY_NAME, CONTACT_KEY_SYNC, CONTACT_KEY_ID_CONTACT, CONTACT_KEY_ACCOUNT_NAME, CONTACT_KEY_ACCOUNT_TYPE }, CONTACT_KEY_ID + "=?",
             new String[] { String.valueOf(id) }, null, null, null, null);
     if (cursor != null) {
         cursor.moveToFirst();
     }
-    return new ContactRow(cursor.getString(3), cursor.getString(1), cursor.getInt(2)>0, cursor.getInt(0));
+    return new ContactRow(cursor.getString(5), cursor.getString(1), cursor.getInt(2)>0, cursor.getInt(0), cursor.getString(3), cursor.getString(4));
   }
   
   // Getting All Contacts
@@ -221,7 +243,7 @@ public class HelperSQL extends SQLiteOpenHelper {
     if (cursor.moveToFirst()) {
       do {
         // Adding contact to list
-        contactList.add(new ContactRow(cursor.getString(3), cursor.getString(1), cursor.getInt(2)>0, cursor.getInt(0)));
+        contactList.add(new ContactRow(cursor.getString(5), cursor.getString(1), cursor.getInt(2)>0, cursor.getInt(0), cursor.getString(3), cursor.getString(4)));
       } while (cursor.moveToNext());
     }
     db.close();
@@ -246,6 +268,7 @@ public class HelperSQL extends SQLiteOpenHelper {
     values.put(CONTACT_KEY_NAME, contact.getName());
     values.put(CONTACT_KEY_SYNC, contact.isSync());
     values.put(CONTACT_KEY_ID_CONTACT, contact.getId());
+    //values.put(CONTACT_KEY_ACCOUNT, contact.getIdAccountPrevious());
     //Log.i(TAG, "update:" + group.toString());
     int res = db.update(CONTACT_TABLE_NAME, values, CONTACT_KEY_ID + " = ?", new String[] { String.valueOf(contact.getIdTable()) });
     db.close();
@@ -261,24 +284,43 @@ public class HelperSQL extends SQLiteOpenHelper {
   
   // Insert data from db 
   public void fillContacts(ArrayList<ContactRow> contacts) {
-     List<ContactRow> conTable = getAllContacts();
-     for (ContactRow con : contacts) {
-       boolean found = false;
-       for (ContactRow conT : conTable) {
-         //Log.i(TAG, gr.getId() +":"+ grT.getId());
-         if (con.getId().equals(conT.getId())) {
-           con.setSync(conT.isSync());
-           con.setIdTable(conT.getIdTable());
-           found = true;
-           //Log.i(TAG, "before: " + gr.toString() + ", after:" + grT.toString());
-           break;
-         }
-       }
-       if ( !found ) {
-        //Log.i(TAG, "add to db: " + gr.toString());
-         addContact(con);
-       }
-     }
-   }
+    List<ContactRow> conTable = getAllContacts();
+    for (ContactRow con : contacts) {
+      boolean found = false;
+      for (ContactRow conT : conTable) {
+        if (con.getId().equals(conT.getId())) {
+          con.setSync(conT.isSync());
+          con.setIdTable(conT.getIdTable());
+          con.setAccouNamePrevious(conT.getAccouNamePrevious());
+          con.setAccouTypePrevious(conT.getAccouTypePrevious());
+          found = true;
+          break;
+        }
+      }
+      if ( !found ) {
+        addContact(con);
+        importContactToSyncAccount(Integer.parseInt(con.getId()));
+      }
+    }
+  }
+  
+  private void importContactToSyncAccount(Integer id) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    ops.add(ContentProviderOperation.newUpdate(ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, 1))
+       .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
+       .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE).build()
+     );
+     
+    try {
+      context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+      
+    } catch (RemoteException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (OperationApplicationException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
 
 }

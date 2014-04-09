@@ -9,17 +9,26 @@ import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldif.LDIFException;
 import com.xsendl00.synccontact.R;
 
+import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactDetail;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
 
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
+import android.content.ContentUris;
 import android.content.Intent;
+import android.content.OperationApplicationException;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Event;
@@ -37,6 +46,7 @@ import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.CommonDataKinds.Website;
 import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.RawContacts;
 
 import android.util.Log;
 import android.view.View;
@@ -521,7 +531,7 @@ public class MainActivity extends Activity {
   }
   
   public void startMap(View view) {
-    Log.i("aaa","taddddddddddddddddddddddddddddddddddddddddddddddddddddddddd");
+    
     //Intent intent = new Intent(this, SelectContactListActivity.class);
     //startActivity(intent);
     //149/81 = 3184i372008420864d477
@@ -536,7 +546,7 @@ public class MainActivity extends Activity {
     }
     Log.i("aaa", "konec");
     cursor.close();
-    
+   
     /*
     attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GOOGLE));
     attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_INET));
@@ -604,9 +614,9 @@ public class MainActivity extends Activity {
     attributes.add(new Attribute(Constants.WORK_PHONE, ""));
     attributes.add(new Attribute(Constants.WEBSITE, ""));
     */
-    AddRequest addRequest = new AddRequest("dn", attributes);
+   // AddRequest addRequest = new AddRequest("dn", attributes);
     
-    Log.i(TAG, addRequest.toLDIFString());
+    //Log.i(TAG, addRequest.toLDIFString());
     
     
   }

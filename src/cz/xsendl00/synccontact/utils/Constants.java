@@ -8,6 +8,7 @@ public class Constants {
   public static final String SET_SYNC_CONTACT = "SetSyncContact";
   
   public static final String ACCOUNT_TYPE = "cz.xsendl00.synccontact";
+  public static final String ACCOUNT_NAME = "syncContact@synccontact.xsendl00.cz";
 
   /**
    * Authtoken type string.

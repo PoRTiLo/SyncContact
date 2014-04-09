@@ -251,7 +251,8 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
   
   private void saveAccount() {
     Log.i(TAG, "saveAccount()");
-    final Account account = new Account(accountData.getHost(), Constants.ACCOUNT_TYPE);
+    //final Account account = new Account(accountData.getHost(), Constants.ACCOUNT_TYPE);
+    final Account account = new Account(Constants.ACCOUNT_NAME, Constants.ACCOUNT_TYPE);
     
     // if new account
     if (accountData.isNewAccount()) {
@@ -259,8 +260,12 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
       gcMapping.init();
       Bundle userData = Mapping.mapingTo(gcMapping, accountData);
       
+      // create new account for contact in table accounts
+      
+      
       //Log.i(TAG, userData.toString());
       accountManager.addAccountExplicitly(account, accountData.getPassword(), userData);
+      //accountManager.
 
       // Set contacts sync for this account.
       ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
