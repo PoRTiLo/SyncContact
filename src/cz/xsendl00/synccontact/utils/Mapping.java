@@ -1,19 +1,40 @@
 package cz.xsendl00.synccontact.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.unboundid.ldap.sdk.AddRequest;
-import com.unboundid.ldif.LDIFException;
+import com.unboundid.ldap.sdk.Attribute;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.ContactsContract;
+import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.CommonDataKinds.Email;
+import android.provider.ContactsContract.CommonDataKinds.Event;
+import android.provider.ContactsContract.CommonDataKinds.GroupMembership;
+import android.provider.ContactsContract.CommonDataKinds.Identity;
+import android.provider.ContactsContract.CommonDataKinds.Im;
+import android.provider.ContactsContract.CommonDataKinds.Nickname;
+import android.provider.ContactsContract.CommonDataKinds.Note;
+import android.provider.ContactsContract.CommonDataKinds.Organization;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.CommonDataKinds.Photo;
+import android.provider.ContactsContract.CommonDataKinds.Relation;
+import android.provider.ContactsContract.CommonDataKinds.SipAddress;
+import android.provider.ContactsContract.CommonDataKinds.StructuredName;
+import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
+import android.provider.ContactsContract.CommonDataKinds.Website;
+import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.client.Address;
 import cz.xsendl00.synccontact.client.AddressType;
 import cz.xsendl00.synccontact.client.GoogleContact;
+import cz.xsendl00.synccontact.database.HelperSQL;
 
 public class Mapping {
 
@@ -209,64 +230,467 @@ public class Mapping {
     return userMapping; 
   }
   
-  public static AddRequest mappingRequest(ContentResolver cr, String id, String baseDn) {
-    //Cursor cursor = ContactDetail.fetchAllDataOfContact(cr);
-    //Log.i("aaa", cursor.toString());
-    /*
-    Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
-            null, null, null, null);
-    if (cur.getCount() > 0) {
-  while (cur.moveToNext()) {
-      String idC = cur.getString(
-                    cur.getColumnIndex(ContactsContract.Contacts._ID));
-String name = cur.getString(
-                    cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-if (Integer.parseInt(cur.getString(cur.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
-    //Query phone here.  Covered next
+  public static List<String> fetchDirtyContacts(Context context) {
+    HelperSQL db = new HelperSQL(context);
+    List<String> list = db.getSyncContactsId();
+    List<String> dirtyContactsId = new ArrayList<String>();;
+    for (String id : list) {
+      //Log.i(TAG, id);
+      Cursor c = context.getContentResolver().query(
+        RawContacts.CONTENT_URI,
+        new String[]{RawContacts._ID},
+        RawContacts.CONTACT_ID + "=? AND " + RawContacts.DIRTY + "=?",
+        new String[]{id.toString(), "1"}, null);
+      while (c.moveToNext()) {
+        //Log.i(TAG, c.getString(c.getColumnIndex(RawContacts._ID)));
+        dirtyContactsId.add(c.getString(c.getColumnIndex(RawContacts._ID)));
       }
-        }
-}
-    */
-    
-    
-    try {
-      AddRequest addRequest = new AddRequest(
-        Constants.DN + ": " + "cn=pokus,ou=users," + baseDn,
-          Constants.OBJECT_CLASS_GOOGLE,
-          Constants.OBJECT_CLASS_INET,
-          Constants.OBJECT_CLASS_ORG,
-          Constants.OBJECT_CLASS_PERSON,
-          Constants.OBJECT_CLASS_TOP,
-          "cn: aaa",
-          "sn: bbb");
-      
-      Log.i(TAG, addRequest.toLDIFString());
-      return addRequest;
-    } catch (LDIFException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      c.close();
     }
-    return null;
+    return dirtyContactsId;
   }
+  
+  public static AddRequest mappingRequest(ContentResolver cr, String id, String baseDn) {
+    Cursor cursor = ContactDetail.fetchAllDataOfContact(cr, id);
+    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    
+    attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GOOGLE));
+    attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_INET));
+    attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_ORG));
+    attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_PERSON));
+    attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_TOP));
+    
+    
+    while (cursor.moveToNext()) {
+      attributes.addAll(fill(cursor));
+    }
+    cursor.close();
+    AddRequest addRequest = new AddRequest(baseDn, attributes);
+    
+    Log.i(TAG, addRequest.toLDIFString());
+    return addRequest;
+  }
+  
+//TODO: vnd.com.google.cursor.item/contact_misc add by google?
+  private static ArrayList<Attribute> fill(Cursor cursor) {
+   
+   ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+   
+   String str = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
+   
+   if (str.equals(StructuredName.CONTENT_ITEM_TYPE)) {
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+       attributes.add(new Attribute(Constants.DISPLAY_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     }
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA2))) {
+       attributes.add(new Attribute(Constants.GIVEN_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA2))));
+     }
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA3))) {
+       attributes.add(new Attribute(Constants.FAMILY_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA3))));
+     }
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+       attributes.add(new Attribute(Constants.NAME_PREFIX, cursor.getString(cursor.getColumnIndex(Data.DATA4))));
+     }
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+       attributes.add(new Attribute(Constants.MIDDLE_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA5))));
+     }
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+       attributes.add(new Attribute(Constants.NAME_SUFFIX, cursor.getString(cursor.getColumnIndex(Data.DATA6))));
+     }
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+       attributes.add(new Attribute(Constants.PHONETIC_GIVEN_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA7))));
+     }
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+       attributes.add(new Attribute(Constants.PHONETIC_MIDDLE_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA8))));
+     }
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+       attributes.add(new Attribute(Constants.PHONETIC_FAMILY_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA9))));
+     }
+   } else if (str.equals(Phone.CONTENT_ITEM_TYPE)) {
+     Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+     if (type == Phone.TYPE_CUSTOM) {
+       //TYPE_CUSTOM. Put the actual type in LABEL.
+       //String  LABEL DATA3
+     } else if (type == Phone.TYPE_ASSISTANT) {
+       attributes.add(new Attribute(Constants.PHONE_ASSISTANT, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_CALLBACK) {
+       attributes.add(new Attribute(Constants.PHONE_CALLBACK, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_CAR) {
+       attributes.add(new Attribute(Constants.PHONE_CAR, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_COMPANY_MAIN) {
+       attributes.add(new Attribute(Constants.PHONE_COMPANY, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_FAX_HOME) {
+       attributes.add(new Attribute(Constants.PHONE_FAX_HOME, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_FAX_WORK) {
+       attributes.add(new Attribute(Constants.PHONE_FAX_WORK, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_HOME) {
+       attributes.add(new Attribute(Constants.PHONE_HOME, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_ISDN) {
+       attributes.add(new Attribute(Constants.PHONE_ISDN, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_MAIN) {
+       attributes.add(new Attribute(Constants.PHONE_MAIN, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_MMS) {
+       attributes.add(new Attribute(Constants.PHONE_MMS, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_MOBILE) {
+       attributes.add(new Attribute(Constants.PHONE_MOBILE, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_OTHER) {
+       attributes.add(new Attribute(Constants.PHONE_OTHER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_OTHER_FAX) {
+       attributes.add(new Attribute(Constants.PHONE_OTHER_FAX, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_PAGER) {
+       attributes.add(new Attribute(Constants.PHONE_PAGER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_RADIO) {
+       attributes.add(new Attribute(Constants.PHONE_RADIO, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_TELEX) {
+       attributes.add(new Attribute(Constants.PHONE_TELEX, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_TTY_TDD) {
+       attributes.add(new Attribute(Constants.PHONE_TTY_TDD, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_WORK) {
+       attributes.add(new Attribute(Constants.PHONE_WORK, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_WORK_MOBILE) {
+       attributes.add(new Attribute(Constants.PHONE_WORK_MOBILE, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Phone.TYPE_WORK_PAGER) {
+       attributes.add(new Attribute(Constants.PHONE_WORK_PAGER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else {
+       Log.i("NOT SUPPORTED TYPE PHONE", "NOT SUPPORTED TYPE PHONE");
+     }
+   } else if (str.equals(Email.CONTENT_ITEM_TYPE)) {
+     Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+     if (type == Email.TYPE_HOME) {
+       attributes.add(new Attribute(Constants.HOME_MAIL, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Email.TYPE_WORK) {
+       attributes.add(new Attribute(Constants.WORK_MAIL, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Email.TYPE_OTHER) {
+       attributes.add(new Attribute(Constants.OTHER_MAIL, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Email.TYPE_MOBILE) {
+       attributes.add(new Attribute(Constants.MOBILE_MAIL, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Email.TYPE_CUSTOM) {
+       // TODO:
+     } else {
+       Log.i("NOT SUPPORTED TYPE EMAIL", "NOT SUPPORTED TYPE EMAIL");
+     }
+   } else if (str.equals(Photo.CONTENT_ITEM_TYPE)) {
+     
+   } else if (str.equals(Organization.CONTENT_ITEM_TYPE)) {
+     Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+     if (type == Organization.TYPE_WORK) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_WORK_COMPANY, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_WORK_TITLE, cursor.getString(cursor.getColumnIndex(Data.DATA4))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_WORK_DEPARTMENT, cursor.getString(cursor.getColumnIndex(Data.DATA5))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_WORK_JOB_DESCRIPTION, cursor.getString(cursor.getColumnIndex(Data.DATA6))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_WORK_SYMBOL, cursor.getString(cursor.getColumnIndex(Data.DATA7))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_WORK_PHONETIC_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA8))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_WORK_OFFICE_LOCATION, cursor.getString(cursor.getColumnIndex(Data.DATA9))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_WORK_PHONETIC_NAME_STYLE, cursor.getString(cursor.getColumnIndex(Data.DATA10))));
+       }
+     } else if (type == Organization.TYPE_OTHER) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_COMPANY, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_TITLE, cursor.getString(cursor.getColumnIndex(Data.DATA4))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_DEPARTMENT, cursor.getString(cursor.getColumnIndex(Data.DATA5))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_JOB_DESCRIPTION, cursor.getString(cursor.getColumnIndex(Data.DATA6))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_SYMBOL, cursor.getString(cursor.getColumnIndex(Data.DATA7))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_PHONETIC_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA8))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_OFFICE_LOCATION, cursor.getString(cursor.getColumnIndex(Data.DATA9))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+         attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_PHONETIC_NAME_STYLE, cursor.getString(cursor.getColumnIndex(Data.DATA10))));
+       }
+     } else if (type == Organization.TYPE_CUSTOM) {
+       // TODO:      String  LABEL DATA3 
+     } else {
+       
+     }
+   } else if (str.equals(Im.CONTENT_ITEM_TYPE)) {
+     Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+     Integer protocol = cursor.getInt(cursor.getColumnIndex(Data.DATA5));
+     if (type == Im.TYPE_CUSTOM) {
+       // TYPE_CUSTOM. Put the actual type in LABEL.
+       // String  LABEL DATA3
+     } else if (type == Im.TYPE_HOME) {
+       if (protocol == Im.PROTOCOL_CUSTOM) {
+         // PROTOCOL_CUSTOM. Also provide the actual protocol name as CUSTOM_PROTOCOL.
+         // String  CUSTOM_PROTOCOL DATA6
+      // TODO:
+       } else if (protocol == Im.PROTOCOL_AIM) {
+         attributes.add(new Attribute(Constants.IM_HOME_AIM, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_GOOGLE_TALK) {
+         attributes.add(new Attribute(Constants.IM_HOME_GOOGLE_TALK, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_ICQ) {
+         attributes.add(new Attribute(Constants.IM_HOME_ICQ, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_JABBER) {
+         attributes.add(new Attribute(Constants.IM_HOME_JABBER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_MSN) {
+         attributes.add(new Attribute(Constants.IM_HOME_MSN, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_NETMEETING) {
+         attributes.add(new Attribute(Constants.IM_HOME_NETMEETING, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_QQ) {
+         attributes.add(new Attribute(Constants.IM_HOME_QQ, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_SKYPE) {
+         attributes.add(new Attribute(Constants.IM_HOME_SKYPE, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_YAHOO) {
+         attributes.add(new Attribute(Constants.IM_HOME_YAHOO, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else {
+         Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
+       }
+     } else if (type == Im.TYPE_WORK) {
+       if (protocol == Im.PROTOCOL_CUSTOM) {
+         // PROTOCOL_CUSTOM. Also provide the actual protocol name as CUSTOM_PROTOCOL.
+         // String  CUSTOM_PROTOCOL DATA6
+      // TODO:
+       } else if (protocol == Im.PROTOCOL_AIM) {
+         attributes.add(new Attribute(Constants.IM_WORK_AIM, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_GOOGLE_TALK) {
+         attributes.add(new Attribute(Constants.IM_WORK_GOOGLE_TALK, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_ICQ) {
+         attributes.add(new Attribute(Constants.IM_WORK_ICQ, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_JABBER) {
+         attributes.add(new Attribute(Constants.IM_WORK_JABBER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_MSN) {
+         attributes.add(new Attribute(Constants.IM_WORK_MSN, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_NETMEETING) {
+         attributes.add(new Attribute(Constants.IM_WORK_NETMEETING, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_QQ) {
+         attributes.add(new Attribute(Constants.IM_WORK_QQ, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_SKYPE) {
+         attributes.add(new Attribute(Constants.IM_WORK_SKYPE, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_YAHOO) {
+         attributes.add(new Attribute(Constants.IM_WORK_YAHOO, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else {
+         Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
+       }
+     } else if (type == Im.TYPE_OTHER) {
+       if (protocol == Im.PROTOCOL_CUSTOM) {
+         // PROTOCOL_CUSTOM. Also provide the actual protocol name as CUSTOM_PROTOCOL.
+         // String  CUSTOM_PROTOCOL DATA6
+      // TODO:
+       } else if (protocol == Im.PROTOCOL_AIM) {
+         attributes.add(new Attribute(Constants.IM_OTHER_AIM, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_GOOGLE_TALK) {
+         attributes.add(new Attribute(Constants.IM_OTHER_GOOGLE_TALK, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_ICQ) {
+         attributes.add(new Attribute(Constants.IM_OTHER_ICQ, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_JABBER) {
+         attributes.add(new Attribute(Constants.IM_OTHER_JABBER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_MSN) {
+         attributes.add(new Attribute(Constants.IM_OTHER_MSN, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_NETMEETING) {
+         attributes.add(new Attribute(Constants.IM_OTHER_NETMEETING, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_QQ) {
+         attributes.add(new Attribute(Constants.IM_OTHER_QQ, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_SKYPE) {
+         attributes.add(new Attribute(Constants.IM_OTHER_SKYPE, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_YAHOO) {
+         attributes.add(new Attribute(Constants.IM_OTHER_YAHOO, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else {
+         Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
+       }
+     } else {
+       if (protocol == Im.PROTOCOL_CUSTOM) {
+         // PROTOCOL_CUSTOM. Also provide the actual protocol name as CUSTOM_PROTOCOL.
+         // String  CUSTOM_PROTOCOL DATA6
+      // TODO:
+       } else if (protocol == Im.PROTOCOL_AIM) {
+         attributes.add(new Attribute(Constants.IM_NULL_AIM, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_GOOGLE_TALK) {
+         attributes.add(new Attribute(Constants.IM_NULL_GOOGLE_TALK, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_ICQ) {
+         attributes.add(new Attribute(Constants.IM_NULL_ICQ, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_JABBER) {
+         attributes.add(new Attribute(Constants.IM_NULL_JABBER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_MSN) {
+         attributes.add(new Attribute(Constants.IM_NULL_MSN, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_NETMEETING) {
+         attributes.add(new Attribute(Constants.IM_NULL_NETMEETING, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_QQ) {
+         attributes.add(new Attribute(Constants.IM_NULL_QQ, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_SKYPE) {
+         attributes.add(new Attribute(Constants.IM_NULL_SKYPE, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else if (protocol == Im.PROTOCOL_YAHOO) {
+         attributes.add(new Attribute(Constants.IM_NULL_YAHOO, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       } else {
+         Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
+       }
+     }
+   } else if (str.equals(Nickname.CONTENT_ITEM_TYPE)) {
+     Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+     if (type == Nickname.TYPE_DEFAULT) {
+       attributes.add(new Attribute(Constants.NICKNAME_DEFAULT, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Nickname.TYPE_OTHER_NAME) {
+       attributes.add(new Attribute(Constants.NICKNAME_OTHER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Nickname.TYPE_MAIDEN_NAME) {
+       attributes.add(new Attribute(Constants.NICKNAME_MAIDEN, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Nickname.TYPE_SHORT_NAME) {
+       attributes.add(new Attribute(Constants.NICKNAME_SHORT, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Nickname.TYPE_INITIALS) {
+       attributes.add(new Attribute(Constants.NICKNAME_INITIALS, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Nickname.TYPE_CUSTOM) {
+       // TODO: String  LABEL DATA3
+     } else {
+       Log.i("NOT SUPPORTED TYPE NICKNAME", "NOT SUPPORTED TYPE NICKANEME");
+     }
+   } else if (str.equals(Note.CONTENT_ITEM_TYPE)) {
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+       attributes.add(new Attribute(Constants.NOTES, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     }
+   } else if (str.equals(StructuredPostal.CONTENT_ITEM_TYPE)) {
+     Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+     if (type == StructuredPostal.TYPE_CUSTOM) {
+       // TODO:
+       //TYPE_CUSTOM. Put the actual type in LABEL.
+       // String  LABEL DATA3
+     } else if (type == StructuredPostal.TYPE_HOME) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+         attributes.add(new Attribute(Constants.HOME_FORMATTED_ADDRESS, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+         attributes.add(new Attribute(Constants.HOME_STREET, cursor.getString(cursor.getColumnIndex(Data.DATA4))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+         attributes.add(new Attribute(Constants.HOME_POBOX, cursor.getString(cursor.getColumnIndex(Data.DATA5))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+         attributes.add(new Attribute(Constants.HOME_NEIGHBORHOOD, cursor.getString(cursor.getColumnIndex(Data.DATA6))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+         attributes.add(new Attribute(Constants.HOME_CITY, cursor.getString(cursor.getColumnIndex(Data.DATA7))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+         attributes.add(new Attribute(Constants.HOME_REGION, cursor.getString(cursor.getColumnIndex(Data.DATA8))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+         attributes.add(new Attribute(Constants.HOME_POSTAL_CODE, cursor.getString(cursor.getColumnIndex(Data.DATA9))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+         attributes.add(new Attribute(Constants.HOME_COUNTRY, cursor.getString(cursor.getColumnIndex(Data.DATA10))));
+       }
+     } else if (type == StructuredPostal.TYPE_WORK) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+         attributes.add(new Attribute(Constants.WORK_FORMATTED_ADDRESS, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+         attributes.add(new Attribute(Constants.WORK_STREET, cursor.getString(cursor.getColumnIndex(Data.DATA4))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+         attributes.add(new Attribute(Constants.WORK_POBOX, cursor.getString(cursor.getColumnIndex(Data.DATA5))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+         attributes.add(new Attribute(Constants.WORK_NEIGHBORHOOD, cursor.getString(cursor.getColumnIndex(Data.DATA6))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+         attributes.add(new Attribute(Constants.WORK_CITY, cursor.getString(cursor.getColumnIndex(Data.DATA7))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+         attributes.add(new Attribute(Constants.WORK_REGION, cursor.getString(cursor.getColumnIndex(Data.DATA8))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+         attributes.add(new Attribute(Constants.WORK_POSTAL_CODE, cursor.getString(cursor.getColumnIndex(Data.DATA9))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+         attributes.add(new Attribute(Constants.WORK_COUNTRY, cursor.getString(cursor.getColumnIndex(Data.DATA10))));
+       }
+     } else if (type == StructuredPostal.TYPE_OTHER) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+         attributes.add(new Attribute(Constants.OTHER_FORMATTED_ADDRESS, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+         attributes.add(new Attribute(Constants.OTHER_STREET, cursor.getString(cursor.getColumnIndex(Data.DATA4))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+         attributes.add(new Attribute(Constants.OTHER_POBOX, cursor.getString(cursor.getColumnIndex(Data.DATA5))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+         attributes.add(new Attribute(Constants.OTHER_NEIGHBORHOOD, cursor.getString(cursor.getColumnIndex(Data.DATA6))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+         attributes.add(new Attribute(Constants.OTHER_CITY, cursor.getString(cursor.getColumnIndex(Data.DATA7))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+         attributes.add(new Attribute(Constants.OTHER_REGION, cursor.getString(cursor.getColumnIndex(Data.DATA8))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+         attributes.add(new Attribute(Constants.OTHER_POSTAL_CODE, cursor.getString(cursor.getColumnIndex(Data.DATA9))));
+       }
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+         attributes.add(new Attribute(Constants.OTHER_COUNTRY, cursor.getString(cursor.getColumnIndex(Data.DATA10))));
+       }
+     } else {
+       
+     }
+      
+   } else if (str.equals(GroupMembership.CONTENT_ITEM_TYPE)) {
+     // TODO:
+     //long  GROUP_ROW_ID  DATA1
+     //attributes.add(new Attribute(Constants., cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+   } else if (str.equals(Website.CONTENT_ITEM_TYPE)) {
+     
+   } else if (str.equals(Event.CONTENT_ITEM_TYPE)) {
+     Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+     if (type == Event.TYPE_CUSTOM) {
+       // TYPE_CUSTOM. Put the actual type in LABEL.
+       // String  LABEL DATA3
+     } else if (type == Event.TYPE_ANNIVERSARY) {
+       attributes.add(new Attribute(Constants.EVENT_ANNIVERSARY, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Event.TYPE_BIRTHDAY) {
+       attributes.add(new Attribute(Constants.EVENT_BIRTHDAY, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Event.TYPE_OTHER) {
+       attributes.add(new Attribute(Constants.EVENT_OTHER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else {
+       Log.i("NOT SUPPORTED TYPE Event", "NOT SUPPORTED TYPE EVENT");
+     }
+   } else if (str.equals(Relation.CONTENT_ITEM_TYPE)) {
+     
+   } else if (str.equals(SipAddress.CONTENT_ITEM_TYPE)) {
+     Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+     if (type == SipAddress.TYPE_CUSTOM) {
+       // TODO:
+       // TYPE_CUSTOM. Put the actual type in LABEL.
+       // String  LABEL DATA3
+     } else if (type == SipAddress.TYPE_HOME) {
+       attributes.add(new Attribute(Constants.HOME_SIP, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == SipAddress.TYPE_WORK) {
+       attributes.add(new Attribute(Constants.WORK_SIP, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == SipAddress.TYPE_OTHER) {
+       attributes.add(new Attribute(Constants.OTHER_SIP, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else {
+       Log.i("NOT SUPPORTED TYPE SIP", "NOT SUPPORTED TYPE SIP");
+     }
+   } else if (str.equals(Identity.CONTENT_ITEM_TYPE)) {
+     // A data kind representing an Identity related to the contact. 
+     // This can be used as a signal by the aggregator to combine raw contacts into contacts, e.g. if two contacts have Identity rows with the same NAMESPACE and IDENTITY values the aggregator can know that they refer to the same person.
+     Log.i("  IDENTITY", cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+     Log.i("  NAMESPACE", cursor.getString(cursor.getColumnIndex(Data.DATA2)));
+   } else {
+     Log.i("NOT SUPPORTED TYPE MIME", "NOT SUPPORTED TYPE MIME");
+   }
+   
+   return attributes;
+ }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

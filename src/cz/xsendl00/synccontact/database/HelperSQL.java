@@ -250,6 +250,22 @@ public class HelperSQL extends SQLiteOpenHelper {
     return contactList;
   }
   
+  // Getting sync contact id 
+  public List<String> getSyncContactsId() {
+    List<String> contactsId = new ArrayList<String>();
+    String selectQuery = "SELECT " + CONTACT_KEY_ID_CONTACT + " FROM " + CONTACT_TABLE_NAME + " WHERE " + CONTACT_KEY_SYNC + " =1";
+    SQLiteDatabase db = this.getWritableDatabase();
+    Cursor cursor = db.rawQuery(selectQuery, null);
+    if (cursor.moveToFirst()) {
+      do {
+        // Adding contact to list
+        contactsId.add(cursor.getString(0));
+      } while (cursor.moveToNext());
+    }
+    db.close();
+    return contactsId;
+  }
+  
   // Getting contacts Count
   public int getContactCount() {
     String countQuery = "SELECT  * FROM " + CONTACT_TABLE_NAME;
