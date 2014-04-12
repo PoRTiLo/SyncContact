@@ -1,4 +1,4 @@
-package cz.xsendl00.synccontact.client;
+package cz.xsendl00.synccontact.ldap;
 
 import java.io.Serializable;
 

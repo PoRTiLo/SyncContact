@@ -1,5 +1,5 @@
 
-package cz.xsendl00.synccontact.client;
+package cz.xsendl00.synccontact.ldap;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,6 +27,8 @@ import com.xsendl00.synccontact.R;
 import cz.xsendl00.synccontact.AddServerActivity;
 import cz.xsendl00.synccontact.adapter.SyncService;
 import cz.xsendl00.synccontact.authenticator.AccountData;
+import cz.xsendl00.synccontact.client.GoogleContact;
+import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.Mapping;
 
@@ -121,6 +123,80 @@ public class ServerUtilities {
     }
   }
   
+  public static String fetchModifyTimestamp(final ServerInstance ldapServer, final Context context) {
+    LDAPConnection connection = null;
+    try {
+      connection = ldapServer.getConnection(null, context);
+      String filter = "(&(objectClass=googleContact)(" + Constants.LDAP_MODIFY_TIME_STAMP + ":generalizedTimeMatch:=20140328193405Z))";
+      //Log.i(TAG, filter);
+      SearchResult searchResult = connection.search(
+          "ou=users,dc=synccontact,dc=xsendl00,dc=cz", SearchScope.SUB, 
+          filter,
+          Constants.LDAP_MODIFY_TIME_STAMP);
+      //Log.i(TAG, searchResult.getEntryCount() + " entries returned.");
+      for (SearchResultEntry e : searchResult.getSearchEntries()) {
+        //Log.i(TAG, e.getAttributeValue(Constants.LDAP_MODIFY_TIME_STAMP));
+        return e.getAttributeValue(Constants.LDAP_MODIFY_TIME_STAMP);
+      }
+    } catch (LDAPException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return null;
+  }
+  
+  public static List<String> fetchModifyTimestampContacts(final ServerInstance ldapServer, final Context context, String timestamp) {
+    LDAPConnection connection = null;
+    List<String> contactsServer = new ArrayList<String>();
+    try {
+      connection = ldapServer.getConnection(null, context);
+      //String filter = "(&(objectClass=googleContact)(" + Constants.LDAP_MODIFY_TIME_STAMP + ":generalizedTimeMatch:="+timestamp+"))";
+      String filter = "(objectClass=googleContact)";
+      //Log.i(TAG, filter);
+      SearchResult searchResult = connection.search(
+          "ou=users,dc=synccontact,dc=xsendl00,dc=cz", SearchScope.SUB, 
+          filter,
+          Mapping.createAttributes());
+      //Log.i(TAG, searchResult.getEntryCount() + " entries returned.");
+      
+      for (SearchResultEntry e : searchResult.getSearchEntries()) {
+        Log.i(TAG, e.toLDIFString());
+        //Log.i(TAG, e.getAttributeValue(Constants.LDAP_MODIFY_TIME_STAMP));
+        //contactsServer.add(e.getAttributeValue(Constants.LDAP_MODIFY_TIME_STAMP));
+      }
+    } catch (LDAPException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return contactsServer;
+  }
+  
+  public static void synchronization(final ServerInstance ldapServer, final Context context) {
+    // get sync user
+    HelperSQL db = new HelperSQL(context);
+    List<String> contactsId = db.getSyncContactsId();
+    // get contact with dirty flag
+    List<String> contactsDirty = Mapping.fetchDirtyContacts(context, contactsId);
+    // get timestamp last synchronization
+    String timestamp = db.newerTimestamp();
+    Log.i(TAG, timestamp);
+    // get contact from server which was newer than timestamp
+    List<String> contactsServer = fetchModifyTimestampContacts(ldapServer, context, timestamp);
+    // get all contacts, which must be merged and updated from contact.db
+    
+    // merge contact
+    
+    // update db syncContact.db
+    
+    // update db contact.db
+    
+    // update server contact
+    
+    // set new timestamp
+    
+    // set dirty flag to disable (0)
+  }
+  
 	public static List<GoogleContact> fetchContacts(final ServerInstance ldapServer, final AccountData accountData, final Bundle mappingBundle, 
 	    final Date lastUpdated, final Context context) {
 		final ArrayList<GoogleContact> friendList = new ArrayList<GoogleContact>();
@@ -141,7 +217,7 @@ public class ServerUtilities {
 				}
 			}
 		} catch (LDAPException e) {
-			Log.v(TAG, "LDAPException on fetching contacts", e);
+			/*Log.v(TAG, "LDAPException on fetching contacts", e);
 			NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 			int icon = R.drawable.ic_launcher;
 			CharSequence tickerText = "Error on LDAP Sync";
@@ -150,7 +226,7 @@ public class ServerUtilities {
 			PendingIntent contentIntent = PendingIntent.getService(context, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 			notification.setLatestEventInfo(context, tickerText, e.getMessage().replace("\\n", " "), contentIntent);
 			notification.flags = Notification.FLAG_AUTO_CANCEL;
-			mNotificationManager.notify(0, notification);
+			mNotificationManager.notify(0, notification);*/
 			return null;
 		} finally {
 			if (connection != null) {

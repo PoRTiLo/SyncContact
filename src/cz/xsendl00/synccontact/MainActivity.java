@@ -6,7 +6,10 @@ import java.util.List;
 
 import com.xsendl00.synccontact.R;
 
+import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.database.HelperSQL;
+import cz.xsendl00.synccontact.ldap.ServerInstance;
+import cz.xsendl00.synccontact.ldap.ServerUtilities;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
@@ -14,8 +17,11 @@ import cz.xsendl00.synccontact.utils.Mapping;
 
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -108,6 +114,31 @@ public class MainActivity extends Activity {
   public void startMap(View view) {
     //Mapping.mappingRequest(getContentResolver(), "149", "baseDn");
     
-    Mapping.fetchDirtyContacts(getApplicationContext());
+    //Mapping.fetchDirtyContacts(getApplicationContext());
+    UpdateTask rt = new UpdateTask();
+    rt.execute();
+    Log.i(TAG, ContactRow.createTimestamp());
+    //ServerUtilities.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
+    
+  }
+  
+  private class UpdateTask extends AsyncTask<Void, Void, Boolean> {
+    private ProgressDialog progressDialog;
+    @Override
+    protected Boolean doInBackground(Void...params) {
+      //ServerUtilities.fetchModifyTimestamp(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
+      ServerUtilities.fetchModifyTimestampContacts(new ServerInstance(AccountData.getAccountData(getApplicationContext())), 
+          getApplicationContext(), "20140328193405Z");
+      //ServerUtilities.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
+      return true;
+    }
+    protected void onPostExecute(Boolean bool) {
+      progressDialog.dismiss();
+    }
+    
+    protected void onPreExecute() {
+      super.onPreExecute();
+      progressDialog = ProgressDialog.show(MainActivity.this, "Downloading...","Downloading data from server", true);
+    }
   }
 }

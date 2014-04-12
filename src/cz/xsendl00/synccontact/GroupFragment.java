@@ -114,7 +114,7 @@ public class GroupFragment extends Fragment implements android.widget.CompoundBu
       if (p.isSync() != isChecked) {
         HelperSQL db = new HelperSQL(getActivity());
         p.setSync(isChecked);
-        db.updateContact(p);
+        db.updateGroup(p);
       }
     } 
     //Log.i(TAG, groupsList.toString());

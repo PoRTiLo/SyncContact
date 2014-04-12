@@ -1,6 +1,8 @@
 package cz.xsendl00.synccontact.utils;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
@@ -8,6 +10,7 @@ import android.provider.ContactsContract.CommonDataKinds;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.GroupMembership;
 import android.provider.ContactsContract.RawContacts;
+import android.text.format.DateFormat;
 import android.util.Log;
 
 public class ContactRow {
@@ -22,20 +25,21 @@ public class ContactRow {
   private Integer idTable;
   private String accouNamePrevious;
   private String accouTypePrevious;
+  private String timestamp;
 
   public ContactRow(String id, String name) {
-    this(id, name, false, null, null, null, null);
+    this(id, name, false, null, null, null, null, null);
   }
   
   public ContactRow(String id, String name, String accouNamePrevious, String accouTypePrevious) {
-    this(id, name, false, null, null, accouNamePrevious, accouTypePrevious);
+    this(id, name, false, null, null, accouNamePrevious, accouTypePrevious, null);
   }
   
-  public ContactRow(String id, String name, Boolean sync, Integer idTable, String accouNamePrevious, String accouTypePrevious) {
-    this(id, name, sync, null, idTable, accouNamePrevious, accouTypePrevious);
+  public ContactRow(String id, String name, Boolean sync, Integer idTable, String accouNamePrevious, String accouTypePrevious, String timestamp) {
+    this(id, name, sync, null, idTable, accouNamePrevious, accouTypePrevious, timestamp);
   }
   
-  public ContactRow(String id, String name, Boolean sync, String[] groups, Integer idTable, String accouNamePrevious, String accouTypePrevious) {
+  public ContactRow(String id, String name, Boolean sync, String[] groups, Integer idTable, String accouNamePrevious, String accouTypePrevious, String timestamp) {
     this.id = id;
     this.name = name;
     this.sync = sync;
@@ -43,6 +47,7 @@ public class ContactRow {
     this.idTable = idTable;
     this.accouNamePrevious = accouNamePrevious;
     this.accouTypePrevious = accouTypePrevious;
+    this.timestamp = timestamp;
   }
   
   public String getName() {
@@ -64,7 +69,8 @@ public class ContactRow {
   @Override
   public String toString() {
     return "Id: "+id + ", name: " + name + ", sync: " + sync + ", groups: " + groups + ", idTable: " + idTable + 
-        ", accouNamePrevious: " + accouNamePrevious + ", accouTypePrevious: " + accouTypePrevious + "\n";
+        ", accouNamePrevious: " + accouNamePrevious + ", accouTypePrevious: " + accouTypePrevious + 
+        ", timestamp: " + timestamp + "\n";
   }
   
   public static ArrayList<ContactRow> fetchGroupMembers(ContentResolver contentResolver, String groupId) {
@@ -152,5 +158,19 @@ public class ContactRow {
 
   public void setAccouTypePrevious(String accouTypePrevious) {
     this.accouTypePrevious = accouTypePrevious;
+  }
+
+  public String getTimestamp() {
+    return timestamp;
+  }
+
+  public void setTimestamp(String timestamp) {
+    this.timestamp = timestamp;
+  }
+  
+  public static String createTimestamp() {
+    Calendar c = Calendar.getInstance();
+    SimpleDateFormat df1 = new SimpleDateFormat("yyyyMMddHHmmss");
+    return df1.format(c.getTime()) +"Z";
   }
 }

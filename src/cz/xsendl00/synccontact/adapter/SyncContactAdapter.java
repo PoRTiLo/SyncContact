@@ -7,8 +7,8 @@ import java.util.List;
 
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.client.GoogleContact;
-import cz.xsendl00.synccontact.client.ServerInstance;
-import cz.xsendl00.synccontact.client.ServerUtilities;
+import cz.xsendl00.synccontact.ldap.ServerInstance;
+import cz.xsendl00.synccontact.ldap.ServerUtilities;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.Mapping;
 

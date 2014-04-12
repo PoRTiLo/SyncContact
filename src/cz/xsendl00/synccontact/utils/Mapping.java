@@ -233,6 +233,24 @@ public class Mapping {
   public static List<String> fetchDirtyContacts(Context context) {
     HelperSQL db = new HelperSQL(context);
     List<String> list = db.getSyncContactsId();
+    List<String> dirtyContactsId = new ArrayList<String>();
+    for (String id : list) {
+      //Log.i(TAG, id);
+      Cursor c = context.getContentResolver().query(
+        RawContacts.CONTENT_URI,
+        new String[]{RawContacts._ID},
+        RawContacts.CONTACT_ID + "=? AND " + RawContacts.DIRTY + "=?",
+        new String[]{id.toString(), "1"}, null);
+      while (c.moveToNext()) {
+        //Log.i(TAG, c.getString(c.getColumnIndex(RawContacts._ID)));
+        dirtyContactsId.add(c.getString(c.getColumnIndex(RawContacts._ID)));
+      }
+      c.close();
+    }
+    return dirtyContactsId;
+  }
+  
+  public static List<String> fetchDirtyContacts(Context context, List<String> list) {
     List<String> dirtyContactsId = new ArrayList<String>();;
     for (String id : list) {
       //Log.i(TAG, id);
@@ -248,6 +266,158 @@ public class Mapping {
       c.close();
     }
     return dirtyContactsId;
+  }
+  
+  public static final String[] createAttributes() {
+    ArrayList<String> ldapAttributes = new ArrayList<String>();
+    ldapAttributes.add(Constants.WORK_SIP);
+    ldapAttributes.add(Constants.HOME_SIP);
+    ldapAttributes.add(Constants.OTHER_SIP);
+    ldapAttributes.add(Constants.EVENT_OTHER);
+    ldapAttributes.add(Constants.EVENT_BIRTHDAY);
+    ldapAttributes.add(Constants.EVENT_ANNIVERSARY);
+    ldapAttributes.add(Constants.NICKNAME_DEFAULT);
+    ldapAttributes.add(Constants.NICKNAME_OTHER);
+    ldapAttributes.add(Constants.NICKNAME_MAIDEN);
+    ldapAttributes.add(Constants.NICKNAME_SHORT);
+    ldapAttributes.add(Constants.NICKNAME_INITIALS);
+    ldapAttributes.add(Constants.PHONE_ASSISTANT);
+    ldapAttributes.add(Constants.PHONE_CALLBACK);
+    ldapAttributes.add(Constants.PHONE_CAR);
+    ldapAttributes.add(Constants.PHONE_COMPANY);
+    ldapAttributes.add(Constants.PHONE_FAX_HOME);
+    ldapAttributes.add(Constants.PHONE_FAX_WORK);
+    ldapAttributes.add(Constants.PHONE_HOME);
+    ldapAttributes.add(Constants.PHONE_ISDN);
+    ldapAttributes.add(Constants.PHONE_MAIN);
+    ldapAttributes.add(Constants.PHONE_MMS);
+    ldapAttributes.add(Constants.PHONE_MOBILE);
+    ldapAttributes.add(Constants.PHONE_OTHER);
+    ldapAttributes.add(Constants.PHONE_OTHER_FAX);
+    ldapAttributes.add(Constants.PHONE_PAGER);
+    ldapAttributes.add(Constants.PHONE_RADIO);
+    ldapAttributes.add(Constants.PHONE_TELEX);
+    ldapAttributes.add(Constants.PHONE_TTY_TDD);
+    ldapAttributes.add(Constants.PHONE_WORK);
+    ldapAttributes.add(Constants.PHONE_WORK_MOBILE);
+    ldapAttributes.add(Constants.PHONE_WORK_PAGER);
+    ldapAttributes.add(Constants.IM_HOME_AIM );
+    ldapAttributes.add(Constants.IM_HOME_GOOGLE_TALK );
+    ldapAttributes.add(Constants.IM_HOME_ICQ );
+    ldapAttributes.add(Constants.IM_HOME_JABBER);
+    ldapAttributes.add(Constants.IM_HOME_MSN );
+    ldapAttributes.add(Constants.IM_HOME_NETMEETING );
+    ldapAttributes.add(Constants.IM_HOME_QQ );
+    ldapAttributes.add(Constants.IM_HOME_SKYPE);
+    ldapAttributes.add(Constants.IM_HOME_YAHOO);
+    ldapAttributes.add(Constants.IM_WORK_AIM);
+    ldapAttributes.add(Constants.IM_WORK_GOOGLE_TALK );
+    ldapAttributes.add(Constants.IM_WORK_ICQ);
+    ldapAttributes.add(Constants.IM_WORK_JABBER);
+    ldapAttributes.add(Constants.IM_WORK_MSN);
+    ldapAttributes.add(Constants.IM_WORK_NETMEETING);
+    ldapAttributes.add(Constants.IM_WORK_QQ);
+    ldapAttributes.add(Constants.IM_WORK_SKYPE);
+    ldapAttributes.add(Constants.IM_WORK_YAHOO);
+    ldapAttributes.add(Constants.IM_OTHER_AIM);
+    ldapAttributes.add(Constants.IM_OTHER_GOOGLE_TALK);
+    ldapAttributes.add(Constants.IM_OTHER_ICQ);
+    ldapAttributes.add(Constants.IM_OTHER_JABBER);
+    ldapAttributes.add(Constants.IM_OTHER_MSN );
+    ldapAttributes.add(Constants.IM_OTHER_NETMEETING);
+    ldapAttributes.add(Constants.IM_OTHER_QQ);
+    ldapAttributes.add(Constants.IM_OTHER_SKYPE);
+    ldapAttributes.add(Constants.IM_OTHER_YAHOO);
+    ldapAttributes.add(Constants.IM_NULL_AIM);
+    ldapAttributes.add(Constants.IM_NULL_GOOGLE_TALK);
+    ldapAttributes.add(Constants.IM_NULL_ICQ);
+    ldapAttributes.add(Constants.IM_NULL_JABBER);
+    ldapAttributes.add(Constants.IM_NULL_MSN);
+    ldapAttributes.add(Constants.IM_NULL_NETMEETING);
+    ldapAttributes.add(Constants.IM_NULL_QQ);
+    ldapAttributes.add(Constants.IM_NULL_SKYPE);
+    ldapAttributes.add(Constants.IM_NULL_YAHOO);
+    ldapAttributes.add(Constants.PHONETIC_MIDDLE_NAME);
+    ldapAttributes.add(Constants.PHONETIC_GIVEN_NAME);
+    ldapAttributes.add(Constants.PHONETIC_FAMILY_NAME);
+    ldapAttributes.add(Constants.DISPLAY_NAME);
+    ldapAttributes.add(Constants.GIVEN_NAME);
+    ldapAttributes.add(Constants.NAME_PREFIX);
+    ldapAttributes.add(Constants.NAME_SUFFIX);
+    ldapAttributes.add(Constants.FAMILY_NAME);
+    ldapAttributes.add(Constants.MIDDLE_NAME);
+    ldapAttributes.add(Constants.ORGANIZATION_WORK_COMPANY);
+    ldapAttributes.add(Constants.ORGANIZATION_WORK_TITLE);
+    ldapAttributes.add(Constants.ORGANIZATION_WORK_DEPARTMENT );
+    ldapAttributes.add(Constants.ORGANIZATION_WORK_JOB_DESCRIPTION );
+    ldapAttributes.add(Constants.ORGANIZATION_WORK_SYMBOL );
+    ldapAttributes.add(Constants.ORGANIZATION_WORK_PHONETIC_NAME );
+    ldapAttributes.add(Constants.ORGANIZATION_WORK_OFFICE_LOCATION );
+    ldapAttributes.add(Constants.ORGANIZATION_WORK_PHONETIC_NAME_STYLE);
+    ldapAttributes.add(Constants.ORGANIZATION_OTHER_COMPANY);
+    ldapAttributes.add(Constants.ORGANIZATION_OTHER_TITLE);
+    ldapAttributes.add(Constants.ORGANIZATION_OTHER_DEPARTMENT);
+    ldapAttributes.add(Constants.ORGANIZATION_OTHER_JOB_DESCRIPTION);
+    ldapAttributes.add(Constants.ORGANIZATION_OTHER_SYMBOL);
+    ldapAttributes.add(Constants.ORGANIZATION_OTHER_PHONETIC_NAME);
+    ldapAttributes.add(Constants.ORGANIZATION_OTHER_OFFICE_LOCATION);
+    ldapAttributes.add(Constants.ORGANIZATION_OTHER_PHONETIC_NAME_STYLE);
+    ldapAttributes.add(Constants.IDENTITY_TEXT);
+    ldapAttributes.add(Constants.IDENTITY_NAMESPACE );
+    ldapAttributes.add(Constants.RELATION_ASSISTANT);
+    ldapAttributes.add(Constants.RELATION_BROTHER);
+    ldapAttributes.add(Constants.RELATION_CHILD);
+    ldapAttributes.add(Constants.RELATION_DOMESTIC_PARTNER);
+    ldapAttributes.add(Constants.RELATION_FATHER);
+    ldapAttributes.add(Constants.RELATION_FRIEND);
+    ldapAttributes.add(Constants.RELATION_MANAGER);
+    ldapAttributes.add(Constants.RELATION_MOTHER );
+    ldapAttributes.add(Constants.RELATION_PARENT);
+    ldapAttributes.add(Constants.RELATION_PARTNER);
+    ldapAttributes.add(Constants.RELATION_REFFERED_BY);
+    ldapAttributes.add(Constants.RELATION_RELATIVE);
+    ldapAttributes.add(Constants.RELATION_SISTER);
+    ldapAttributes.add(Constants.RELATION_SPOUSE);
+    ldapAttributes.add(Constants.WEBSITE_HOMEPAGE);
+    ldapAttributes.add(Constants.WEBSITE_BLOG);
+    ldapAttributes.add(Constants.WEBSITE_PROFILE);
+    ldapAttributes.add(Constants.WEBSITE_HOME);
+    ldapAttributes.add(Constants.WEBSITE_WORK);
+    ldapAttributes.add(Constants.WEBSITE_FTP);
+    ldapAttributes.add(Constants.WEBSITE_OTHER);
+    ldapAttributes.add(Constants.HOME_MAIL);
+    ldapAttributes.add(Constants.WORK_MAIL);
+    ldapAttributes.add(Constants.OTHER_MAIL);
+    ldapAttributes.add(Constants.MOBILE_MAIL);
+    ldapAttributes.add(Constants.NOTES);
+    ldapAttributes.add(Constants.HOME_STREET);
+    ldapAttributes.add(Constants.HOME_POBOX);
+    ldapAttributes.add(Constants.HOME_CITY);
+    ldapAttributes.add(Constants.HOME_REGION);
+    ldapAttributes.add(Constants.HOME_POSTAL_CODE);
+    ldapAttributes.add(Constants.HOME_COUNTRY);
+    ldapAttributes.add(Constants.WORK_STREET);
+    ldapAttributes.add(Constants.WORK_POBOX);
+    ldapAttributes.add(Constants.WORK_CITY);
+    ldapAttributes.add(Constants.WORK_REGION);
+    ldapAttributes.add(Constants.WORK_POSTAL_CODE);
+    ldapAttributes.add(Constants.WORK_COUNTRY);
+    ldapAttributes.add(Constants.WORK_FORMATTED_ADDRESS);
+    ldapAttributes.add(Constants.HOME_FORMATTED_ADDRESS );
+    ldapAttributes.add(Constants.WORK_NEIGHBORHOOD);
+    ldapAttributes.add(Constants.HOME_NEIGHBORHOOD);
+    ldapAttributes.add(Constants.OTHER_NEIGHBORHOOD);
+    ldapAttributes.add(Constants.OTHER_STREET );
+    ldapAttributes.add(Constants.OTHER_CITY );
+    ldapAttributes.add(Constants.OTHER_POBOX );
+    ldapAttributes.add(Constants.OTHER_REGION );
+    ldapAttributes.add(Constants.OTHER_POSTAL_CODE );
+    ldapAttributes.add(Constants.OTHER_COUNTRY);
+    ldapAttributes.add(Constants.OTHER_FORMATTED_ADDRESS);
+    
+    String[] ldapArray = new String[ldapAttributes.size()];
+    ldapArray = ldapAttributes.toArray(ldapArray);
+    return ldapArray;
   }
   
   public static AddRequest mappingRequest(ContentResolver cr, String id, String baseDn) {
@@ -650,7 +820,26 @@ public class Mapping {
      //long  GROUP_ROW_ID  DATA1
      //attributes.add(new Attribute(Constants., cursor.getString(cursor.getColumnIndex(Data.DATA1))));
    } else if (str.equals(Website.CONTENT_ITEM_TYPE)) {
-     
+     Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+     if (type == Website.TYPE_CUSTOM) {
+       //TODO:String  LABEL DATA3,TYPE_CUSTOM. Put the actual type in LABEL. 
+     } else if (type == Website.TYPE_BLOG) {
+       attributes.add(new Attribute(Constants.WEBSITE_BLOG, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Website.TYPE_FTP) {
+       attributes.add(new Attribute(Constants.WEBSITE_FTP, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Website.TYPE_HOME) {
+       attributes.add(new Attribute(Constants.WEBSITE_HOME, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Website.TYPE_HOMEPAGE) {
+       attributes.add(new Attribute(Constants.WEBSITE_HOMEPAGE, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Website.TYPE_OTHER) {
+       attributes.add(new Attribute(Constants.WEBSITE_OTHER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Website.TYPE_PROFILE) {
+       attributes.add(new Attribute(Constants.WEBSITE_PROFILE, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Website.TYPE_WORK) {
+       attributes.add(new Attribute(Constants.WEBSITE_WORK, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else {
+       Log.i("NOT SUPPORTED TYPE WEBSITE", "NOT SUPPORTED TYPE WEBSITE");
+     }
    } else if (str.equals(Event.CONTENT_ITEM_TYPE)) {
      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
      if (type == Event.TYPE_CUSTOM) {
@@ -666,7 +855,42 @@ public class Mapping {
        Log.i("NOT SUPPORTED TYPE Event", "NOT SUPPORTED TYPE EVENT");
      }
    } else if (str.equals(Relation.CONTENT_ITEM_TYPE)) {
-     
+     Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+     if (type == Relation.TYPE_CUSTOM) {
+       // TODO:
+       //attributes.add(new Attribute(Constants.EVENT_ANNIVERSARY, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+       //String  LABEL DATA3
+     } else if (type == Relation.TYPE_ASSISTANT) {
+       attributes.add(new Attribute(Constants.RELATION_ASSISTANT, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Relation.TYPE_BROTHER) {
+       attributes.add(new Attribute(Constants.RELATION_BROTHER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Relation.TYPE_CHILD) {
+       attributes.add(new Attribute(Constants.RELATION_CHILD, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Relation.TYPE_DOMESTIC_PARTNER) {
+       attributes.add(new Attribute(Constants.RELATION_DOMESTIC_PARTNER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Relation.TYPE_FATHER) {
+       attributes.add(new Attribute(Constants.RELATION_FATHER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Relation.TYPE_FRIEND) {
+       attributes.add(new Attribute(Constants.RELATION_FRIEND, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Relation.TYPE_MANAGER) {
+       attributes.add(new Attribute(Constants.RELATION_MANAGER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Relation.TYPE_MOTHER) {
+       attributes.add(new Attribute(Constants.RELATION_MOTHER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Relation.TYPE_PARENT) {
+       attributes.add(new Attribute(Constants.RELATION_PARENT, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Relation.TYPE_PARTNER) {
+       attributes.add(new Attribute(Constants.RELATION_PARTNER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Relation.TYPE_REFERRED_BY) {
+       attributes.add(new Attribute(Constants.RELATION_REFFERED_BY, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Relation.TYPE_RELATIVE) {
+       attributes.add(new Attribute(Constants.RELATION_RELATIVE, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Relation.TYPE_SISTER) {
+       attributes.add(new Attribute(Constants.RELATION_SISTER, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else if (type == Relation.TYPE_SPOUSE) {
+       attributes.add(new Attribute(Constants.RELATION_SPOUSE, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     } else {
+       Log.i("NOT SUPPORTED TYPE Relation", "NOT SUPPORTED TYPE Relation");
+     }
    } else if (str.equals(SipAddress.CONTENT_ITEM_TYPE)) {
      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
      if (type == SipAddress.TYPE_CUSTOM) {
@@ -683,10 +907,8 @@ public class Mapping {
        Log.i("NOT SUPPORTED TYPE SIP", "NOT SUPPORTED TYPE SIP");
      }
    } else if (str.equals(Identity.CONTENT_ITEM_TYPE)) {
-     // A data kind representing an Identity related to the contact. 
-     // This can be used as a signal by the aggregator to combine raw contacts into contacts, e.g. if two contacts have Identity rows with the same NAMESPACE and IDENTITY values the aggregator can know that they refer to the same person.
-     Log.i("  IDENTITY", cursor.getString(cursor.getColumnIndex(Data.DATA1)));
-     Log.i("  NAMESPACE", cursor.getString(cursor.getColumnIndex(Data.DATA2)));
+     attributes.add(new Attribute(Constants.IDENTITY_TEXT, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+     attributes.add(new Attribute(Constants.IDENTITY_NAMESPACE, cursor.getString(cursor.getColumnIndex(Data.DATA2))));
    } else {
      Log.i("NOT SUPPORTED TYPE MIME", "NOT SUPPORTED TYPE MIME");
    }

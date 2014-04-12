@@ -74,14 +74,13 @@ public class ContactFragment extends Fragment implements android.widget.Compound
   @Override
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
     int pos = (Integer)buttonView.getTag();
-           
     if (pos != ListView.INVALID_POSITION) {
       ContactRow p = contactList.get(pos);
       //Log.i(TAG, "Pos ["+pos+"]"+p.isSync() + isChecked);  
       if (p.isSync() != isChecked) {
         HelperSQL db = new HelperSQL(getActivity());
         p.setSync(isChecked);
-        db.updateContact(p);
+        db.updateContactSync(p);
       }
     } 
     //Log.i(TAG, groupsList.toString());

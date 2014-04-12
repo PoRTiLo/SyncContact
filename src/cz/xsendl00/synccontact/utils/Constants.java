@@ -62,8 +62,6 @@ public class Constants {
   public static final String NICKNAME_MAIDEN = "nicknameMaiden";
   public static final String NICKNAME_SHORT = "nicknameShort";
   public static final String NICKNAME_INITIALS = "nicknameInitials";
-  public static final String OTHER_MAIL = "otherMail";
-  public static final String MOBILE_MAIL = "mobileMail";
   public static final String PHONE_ASSISTANT = "phoneAssistant";
   public static final String PHONE_CALLBACK = "phoneCallback";
   public static final String PHONE_CAR = "phoneCar";
@@ -123,16 +121,20 @@ public class Constants {
   public static final String PHONETIC_MIDDLE_NAME = "phoneticMiddleName";
   public static final String PHONETIC_GIVEN_NAME = "phoneticGivenName";
   public static final String PHONETIC_FAMILY_NAME = "phoneticFamilyName";
+  public static final String DISPLAY_NAME = "displayName";
+  public static final String GIVEN_NAME = "givenName";
+  public static final String NAME_PREFIX = "namePrefix";
+  public static final String NAME_SUFFIX = "nameSuffix";
   public static final String FAMILY_NAME = "familyName";
-  public static final String  MIDDLE_NAME = "middleName";
-  public static final String ORGANIZATION_WORK_COMPANY = "organizationOtherCompany";
-  public static final String ORGANIZATION_WORK_TITLE = "organizationOtherTitle";
-  public static final String ORGANIZATION_WORK_DEPARTMENT = "organizationOtherDepartment";
-  public static final String ORGANIZATION_WORK_JOB_DESCRIPTION = "organizationOtherJobDescription";
-  public static final String ORGANIZATION_WORK_SYMBOL = "organizationOtherSymbol";
-  public static final String ORGANIZATION_WORK_PHONETIC_NAME = "organizationOtherPhoneticName";
-  public static final String ORGANIZATION_WORK_OFFICE_LOCATION = "organizationOtherOfficeLocation";
-  public static final String ORGANIZATION_WORK_PHONETIC_NAME_STYLE = "organizationOtherPhoneticNameStyle";
+  public static final String MIDDLE_NAME = "middleName";
+  public static final String ORGANIZATION_WORK_COMPANY = "organizationWorkCompany";
+  public static final String ORGANIZATION_WORK_TITLE = "organizationWorkTitle";
+  public static final String ORGANIZATION_WORK_DEPARTMENT = "organizationWorkDepartment";
+  public static final String ORGANIZATION_WORK_JOB_DESCRIPTION = "organizationWorkJobDescription";
+  public static final String ORGANIZATION_WORK_SYMBOL = "organizationWorkSymbol";
+  public static final String ORGANIZATION_WORK_PHONETIC_NAME = "organizationWorkPhoneticName";
+  public static final String ORGANIZATION_WORK_OFFICE_LOCATION = "organizationWorkOfficeLocation";
+  public static final String ORGANIZATION_WORK_PHONETIC_NAME_STYLE = "organizationWorkPhoneticNameStyle";
   public static final String ORGANIZATION_OTHER_COMPANY = "organizationOtherCompany";
   public static final String ORGANIZATION_OTHER_TITLE = "organizationOtherTitle";
   public static final String ORGANIZATION_OTHER_DEPARTMENT = "organizationOtherDepartment";
@@ -141,24 +143,33 @@ public class Constants {
   public static final String ORGANIZATION_OTHER_PHONETIC_NAME = "organizationOtherPhoneticName";
   public static final String ORGANIZATION_OTHER_OFFICE_LOCATION = "organizationOtherOfficeLocation";
   public static final String ORGANIZATION_OTHER_PHONETIC_NAME_STYLE = "organizationOtherPhoneticNameStyle";
-  public static final String WORK_NEIGHBORHOOD = "workNeighborhood";
-  public static final String HOME_NEIGHBORHOOD = "homeNeighborhood";
-  public static final String OTHER_NEIGHBORHOOD = "otherNeighborhood";
-  public static final String OTHER_STREET = "otherStreet";
-  public static final String OTHER_CITY = "otherCity";
-  public static final String OTHER_POBOX = "otherPOBox";
-  public static final String OTHER_REGION = "otherRegion";
-  public static final String OTHER_POSTAL_CODE = "otherPostalCode";
-  public static final String OTHER_COUNTRY = "otherCountry";
-  
-  /* InetOrgPerson ---------------USED */
-  public static final String DISPLAY_NAME = "displayName";
-  public static final String GIVEN_NAME = "givenName";
-  /* ldap mapping ---------------USED */
-  public static final String NAME_PREFIX = "namePrefix";
-  public static final String NAME_SUFFIX = "nameSuffix";
+  public static final String IDENTITY_TEXT = "identityText";
+  public static final String IDENTITY_NAMESPACE = "identityNamespace";
+  public static final String RELATION_ASSISTANT = "relationAssistant";
+  public static final String RELATION_BROTHER = "relationBrother";
+  public static final String RELATION_CHILD = "relationChild";
+  public static final String RELATION_DOMESTIC_PARTNER = "relationDomesticPartner";
+  public static final String RELATION_FATHER = "relationFather";
+  public static final String RELATION_FRIEND = "relationFriend";
+  public static final String RELATION_MANAGER = "relationManager";
+  public static final String RELATION_MOTHER = "relationMother";
+  public static final String RELATION_PARENT = "relationParent";
+  public static final String RELATION_PARTNER = "relationPartner";
+  public static final String RELATION_REFFERED_BY = "relationRefferedBy";
+  public static final String RELATION_RELATIVE = "relationRelative";
+  public static final String RELATION_SISTER = "relationSister";
+  public static final String RELATION_SPOUSE = "relationSpouse";
+  public static final String WEBSITE_HOMEPAGE = "websiteHomepage";
+  public static final String WEBSITE_BLOG = "websiteBlog";
+  public static final String WEBSITE_PROFILE = "websiteProfile";
+  public static final String WEBSITE_HOME = "websiteHome";
+  public static final String WEBSITE_WORK = "websiteWork";
+  public static final String WEBSITE_FTP = "websiteFtp";
+  public static final String WEBSITE_OTHER = "websiteOther";
   public static final String HOME_MAIL = "homeMail";
   public static final String WORK_MAIL = "workMail";
+  public static final String OTHER_MAIL = "otherMail";
+  public static final String MOBILE_MAIL = "mobileMail";
   public static final String NOTES = "notes";
   public static final String HOME_STREET = "homeStreet";
   public static final String HOME_POBOX = "homePOBox";
@@ -174,6 +185,15 @@ public class Constants {
   public static final String WORK_COUNTRY = "workCountry";
   public static final String WORK_FORMATTED_ADDRESS = "workFormattedAddress";
   public static final String HOME_FORMATTED_ADDRESS = "homeFormattedAddress";
+  public static final String WORK_NEIGHBORHOOD = "workNeighborhood";
+  public static final String HOME_NEIGHBORHOOD = "homeNeighborhood";
+  public static final String OTHER_NEIGHBORHOOD = "otherNeighborhood";
+  public static final String OTHER_STREET = "otherStreet";
+  public static final String OTHER_CITY = "otherCity";
+  public static final String OTHER_POBOX = "otherPOBox";
+  public static final String OTHER_REGION = "otherRegion";
+  public static final String OTHER_POSTAL_CODE = "otherPostalCode";
+  public static final String OTHER_COUNTRY = "otherCountry";
   public static final String OTHER_FORMATTED_ADDRESS = "otherFormattedAddress";
   
   
@@ -255,4 +275,7 @@ public class Constants {
   public static final String OBJECT_CLASS_ORG ="organizationalPerson";
   public static final String OBJECT_CLASS_PERSON ="person";
   public static final String OBJECT_CLASS_TOP = "top";
+  
+  /** LDAP serach **/
+  public static final String LDAP_MODIFY_TIME_STAMP = "modifyTimestamp";
 }

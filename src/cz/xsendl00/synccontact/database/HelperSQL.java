@@ -48,6 +48,7 @@ public class HelperSQL extends SQLiteOpenHelper {
   private static final String CONTACT_KEY_SYNC = "sync";
   private static final String CONTACT_KEY_ACCOUNT_NAME = "account_name_previous";
   private static final String CONTACT_KEY_ACCOUNT_TYPE = "account_type_previous";
+  private static final String CONTACT_KEY_TIMESTAMP = "timestamp";
   
   private static final String CREATE_CONTACT_TABLE = "CREATE TABLE IF NOT EXISTS " + CONTACT_TABLE_NAME + 
       " (" + CONTACT_KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -55,6 +56,7 @@ public class HelperSQL extends SQLiteOpenHelper {
       CONTACT_KEY_SYNC + " INTEGER, " +
       CONTACT_KEY_ACCOUNT_NAME + " TEXT, " +
       CONTACT_KEY_ACCOUNT_TYPE + " TEXT, " +
+      CONTACT_KEY_TIMESTAMP + " TEXT, " +
       CONTACT_KEY_ID_CONTACT + " TEXT " +");";
   
   private Context context;
@@ -142,7 +144,7 @@ public class HelperSQL extends SQLiteOpenHelper {
   }
 
   // Updating single group
-  public int updateContact(GroupRow group) {
+  public int updateGroup(GroupRow group) {
     SQLiteDatabase db = this.getWritableDatabase();
     
     ContentValues values = new ContentValues();
@@ -206,7 +208,7 @@ public class HelperSQL extends SQLiteOpenHelper {
   }
   
   // Adding new contact
-  public void addContact(ContactRow contact) {
+  public int addContact(ContactRow contact) {
     SQLiteDatabase db = this.getWritableDatabase();
     
     ContentValues values = new ContentValues();
@@ -215,10 +217,12 @@ public class HelperSQL extends SQLiteOpenHelper {
     values.put(CONTACT_KEY_ID_CONTACT, contact.getId());
     values.put(CONTACT_KEY_ACCOUNT_NAME, contact.getAccouNamePrevious());
     values.put(CONTACT_KEY_ACCOUNT_TYPE, contact.getAccouTypePrevious());
+    values.put(CONTACT_KEY_TIMESTAMP, contact.getTimestamp());
  
     // Inserting Row
-    db.insert(CONTACT_TABLE_NAME, null, values);
+    int id = (int)db.insert(CONTACT_TABLE_NAME, null, values);
     db.close(); // Closing database connection
+    return id; 
   }
   
   // Getting single contact
@@ -226,12 +230,12 @@ public class HelperSQL extends SQLiteOpenHelper {
     SQLiteDatabase db = this.getReadableDatabase();
     
     Cursor cursor = db.query(CONTACT_TABLE_NAME, new String[] { CONTACT_KEY_ID,
-        CONTACT_KEY_NAME, CONTACT_KEY_SYNC, CONTACT_KEY_ID_CONTACT, CONTACT_KEY_ACCOUNT_NAME, CONTACT_KEY_ACCOUNT_TYPE }, CONTACT_KEY_ID + "=?",
+        CONTACT_KEY_NAME, CONTACT_KEY_SYNC, CONTACT_KEY_ID_CONTACT, CONTACT_KEY_ACCOUNT_NAME, CONTACT_KEY_ACCOUNT_TYPE, CONTACT_KEY_TIMESTAMP }, CONTACT_KEY_ID + "=?",
             new String[] { String.valueOf(id) }, null, null, null, null);
     if (cursor != null) {
         cursor.moveToFirst();
     }
-    return new ContactRow(cursor.getString(5), cursor.getString(1), cursor.getInt(2)>0, cursor.getInt(0), cursor.getString(3), cursor.getString(4));
+    return new ContactRow(cursor.getString(6), cursor.getString(1), cursor.getInt(2)>0, cursor.getInt(0), cursor.getString(3), cursor.getString(4), cursor.getString(5));
   }
   
   // Getting All Contacts
@@ -243,7 +247,7 @@ public class HelperSQL extends SQLiteOpenHelper {
     if (cursor.moveToFirst()) {
       do {
         // Adding contact to list
-        contactList.add(new ContactRow(cursor.getString(5), cursor.getString(1), cursor.getInt(2)>0, cursor.getInt(0), cursor.getString(3), cursor.getString(4)));
+        contactList.add(new ContactRow(cursor.getString(6), cursor.getString(1), cursor.getInt(2)>0, cursor.getInt(0), cursor.getString(3), cursor.getString(4), cursor.getString(5)));
       } while (cursor.moveToNext());
     }
     db.close();
@@ -284,8 +288,19 @@ public class HelperSQL extends SQLiteOpenHelper {
     values.put(CONTACT_KEY_NAME, contact.getName());
     values.put(CONTACT_KEY_SYNC, contact.isSync());
     values.put(CONTACT_KEY_ID_CONTACT, contact.getId());
+    values.put(CONTACT_KEY_TIMESTAMP, contact.getTimestamp());
     //values.put(CONTACT_KEY_ACCOUNT, contact.getIdAccountPrevious());
-    //Log.i(TAG, "update:" + group.toString());
+    //Log.i(TAG, "update:" + contact.toString());
+    int res = db.update(CONTACT_TABLE_NAME, values, CONTACT_KEY_ID + " = ?", new String[] { String.valueOf(contact.getIdTable()) });
+    db.close();
+    return res;
+  }
+  
+  // Updating single contact
+  public int updateContactSync(ContactRow contact) {
+    SQLiteDatabase db = this.getWritableDatabase();
+    ContentValues values = new ContentValues();
+    values.put(CONTACT_KEY_SYNC, contact.isSync());
     int res = db.update(CONTACT_TABLE_NAME, values, CONTACT_KEY_ID + " = ?", new String[] { String.valueOf(contact.getIdTable()) });
     db.close();
     return res;
@@ -301,6 +316,8 @@ public class HelperSQL extends SQLiteOpenHelper {
   // Insert data from db 
   public void fillContacts(ArrayList<ContactRow> contacts) {
     List<ContactRow> conTable = getAllContacts();
+    String timestamp = ContactRow.createTimestamp();
+    Log.i(TAG, timestamp);
     for (ContactRow con : contacts) {
       boolean found = false;
       for (ContactRow conT : conTable) {
@@ -309,13 +326,16 @@ public class HelperSQL extends SQLiteOpenHelper {
           con.setIdTable(conT.getIdTable());
           con.setAccouNamePrevious(conT.getAccouNamePrevious());
           con.setAccouTypePrevious(conT.getAccouTypePrevious());
+          con.setTimestamp(conT.getTimestamp());
           found = true;
           break;
         }
       }
-      if ( !found ) {
-        addContact(con);
-        importContactToSyncAccount(Integer.parseInt(con.getId()));
+      if (!found) {
+        //Log.i(TAG, con.toString());
+        con.setTimestamp(timestamp);
+        con.setIdTable(addContact(con));
+        //importContactToSyncAccount(Integer.parseInt(con.getId()));
       }
     }
   }
@@ -339,4 +359,16 @@ public class HelperSQL extends SQLiteOpenHelper {
     }
   }
 
+  public String newerTimestamp() {
+    String str = null;
+    String selectQuery = "SELECT MAX(" + CONTACT_KEY_TIMESTAMP + ") FROM " + CONTACT_TABLE_NAME;
+    //Log.i(TAG, selectQuery);
+    SQLiteDatabase db = this.getWritableDatabase();
+    Cursor cursor = db.rawQuery(selectQuery, null);
+    if (cursor.moveToNext()) {
+      str = cursor.getString(0);
+      //Log.i(TAG, "max TIMESTAMP" + cursor.getString(0));
+    }
+    return str;
+  }
 }

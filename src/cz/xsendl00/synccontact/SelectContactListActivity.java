@@ -3,8 +3,8 @@ package cz.xsendl00.synccontact;
 import com.xsendl00.synccontact.R;
 
 import cz.xsendl00.synccontact.authenticator.AccountData;
-import cz.xsendl00.synccontact.client.ServerInstance;
-import cz.xsendl00.synccontact.client.ServerUtilities;
+import cz.xsendl00.synccontact.ldap.ServerInstance;
+import cz.xsendl00.synccontact.ldap.ServerUtilities;
 import cz.xsendl00.synccontact.utils.Constants;
 
 import android.accounts.Account;

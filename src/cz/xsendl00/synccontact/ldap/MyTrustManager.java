@@ -1,4 +1,4 @@
-package cz.xsendl00.synccontact.client;
+package cz.xsendl00.synccontact.ldap;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -26,7 +26,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 
 import static com.unboundid.util.Debug.*;
 import static com.unboundid.util.StaticUtils.*;
-import static cz.xsendl00.synccontact.client.SSLMessages.*;
+import static cz.xsendl00.synccontact.ldap.SSLMessages.*;
 
 
 
