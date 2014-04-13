@@ -109,7 +109,7 @@ public class AccountData {
   }
   
   public String toString() {
-    return  "name: " + name + ", password: no show :), port: " + port + ", host: " + host + ", baseDn: " + baseDn + 
+    return  "name: " + name + ", password: "+password+", port: " + port + ", host: " + host + ", baseDn: " + baseDn + 
         ", encryption: " + encryption + ", newAccount: " + newAccount + ", filter: " + searchFilter;
   }
   
@@ -119,24 +119,24 @@ public class AccountData {
     Account[] accounts = manager.getAccountsByType(Constants.ACCOUNT_TYPE);
     // TODO : mel by byt jen jeden, ale rasdsi poresit
     for (Account account : accounts) {
-      try {
-        accountData.setPassword(manager.blockingGetAuthToken(account, Constants.AUTHTOKEN_TYPE, true));
+     // try {
+        accountData.setPassword("synccontact");//manager.blockingGetAuthToken(account, Constants.AUTHTOKEN_TYPE, true));
         accountData.setHost(manager.getUserData(account, Constants.PAR_HOST));
         accountData.setName(manager.getUserData(account, Constants.PAR_USERNAME));
         accountData.setSearchFilter(manager.getUserData(account, Constants.PAR_SEARCHFILTER));
         accountData.setBaseDn(manager.getUserData(account, Constants.PAR_BASEDN));
         accountData.setPort(Integer.parseInt(manager.getUserData(account, Constants.PAR_PORT)));
         accountData.setEncryption(Integer.parseInt(manager.getUserData(account, Constants.PAR_ENCRYPTION)));
-      } catch (OperationCanceledException e) {
+      //} catch (OperationCanceledException e) {
         // TODO Auto-generated catch block
-        e.printStackTrace();
-      } catch (AuthenticatorException e) {
+     //   e.printStackTrace();
+     // } catch (AuthenticatorException e) {
         // TODO Auto-generated catch block
-        e.printStackTrace();
-      } catch (IOException e) {
+     //   e.printStackTrace();
+     // } catch (IOException e) {
         // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
+      //  e.printStackTrace();
+     // }
     }
     Log.i("AccountData", accountData.toString());
     return accountData;

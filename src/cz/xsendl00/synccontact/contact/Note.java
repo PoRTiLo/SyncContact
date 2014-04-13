@@ -7,9 +7,10 @@ import cz.xsendl00.synccontact.utils.Constants;
  * @author portilo
  *
  */
-public class Note {
+public class Note  implements ContactInterface {
   
-  private String notes = Constants.NOTES;
+  private String notes;
+
 
   public String getNotes() {
     return notes;
@@ -18,4 +19,16 @@ public class Note {
   public void setNotes(String notes) {
     this.notes = notes;
   }
+  
+  @Override
+  public String toString() {
+    return "Note [notes=" + notes + "]";
+  }
+
+  @Override
+  public void defaultValue() {
+    notes = Constants.NOTES;
+    
+  }
+  
 }

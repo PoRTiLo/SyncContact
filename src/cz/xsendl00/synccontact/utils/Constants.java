@@ -109,7 +109,7 @@ public class Constants {
   public static final String IM_OTHER_QQ = "imOtherQq";
   public static final String IM_OTHER_SKYPE = "imOtherSkype";
   public static final String IM_OTHER_YAHOO = "imOtherYahoo";
-  public static final String IM_NULL_AIM = "imNullAim";
+  /*public static final String IM_NULL_AIM = "imNullAim";
   public static final String IM_NULL_GOOGLE_TALK = "imNullGoogleTalk";
   public static final String IM_NULL_ICQ = "imNullIcq";
   public static final String IM_NULL_JABBER = "imNullJabber";
@@ -117,7 +117,7 @@ public class Constants {
   public static final String IM_NULL_NETMEETING = "imNullNetmeeting";
   public static final String IM_NULL_QQ = "imNullQq";
   public static final String IM_NULL_SKYPE = "imNullSkype";
-  public static final String IM_NULL_YAHOO = "imNullYahoo";
+  public static final String IM_NULL_YAHOO = "imNullYahoo";*/
   public static final String PHONETIC_MIDDLE_NAME = "phoneticMiddleName";
   public static final String PHONETIC_GIVEN_NAME = "phoneticGivenName";
   public static final String PHONETIC_FAMILY_NAME = "phoneticFamilyName";

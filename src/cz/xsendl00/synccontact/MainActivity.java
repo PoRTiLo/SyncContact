@@ -3,10 +3,12 @@ package cz.xsendl00.synccontact;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.UUID;
 
 import com.xsendl00.synccontact.R;
 
 import cz.xsendl00.synccontact.authenticator.AccountData;
+import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
@@ -23,6 +25,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -36,6 +39,7 @@ public class MainActivity extends Activity {
   private Button show;
   private Button help;
   private Boolean setsyntContact;
+  private final Handler handler = new Handler();
   
   private LinkedHashMap<GroupRow, ArrayList<ContactRow>> groupList;
 
@@ -112,12 +116,14 @@ public class MainActivity extends Activity {
   
   
   public void startMap(View view) {
-    //Mapping.mappingRequest(getContentResolver(), "149", "baseDn");
+    Log.i(TAG, GoogleContact.defaultValue().toString());
     
+    //Mapping.mappingRequest(getContentResolver(), "149", "baseDn");
+    //Mapping.mappingContactFromDB(getContentResolver(), "149");
     //Mapping.fetchDirtyContacts(getApplicationContext());
     UpdateTask rt = new UpdateTask();
     rt.execute();
-    Log.i(TAG, ContactRow.createTimestamp());
+    //Log.i(TAG, ContactRow.createTimestamp());
     //ServerUtilities.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
     
   }
@@ -126,9 +132,10 @@ public class MainActivity extends Activity {
     private ProgressDialog progressDialog;
     @Override
     protected Boolean doInBackground(Void...params) {
+      ServerUtilities.addContactsToServer(new ServerInstance(AccountData.getAccountData(getApplicationContext())), handler, getApplicationContext());
       //ServerUtilities.fetchModifyTimestamp(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
-      ServerUtilities.fetchModifyTimestampContacts(new ServerInstance(AccountData.getAccountData(getApplicationContext())), 
-          getApplicationContext(), "20140328193405Z");
+      //ServerUtilities.fetchModifyTimestampContacts(new ServerInstance(AccountData.getAccountData(getApplicationContext())), 
+      //    getApplicationContext(), "20140328193405Z");
       //ServerUtilities.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
       return true;
     }

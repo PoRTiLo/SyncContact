@@ -2,27 +2,28 @@ package cz.xsendl00.synccontact.contact;
 
 import cz.xsendl00.synccontact.utils.Constants;
 
-public class Phone {
-  private String phoneAssistant = Constants.PHONE_ASSISTANT;
-  private String phoneCallback = Constants.PHONE_CALLBACK;
-  private String phoneCar = Constants.PHONE_CAR;
-  private String phoneCompany = Constants.PHONE_COMPANY;
-  private String phoneFaxHome = Constants.PHONE_FAX_HOME;
-  private String phoneFaxWork = Constants.PHONE_FAX_WORK;;
-  private String phoneHome = Constants.PHONE_HOME;
-  private String phoneISDN = Constants.PHONE_ISDN;
-  private String phoneMain = Constants.PHONE_MAIN;
-  private String phoneMMS = Constants.PHONE_MMS;
-  private String phoneMobile = Constants.PHONE_MOBILE;
-  private String phoneOther = Constants.PHONE_OTHER ;
-  private String phoneOtherFax = Constants.PHONE_OTHER_FAX;
-  private String phonePager = Constants.PHONE_PAGER;
-  private String phoneRadio = Constants.PHONE_RADIO;
-  private String phoneTelex = Constants.PHONE_TELEX;
-  private String phoneTTYTDD = Constants.PHONE_TTY_TDD;
-  private String phoneWork = Constants.PHONE_WORK;
-  private String phoneWorkMobile = Constants.PHONE_WORK_MOBILE;
-  private String phoneWorkPager = Constants.PHONE_WORK_PAGER;
+public class Phone implements ContactInterface{
+
+  private String phoneAssistant;
+  private String phoneCallback;
+  private String phoneCar;
+  private String phoneCompany;
+  private String phoneFaxHome;
+  private String phoneFaxWork;
+  private String phoneHome;
+  private String phoneISDN;
+  private String phoneMain;
+  private String phoneMMS;
+  private String phoneMobile;
+  private String phoneOther;
+  private String phoneOtherFax;
+  private String phonePager;
+  private String phoneRadio;
+  private String phoneTelex;
+  private String phoneTTYTDD;
+  private String phoneWork;
+  private String phoneWorkMobile;
+  private String phoneWorkPager;
   
   public String getPhoneAssistant() {
     return phoneAssistant;
@@ -144,5 +145,42 @@ public class Phone {
   public void setPhoneWorkPager(String phoneWorkPager) {
     this.phoneWorkPager = phoneWorkPager;
   }
-  
+  @Override
+  public String toString() {
+    return "Phone [phoneAssistant=" + phoneAssistant + ", phoneCallback="
+        + phoneCallback + ", phoneCar=" + phoneCar + ", phoneCompany="
+        + phoneCompany + ", phoneFaxHome=" + phoneFaxHome + ", phoneFaxWork="
+        + phoneFaxWork + ", phoneHome=" + phoneHome + ", phoneISDN="
+        + phoneISDN + ", phoneMain=" + phoneMain + ", phoneMMS=" + phoneMMS
+        + ", phoneMobile=" + phoneMobile + ", phoneOther=" + phoneOther
+        + ", phoneOtherFax=" + phoneOtherFax + ", phonePager=" + phonePager
+        + ", phoneRadio=" + phoneRadio + ", phoneTelex=" + phoneTelex
+        + ", phoneTTYTDD=" + phoneTTYTDD + ", phoneWork=" + phoneWork
+        + ", phoneWorkMobile=" + phoneWorkMobile + ", phoneWorkPager="
+        + phoneWorkPager + "]";
+  }
+  @Override
+  public void defaultValue() {
+    phoneAssistant = Constants.PHONE_ASSISTANT;
+    phoneCallback = Constants.PHONE_CALLBACK;
+    phoneCar = Constants.PHONE_CAR;
+    phoneCompany = Constants.PHONE_COMPANY;
+    phoneFaxHome = Constants.PHONE_FAX_HOME;
+    phoneFaxWork = Constants.PHONE_FAX_WORK;;
+    phoneHome = Constants.PHONE_HOME;
+    phoneISDN = Constants.PHONE_ISDN;
+    phoneMain = Constants.PHONE_MAIN;
+    phoneMMS = Constants.PHONE_MMS;
+    phoneMobile = Constants.PHONE_MOBILE;
+    phoneOther = Constants.PHONE_OTHER ;
+    phoneOtherFax = Constants.PHONE_OTHER_FAX;
+    phonePager = Constants.PHONE_PAGER;
+    phoneRadio = Constants.PHONE_RADIO;
+    phoneTelex = Constants.PHONE_TELEX;
+    phoneTTYTDD = Constants.PHONE_TTY_TDD;
+    phoneWork = Constants.PHONE_WORK;
+    phoneWorkMobile = Constants.PHONE_WORK_MOBILE;
+    phoneWorkPager = Constants.PHONE_WORK_PAGER;
+    
+  }
 }

@@ -2,22 +2,22 @@ package cz.xsendl00.synccontact.contact;
 
 import cz.xsendl00.synccontact.utils.Constants;
 
-public class Relation {
-  
-  private String relationAssistant = Constants.RELATION_ASSISTANT;
-  private String relationBrother = Constants.RELATION_BROTHER;
-  private String relationChild = Constants.RELATION_CHILD;
-  private String relationDomesticPartner = Constants.RELATION_DOMESTIC_PARTNER;
-  private String relationFather = Constants.RELATION_FATHER;
-  private String relationFriend = Constants.RELATION_FRIEND;
-  private String relationManager = Constants.RELATION_MANAGER;
-  private String relationMother = Constants.RELATION_MOTHER;
-  private String relationParent = Constants.RELATION_PARENT;
-  private String relationPartner = Constants.RELATION_PARTNER;
-  private String relationRefferedBy = Constants.RELATION_REFFERED_BY;
-  private String relationRelative = Constants.RELATION_RELATIVE;
-  private String relationSister = Constants.RELATION_SISTER;
-  private String relationSpouse = Constants.RELATION_SPOUSE;
+public class Relation implements ContactInterface{
+
+  private String relationAssistant;
+  private String relationBrother;
+  private String relationChild;
+  private String relationDomesticPartner;
+  private String relationFather;
+  private String relationFriend;
+  private String relationManager;
+  private String relationMother;
+  private String relationParent;
+  private String relationPartner;
+  private String relationRefferedBy;
+  private String relationRelative;
+  private String relationSister;
+  private String relationSpouse;
   
   public String getRelationAssistant() {
     return relationAssistant;
@@ -104,4 +104,36 @@ public class Relation {
     this.relationSpouse = relationSpouse;
   }
 
+  
+  @Override
+  public String toString() {
+  return "Relation [relationAssistant=" + relationAssistant
+      + ", relationBrother=" + relationBrother + ", relationChild="
+      + relationChild + ", relationDomesticPartner="
+      + relationDomesticPartner + ", relationFather=" + relationFather
+      + ", relationFriend=" + relationFriend + ", relationManager="
+      + relationManager + ", relationMother=" + relationMother
+      + ", relationParent=" + relationParent + ", relationPartner="
+      + relationPartner + ", relationRefferedBy=" + relationRefferedBy
+      + ", relationRelative=" + relationRelative + ", relationSister="
+      + relationSister + ", relationSpouse=" + relationSpouse + "]";
+}
+  @Override
+  public void defaultValue() {
+    relationAssistant = Constants.RELATION_ASSISTANT;
+    relationBrother = Constants.RELATION_BROTHER;
+    relationChild = Constants.RELATION_CHILD;
+    relationDomesticPartner = Constants.RELATION_DOMESTIC_PARTNER;
+    relationFather = Constants.RELATION_FATHER;
+    relationFriend = Constants.RELATION_FRIEND;
+    relationManager = Constants.RELATION_MANAGER;
+    relationMother = Constants.RELATION_MOTHER;
+    relationParent = Constants.RELATION_PARENT;
+    relationPartner = Constants.RELATION_PARTNER;
+    relationRefferedBy = Constants.RELATION_REFFERED_BY;
+    relationRelative = Constants.RELATION_RELATIVE;
+    relationSister = Constants.RELATION_SISTER;
+    relationSpouse = Constants.RELATION_SPOUSE;
+    
+  }
 }

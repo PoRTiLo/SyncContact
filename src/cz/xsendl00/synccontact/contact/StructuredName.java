@@ -2,17 +2,17 @@ package cz.xsendl00.synccontact.contact;
 
 import cz.xsendl00.synccontact.utils.Constants;
 
-public class StructuredName {
+public class StructuredName implements ContactInterface {
 
-  private String phoneticMiddleName = Constants.PHONETIC_MIDDLE_NAME;
-  private String phoneticGivenName = Constants.PHONETIC_GIVEN_NAME;
-  private String phoneticFamilyName = Constants.PHONETIC_FAMILY_NAME;
-  private String familyName = Constants.FAMILY_NAME;
-  private String middleName = Constants.MIDDLE_NAME;
-  private String displayName = Constants.DISPLAY_NAME;
-  private String givenName = Constants.GIVEN_NAME;
-  private String namePrefix = Constants.NAME_PREFIX;
-  private String nameSuffix = Constants.NAME_SUFFIX;
+  private String phoneticMiddleName;
+  private String phoneticGivenName;
+  private String phoneticFamilyName;
+  private String familyName;
+  private String middleName;
+  private String displayName;
+  private String givenName;
+  private String namePrefix;
+  private String nameSuffix;
   
   public String getFamilyName() {
     return familyName;
@@ -70,4 +70,26 @@ public class StructuredName {
     this.phoneticFamilyName = phoneticFamilyName;
   }
 
+  @Override
+  public String toString() {
+    return "StructuredName [phoneticMiddleName=" + phoneticMiddleName
+        + ", phoneticGivenName=" + phoneticGivenName + ", phoneticFamilyName="
+        + phoneticFamilyName + ", familyName=" + familyName + ", middleName="
+        + middleName + ", displayName=" + displayName + ", givenName="
+        + givenName + ", namePrefix=" + namePrefix + ", nameSuffix="
+        + nameSuffix + "]";
+  }
+  @Override
+  public void defaultValue() {
+    phoneticMiddleName = Constants.PHONETIC_MIDDLE_NAME;
+    phoneticGivenName = Constants.PHONETIC_GIVEN_NAME;
+    phoneticFamilyName = Constants.PHONETIC_FAMILY_NAME;
+    familyName = Constants.FAMILY_NAME;
+    middleName = Constants.MIDDLE_NAME;
+    displayName = Constants.DISPLAY_NAME;
+    givenName = Constants.GIVEN_NAME;
+    namePrefix = Constants.NAME_PREFIX;
+    nameSuffix = Constants.NAME_SUFFIX;
+    
+  }
 }

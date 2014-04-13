@@ -2,9 +2,12 @@ package cz.xsendl00.synccontact.utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.unboundid.ldap.sdk.AddRequest;
 import com.unboundid.ldap.sdk.Attribute;
+import com.unboundid.ldap.sdk.ReadOnlyEntry;
+import com.unboundid.ldap.sdk.SearchResultEntry;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -30,117 +33,14 @@ import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.CommonDataKinds.Website;
 import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
-import cz.xsendl00.synccontact.authenticator.AccountData;
-import cz.xsendl00.synccontact.client.Address;
-import cz.xsendl00.synccontact.client.AddressType;
-import cz.xsendl00.synccontact.client.GoogleContact;
+import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.database.HelperSQL;
 
 public class Mapping {
 
   private static final String TAG = "Mapping";
   
-  public static Bundle mapingTo(GoogleContact gcMapping, AccountData accountData) {
-    Bundle userData = new Bundle();
-    userData.putString(Constants.PAR_USERNAME, accountData.getName());
-    userData.putString(Constants.PAR_PORT, accountData.getPort().toString());
-    userData.putString(Constants.PAR_HOST, accountData.getHost());
-    userData.putString(Constants.PAR_ENCRYPTION, accountData.getEncryption().toString());
-    userData.putString(Constants.PAR_SEARCHFILTER, accountData.getSearchFilter());
-    userData.putString(Constants.PAR_BASEDN, accountData.getBaseDn());
-    // Mappings for LDAP data
-    // person 
-    userData.putString(Constants.PAR_MAPPING + Constants.CN, gcMapping.getCn());
-    userData.putString(Constants.PAR_MAPPING + Constants.SN, gcMapping.getSn());
-    userData.putString(Constants.PAR_MAPPING + Constants.USER_PASSWORD, gcMapping.getUserPassword());
-    userData.putString(Constants.PAR_MAPPING + Constants.TELEPHONE_NUMBER, gcMapping.getTelephoneNumber());
-    userData.putString(Constants.PAR_MAPPING + Constants.SEE_ALSO, gcMapping.getSeeAlso());
-    userData.putString(Constants.PAR_MAPPING + Constants.DESCRIPTION, gcMapping.getDescription());
-    
-    // OrganizationalPerson
-    userData.putString(Constants.PAR_MAPPING + Constants.TITLE, gcMapping.getTitle());
-    userData.putString(Constants.PAR_MAPPING + Constants.X12_ADDRESS, gcMapping.getX121Address());
-    userData.putString(Constants.PAR_MAPPING + Constants.REGISTRED_ADDRESS, gcMapping.getRegisteredAddress());
-    userData.putString(Constants.PAR_MAPPING + Constants.DESTINATION_INDICATOR, gcMapping.getDestinationIndicator());
-    userData.putString(Constants.PAR_MAPPING + Constants.INTERNATIONAL_SDN_NUMBER, gcMapping.getInternationaliSDNNumber());
-    userData.putString(Constants.PAR_MAPPING + Constants.FASCIMILE_TELEPHONE_NUMBER, gcMapping.getFacsimileTelephoneNumber());
-    userData.putString(Constants.PAR_MAPPING + Constants.PREFERRED_DELIVERY_METHOD, gcMapping.getPreferredDeliveryMethod());
-    userData.putString(Constants.PAR_MAPPING + Constants.TELEX_NUMBER, gcMapping.getTelexNumber());
-    userData.putString(Constants.PAR_MAPPING + Constants.PHYSICAL_DELIVERY_OFFICE_NAME, gcMapping.getPhysicalDeliveryOfficeName());
-    userData.putString(Constants.PAR_MAPPING + Constants.OU, gcMapping.getOu());
-    userData.putString(Constants.PAR_MAPPING + Constants.ST, gcMapping.getSt());
-    userData.putString(Constants.PAR_MAPPING + Constants.L, gcMapping.getL());
-    
-    // InetOrgPerson
-    userData.putString(Constants.PAR_MAPPING + Constants.AUDIO, gcMapping.getAudio());
-    userData.putString(Constants.PAR_MAPPING + Constants.BUSSINES_CATEGORY, gcMapping.getBusinessCategory());
-    userData.putString(Constants.PAR_MAPPING + Constants.CAR_LICENCE, gcMapping.getCarLicense());
-    userData.putString(Constants.PAR_MAPPING + Constants.DEPARTMENT_NUMBER, gcMapping.getDepartmentNumber());
-    userData.putString(Constants.PAR_MAPPING + Constants.DISPLAY_NAME, gcMapping.getDisplayName());
-    userData.putString(Constants.PAR_MAPPING + Constants.EMPLOYEE_NUMBER, gcMapping.getEmployeeNumber());
-    userData.putString(Constants.PAR_MAPPING + Constants.EMPLOYEE_TYPE, gcMapping.getEmployeeType());
-    userData.putString(Constants.PAR_MAPPING + Constants.GIVEN_NAME, gcMapping.getGivenName());
-    userData.putString(Constants.PAR_MAPPING + Constants.HOME_PHONE, gcMapping.getHomePhone());
-    userData.putString(Constants.PAR_MAPPING + Constants.HOME_POSTAL_ADDRESS, gcMapping.getHomePostalAddress());
-    userData.putString(Constants.PAR_MAPPING + Constants.INITIALS, gcMapping.getInitials());
-    userData.putString(Constants.PAR_MAPPING + Constants.JPEG_PHOTO, gcMapping.getJpegPhoto());
-    userData.putString(Constants.PAR_MAPPING + Constants.LABELED_URI, gcMapping.getLabeledURI());
-    userData.putString(Constants.PAR_MAPPING + Constants.MAIL, gcMapping.getMail());
-    userData.putString(Constants.PAR_MAPPING + Constants.MANAGER, gcMapping.getManager());
-    userData.putString(Constants.PAR_MAPPING + Constants.MOBILE, gcMapping.getMobile());
-    userData.putString(Constants.PAR_MAPPING + Constants.O, gcMapping.getO());
-    userData.putString(Constants.PAR_MAPPING + Constants.PAGER, gcMapping.getPager());
-    userData.putString(Constants.PAR_MAPPING + Constants.PHOTO, gcMapping.getPhoto());
-    userData.putString(Constants.PAR_MAPPING + Constants.ROOM_NUMBER, gcMapping.getRoomNumber());
-    userData.putString(Constants.PAR_MAPPING + Constants.SECRETARY, gcMapping.getSecretary());
-    userData.putString(Constants.PAR_MAPPING + Constants.UID, gcMapping.getUid());
-    userData.putString(Constants.PAR_MAPPING + Constants.USER_CERTIFICATE, gcMapping.getUserCertificate());
-    userData.putString(Constants.PAR_MAPPING + Constants.X500_UNIQUE_IDENTIFIER, gcMapping.getX500uniqueIdentifier());
-    userData.putString(Constants.PAR_MAPPING + Constants.PREFERRED_LANGUAGE, gcMapping.getPreferredLanguage());
-    userData.putString(Constants.PAR_MAPPING + Constants.USER_SMIME_CERTIFICATE, gcMapping.getUserSMIMECertificate());
-    userData.putString(Constants.PAR_MAPPING + Constants.USER_PKCS12, gcMapping.getUserPKCS12());
-    userData.putString(Constants.PAR_MAPPING + Constants.GIVEN_NAME, gcMapping.getGivenName());
-    
-    //GoogleContatc
-    userData.putString(Constants.PAR_MAPPING + Constants.ADDITIONAL_NAME, gcMapping.getAdditionalName());
-    userData.putString(Constants.PAR_MAPPING + Constants.NAME_PREFIX, gcMapping.getNamePrefix());
-    userData.putString(Constants.PAR_MAPPING + Constants.NAME_SUFFIX, gcMapping.getNameSuffix());
-    userData.putString(Constants.PAR_MAPPING + Constants.NICKNAME, gcMapping.getNickname());
-    userData.putString(Constants.PAR_MAPPING + Constants.SHORT_NAME, gcMapping.getShortName());
-    userData.putString(Constants.PAR_MAPPING + Constants.MAIDEN_NAME, gcMapping.getMaidenName());
-    userData.putString(Constants.PAR_MAPPING + Constants.GENDER, gcMapping.getGender());
-    userData.putString(Constants.PAR_MAPPING + Constants.NOTES, gcMapping.getNotes());
-    userData.putString(Constants.PAR_MAPPING + Constants.HOME_MAIL, gcMapping.getHomeMail());
-    userData.putString(Constants.PAR_MAPPING + Constants.WORK_MAIL, gcMapping.getWorkMail());
-    userData.putString(Constants.PAR_MAPPING + Constants.WORK_PHONE, gcMapping.getWorkPhone());
-    userData.putString(Constants.PAR_MAPPING + Constants.WEBSITE, gcMapping.getWebsite());
-    //GoogleContact - Home address
-    Address home = gcMapping.getAddress().get(AddressType.HOME);
-    userData.putString(Constants.PAR_MAPPING + Constants.HOME_CITY, home.getCity());
-    userData.putString(Constants.PAR_MAPPING + Constants.HOME_COUNTRY, home.getCountry());
-    userData.putString(Constants.PAR_MAPPING + Constants.HOME_EXTENDED_ADDRESS, home.getExtendedAddress());
-    userData.putString(Constants.PAR_MAPPING + Constants.HOME_POBOX, home.getPobox());
-    userData.putString(Constants.PAR_MAPPING + Constants.HOME_REGION, home.getRegion());
-    userData.putString(Constants.PAR_MAPPING + Constants.HOME_STREET, home.getStreet());
-    userData.putString(Constants.PAR_MAPPING + Constants.HOME_POSTAL_CODE, home.getZip());
-    //GoogleContact - Work address
-    Address work = gcMapping.getAddress().get(AddressType.WORK);
-    userData.putString(Constants.PAR_MAPPING + Constants.WORK_CITY, work.getCity());
-    userData.putString(Constants.PAR_MAPPING + Constants.WORK_COUNTRY, work.getCountry());
-    userData.putString(Constants.PAR_MAPPING + Constants.WORK_EXTENDED_ADDRESS, work.getExtendedAddress());
-    userData.putString(Constants.PAR_MAPPING + Constants.WORK_POBOX, work.getPobox());
-    userData.putString(Constants.PAR_MAPPING + Constants.WORK_REGION, work.getRegion());
-    userData.putString(Constants.PAR_MAPPING + Constants.WORK_STREET, work.getStreet());
-    userData.putString(Constants.PAR_MAPPING + Constants.WORK_POSTAL_CODE, work.getZip());
-    //GoogleContact - postal address
-    Address postal = gcMapping.getAddress().get(AddressType.POSTAL);
-    userData.putString(Constants.PAR_MAPPING + Constants.POST_OFFICE_BOX, gcMapping.getPostOfficeBox());
-    userData.putString(Constants.PAR_MAPPING + Constants.POSTAL_CODE, postal.getZip());
-    userData.putString(Constants.PAR_MAPPING + Constants.POSTAL_ADDRESS, postal.getExtendedAddress());
-    
-    return userData;
-  }
-  
+ 
   public static Bundle mappingFrom(AccountManager accountManager, Account account) {
     // LDAP name mappings
     final Bundle userMapping = new Bundle();
@@ -328,7 +228,7 @@ public class Mapping {
     ldapAttributes.add(Constants.IM_OTHER_QQ);
     ldapAttributes.add(Constants.IM_OTHER_SKYPE);
     ldapAttributes.add(Constants.IM_OTHER_YAHOO);
-    ldapAttributes.add(Constants.IM_NULL_AIM);
+    /*ldapAttributes.add(Constants.IM_NULL_AIM);
     ldapAttributes.add(Constants.IM_NULL_GOOGLE_TALK);
     ldapAttributes.add(Constants.IM_NULL_ICQ);
     ldapAttributes.add(Constants.IM_NULL_JABBER);
@@ -336,7 +236,7 @@ public class Mapping {
     ldapAttributes.add(Constants.IM_NULL_NETMEETING);
     ldapAttributes.add(Constants.IM_NULL_QQ);
     ldapAttributes.add(Constants.IM_NULL_SKYPE);
-    ldapAttributes.add(Constants.IM_NULL_YAHOO);
+    ldapAttributes.add(Constants.IM_NULL_YAHOO);*/
     ldapAttributes.add(Constants.PHONETIC_MIDDLE_NAME);
     ldapAttributes.add(Constants.PHONETIC_GIVEN_NAME);
     ldapAttributes.add(Constants.PHONETIC_FAMILY_NAME);
@@ -425,20 +325,188 @@ public class Mapping {
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
     
     attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GOOGLE));
-    attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_INET));
-    attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_ORG));
-    attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_PERSON));
-    attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_TOP));
+    //attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_INET));
+    //attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_ORG));
+    //attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_PERSON));
+    //attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_TOP));
+    UUID uuid = UUID.randomUUID();
+    String randomUUIDString = uuid.toString();
+    attributes.add(new Attribute("uuid", randomUUIDString));
     
     
-    while (cursor.moveToNext()) {
-      attributes.addAll(fill(cursor));
-    }
-    cursor.close();
-    AddRequest addRequest = new AddRequest(baseDn, attributes);
+    //while (cursor.moveToNext()) {
+    //  attributes.addAll(fill(cursor));
+    //}
+    //cursor.close();
+    AddRequest addRequest = new AddRequest("uuid="+randomUUIDString+",ou=users,"+baseDn, attributes);
     
     Log.i(TAG, addRequest.toLDIFString());
     return addRequest;
+  }
+  
+  public static void mappingContactFromDB(ContentResolver cr, String id) {
+    Cursor cursor = ContactDetail.fetchAllDataOfContact(cr, id);
+    GoogleContact contact = new GoogleContact();
+    while (cursor.moveToNext()) {
+      fillContact(cursor, contact);
+    }
+    cursor.close();
+    
+    Log.i(TAG, contact.toString());
+  }
+  
+  public static GoogleContact mappingContactFromLDAP(ReadOnlyEntry user) {
+    GoogleContact c = GoogleContact.defaultValue();
+    // email
+    c.getEmail().setHomeMail(user.hasAttribute(c.getEmail().getHomeMail()) ? user.getAttributeValue(c.getEmail().getHomeMail()) : null);
+    c.getEmail().setMobileMail(user.hasAttribute(c.getEmail().getMobileMail()) ? user.getAttributeValue(c.getEmail().getMobileMail()) : null);
+    c.getEmail().setOtherMail(user.hasAttribute(c.getEmail().getOtherMail()) ? user.getAttributeValue(c.getEmail().getOtherMail()) : null);
+    c.getEmail().setWorkMail(user.hasAttribute(c.getEmail().getWorkMail()) ? user.getAttributeValue(c.getEmail().getWorkMail()) : null);
+    // event
+    c.getEvent().setEventAnniversary(user.hasAttribute(c.getEvent().getEventAnniversary()) ? user.getAttributeValue(c.getEvent().getEventAnniversary()) : null);
+    c.getEvent().setEventBirthday(user.hasAttribute(c.getEvent().getEventBirthday()) ? user.getAttributeValue(c.getEvent().getEventBirthday()) : null);
+    c.getEvent().setEventOther(user.hasAttribute(c.getEvent().getEventOther()) ? user.getAttributeValue(c.getEvent().getEventOther()) : null);
+    // identity
+    c.getIdentity().setIdentityNamespace(user.hasAttribute(c.getIdentity().getIdentityNamespace()) ? user.getAttributeValue(c.getIdentity().getIdentityNamespace()) : null);
+    c.getIdentity().setIdentityText(user.hasAttribute(c.getIdentity().getIdentityText()) ? user.getAttributeValue(c.getIdentity().getIdentityText()) : null);
+    // im
+    c.getIm().setImHomeAim(user.hasAttribute(c.getIm().getImHomeAim()) ? user.getAttributeValue(c.getIm().getImHomeAim()) : null);
+    c.getIm().setImHomeGoogleTalk(user.hasAttribute(c.getIm().getImHomeGoogleTalk()) ? user.getAttributeValue(c.getIm().getImHomeGoogleTalk()) : null);
+    c.getIm().setImHomeIcq(user.hasAttribute(c.getIm().getImHomeIcq()) ? user.getAttributeValue(c.getIm().getImHomeIcq()) : null);
+    c.getIm().setImHomeJabber(user.hasAttribute(c.getIm().getImHomeJabber()) ? user.getAttributeValue(c.getIm().getImHomeJabber()) : null);
+    c.getIm().setImHomeMsn(user.hasAttribute(c.getIm().getImHomeMsn()) ? user.getAttributeValue(c.getIm().getImHomeMsn()) : null);
+    c.getIm().setImHomeNetmeeting(user.hasAttribute(c.getIm().getImHomeNetmeeting()) ? user.getAttributeValue(c.getIm().getImHomeNetmeeting()) : null);
+    c.getIm().setImHomeQq(user.hasAttribute(c.getIm().getImHomeQq()) ? user.getAttributeValue(c.getIm().getImHomeQq()) : null);
+    c.getIm().setImHomeSkype(user.hasAttribute(c.getIm().getImHomeSkype()) ? user.getAttributeValue(c.getIm().getImHomeSkype()) : null);
+    c.getIm().setImHomeYahoo(user.hasAttribute(c.getIm().getImHomeYahoo()) ? user.getAttributeValue(c.getIm().getImHomeYahoo()) : null);
+    c.getIm().setImOtherAim(user.hasAttribute(c.getIm().getImOtherAim()) ? user.getAttributeValue(c.getIm().getImOtherAim()) : null);
+    c.getIm().setImOtherGoogleTalk(user.hasAttribute(c.getIm().getImOtherGoogleTalk()) ? user.getAttributeValue(c.getIm().getImOtherGoogleTalk()) : null);
+    c.getIm().setImOtherIcq(user.hasAttribute(c.getIm().getImOtherIcq()) ? user.getAttributeValue(c.getIm().getImOtherIcq()) : null);
+    c.getIm().setImOtherJabber(user.hasAttribute(c.getIm().getImOtherJabber()) ? user.getAttributeValue(c.getIm().getImOtherJabber()) : null);
+    c.getIm().setImOtherMsn(user.hasAttribute(c.getIm().getImOtherMsn()) ? user.getAttributeValue(c.getIm().getImOtherMsn()) : null);
+    c.getIm().setImOtherNetmeeting(user.hasAttribute(c.getIm().getImOtherNetmeeting()) ? user.getAttributeValue(c.getIm().getImOtherNetmeeting()) : null);
+    c.getIm().setImOtherQq(user.hasAttribute(c.getIm().getImOtherQq()) ? user.getAttributeValue(c.getIm().getImOtherQq()) : null);
+    c.getIm().setImOtherSkype(user.hasAttribute(c.getIm().getImOtherSkype()) ? user.getAttributeValue(c.getIm().getImOtherSkype()) : null);
+    c.getIm().setImOtherYahoo(user.hasAttribute(c.getIm().getImOtherYahoo()) ? user.getAttributeValue(c.getIm().getImOtherYahoo()) : null);
+    c.getIm().setImWorkAim(user.hasAttribute(c.getIm().getImWorkAim()) ? user.getAttributeValue(c.getIm().getImWorkAim()) : null);
+    c.getIm().setImWorkGoogleTalk(user.hasAttribute(c.getIm().getImWorkGoogleTalk()) ? user.getAttributeValue(c.getIm().getImWorkGoogleTalk()) : null);
+    c.getIm().setImWorkIcq(user.hasAttribute(c.getIm().getImWorkIcq()) ? user.getAttributeValue(c.getIm().getImWorkIcq()) : null);
+    c.getIm().setImWorkJabber(user.hasAttribute(c.getIm().getImWorkJabber()) ? user.getAttributeValue(c.getIm().getImWorkJabber()) : null);
+    c.getIm().setImWorkMsn(user.hasAttribute(c.getIm().getImWorkMsn()) ? user.getAttributeValue(c.getIm().getImWorkMsn()) : null);
+    c.getIm().setImWorkNetmeeting(user.hasAttribute(c.getIm().getImWorkNetmeeting()) ? user.getAttributeValue(c.getIm().getImWorkNetmeeting()) : null);
+    c.getIm().setImWorkQq(user.hasAttribute(c.getIm().getImWorkQq()) ? user.getAttributeValue(c.getIm().getImWorkQq()) : null);
+    c.getIm().setImWorkSkype(user.hasAttribute(c.getIm().getImWorkSkype()) ? user.getAttributeValue(c.getIm().getImWorkSkype()) : null);
+    c.getIm().setImWorkYahoo(user.hasAttribute(c.getIm().getImWorkYahoo()) ? user.getAttributeValue(c.getIm().getImWorkYahoo()) : null);
+    // nickname
+    c.getNickname().setNicknameDefault(user.hasAttribute(c.getNickname().getNicknameDefault()) ? user.getAttributeValue(c.getNickname().getNicknameDefault()) : null);
+    c.getNickname().setNicknameInitials(user.hasAttribute(c.getNickname().getNicknameInitials()) ? user.getAttributeValue(c.getNickname().getNicknameInitials()) : null);
+    c.getNickname().setNicknameMaiden(user.hasAttribute(c.getNickname().getNicknameMaiden()) ? user.getAttributeValue(c.getNickname().getNicknameMaiden()) : null);
+    c.getNickname().setNicknameOther(user.hasAttribute(c.getNickname().getNicknameOther()) ? user.getAttributeValue(c.getNickname().getNicknameOther()) : null);
+    c.getNickname().setNicknameShort(user.hasAttribute(c.getNickname().getNicknameShort()) ? user.getAttributeValue(c.getNickname().getNicknameShort()) : null);
+    // notes
+    c.getNote().setNotes(user.hasAttribute(c.getNote().getNotes()) ? user.getAttributeValue(c.getNote().getNotes()) : null);
+    // organization
+    c.getOrganization().setOrganizationOtherCompany(user.hasAttribute(c.getOrganization().getOrganizationOtherCompany()) ? user.getAttributeValue(c.getOrganization().getOrganizationOtherCompany()) : null);
+    c.getOrganization().setOrganizationOtherDepartment(user.hasAttribute(c.getOrganization().getOrganizationOtherDepartment()) ? user.getAttributeValue(c.getOrganization().getOrganizationOtherDepartment()) : null);
+    c.getOrganization().setOrganizationOtherJobDescription(user.hasAttribute(c.getOrganization().getOrganizationOtherJobDescription()) ? user.getAttributeValue(c.getOrganization().getOrganizationOtherJobDescription()) : null);
+    c.getOrganization().setOrganizationOtherOfficeLocation(user.hasAttribute(c.getOrganization().getOrganizationOtherOfficeLocation()) ? user.getAttributeValue(c.getOrganization().getOrganizationOtherOfficeLocation()) : null);
+    c.getOrganization().setOrganizationOtherPhoneticName(user.hasAttribute(c.getOrganization().getOrganizationOtherPhoneticName()) ? user.getAttributeValue(c.getOrganization().getOrganizationOtherPhoneticName()) : null);
+    c.getOrganization().setOrganizationOtherPhoneticNameStyle(user.hasAttribute(c.getOrganization().getOrganizationOtherPhoneticNameStyle()) ? user.getAttributeValue(c.getOrganization().getOrganizationOtherPhoneticNameStyle()) : null);
+    c.getOrganization().setOrganizationOtherSymbol(user.hasAttribute(c.getOrganization().getOrganizationOtherSymbol()) ? user.getAttributeValue(c.getOrganization().getOrganizationOtherSymbol()) : null);
+    c.getOrganization().setOrganizationOtherTitle(user.hasAttribute(c.getOrganization().getOrganizationOtherTitle()) ? user.getAttributeValue(c.getOrganization().getOrganizationOtherTitle()) : null);
+    c.getOrganization().setOrganizationWorkCompany(user.hasAttribute(c.getOrganization().getOrganizationWorkCompany()) ? user.getAttributeValue(c.getOrganization().getOrganizationWorkCompany()) : null);
+    c.getOrganization().setOrganizationWorkDepartment(user.hasAttribute(c.getOrganization().getOrganizationWorkDepartment()) ? user.getAttributeValue(c.getOrganization().getOrganizationWorkDepartment()) : null);
+    c.getOrganization().setOrganizationWorkJobDescription(user.hasAttribute(c.getOrganization().getOrganizationWorkJobDescription()) ? user.getAttributeValue(c.getOrganization().getOrganizationWorkJobDescription()) : null);
+    c.getOrganization().setOrganizationWorkOfficeLocation(user.hasAttribute(c.getOrganization().getOrganizationWorkOfficeLocation()) ? user.getAttributeValue(c.getOrganization().getOrganizationWorkOfficeLocation()) : null);
+    c.getOrganization().setOrganizationWorkPhoneticName(user.hasAttribute(c.getOrganization().getOrganizationWorkPhoneticName()) ? user.getAttributeValue(c.getOrganization().getOrganizationWorkPhoneticName()) : null);
+    c.getOrganization().setOrganizationWorkPhoneticNameStyle(user.hasAttribute(c.getOrganization().getOrganizationWorkPhoneticNameStyle()) ? user.getAttributeValue(c.getOrganization().getOrganizationWorkPhoneticNameStyle()) : null);
+    c.getOrganization().setOrganizationWorkSymbol(user.hasAttribute(c.getOrganization().getOrganizationWorkSymbol()) ? user.getAttributeValue(c.getOrganization().getOrganizationWorkSymbol()) : null);
+    c.getOrganization().setOrganizationWorkTitle(user.hasAttribute(c.getOrganization().getOrganizationWorkTitle()) ? user.getAttributeValue(c.getOrganization().getOrganizationWorkTitle()) : null);
+    // phone
+    c.getPhone().setPhoneAssistant(user.hasAttribute(c.getPhone().getPhoneAssistant()) ? user.getAttributeValue(c.getPhone().getPhoneAssistant()) : null);
+    c.getPhone().setPhoneCallback(user.hasAttribute(c.getPhone().getPhoneCallback()) ? user.getAttributeValue(c.getPhone().getPhoneCallback()) : null);
+    c.getPhone().setPhoneCar(user.hasAttribute(c.getPhone().getPhoneCar()) ? user.getAttributeValue(c.getPhone().getPhoneCar()) : null);
+    c.getPhone().setPhoneCompany(user.hasAttribute(c.getPhone().getPhoneCompany()) ? user.getAttributeValue(c.getPhone().getPhoneCompany()) : null);
+    c.getPhone().setPhoneFaxHome(user.hasAttribute(c.getPhone().getPhoneFaxHome()) ? user.getAttributeValue(c.getPhone().getPhoneFaxHome()) : null);
+    c.getPhone().setPhoneFaxWork(user.hasAttribute(c.getPhone().getPhoneFaxWork()) ? user.getAttributeValue(c.getPhone().getPhoneFaxWork()) : null);
+    c.getPhone().setPhoneHome(user.hasAttribute(c.getPhone().getPhoneHome()) ? user.getAttributeValue(c.getPhone().getPhoneHome()) : null);
+    c.getPhone().setPhoneISDN(user.hasAttribute(c.getPhone().getPhoneISDN()) ? user.getAttributeValue(c.getPhone().getPhoneISDN()) : null);
+    c.getPhone().setPhoneMain(user.hasAttribute(c.getPhone().getPhoneMain()) ? user.getAttributeValue(c.getPhone().getPhoneMain()) : null);
+    c.getPhone().setPhoneMMS(user.hasAttribute(c.getPhone().getPhoneMMS()) ? user.getAttributeValue(c.getPhone().getPhoneMMS()) : null);
+    c.getPhone().setPhoneMobile(user.hasAttribute(c.getPhone().getPhoneMobile()) ? user.getAttributeValue(c.getPhone().getPhoneMobile()) : null);
+    c.getPhone().setPhoneOther(user.hasAttribute(c.getPhone().getPhoneOther()) ? user.getAttributeValue(c.getPhone().getPhoneOther()) : null);
+    c.getPhone().setPhoneOtherFax(user.hasAttribute(c.getPhone().getPhoneOtherFax()) ? user.getAttributeValue(c.getPhone().getPhoneOtherFax()) : null);
+    c.getPhone().setPhonePager(user.hasAttribute(c.getPhone().getPhonePager()) ? user.getAttributeValue(c.getPhone().getPhonePager()) : null);
+    c.getPhone().setPhoneRadio(user.hasAttribute(c.getPhone().getPhoneRadio()) ? user.getAttributeValue(c.getPhone().getPhoneRadio()) : null);
+    c.getPhone().setPhoneTelex(user.hasAttribute(c.getPhone().getPhoneTelex()) ? user.getAttributeValue(c.getPhone().getPhoneTelex()) : null);
+    c.getPhone().setPhoneTTYTDD(user.hasAttribute(c.getPhone().getPhoneTTYTDD()) ? user.getAttributeValue(c.getPhone().getPhoneTTYTDD()) : null);
+    c.getPhone().setPhoneWork(user.hasAttribute(c.getPhone().getPhoneWork()) ? user.getAttributeValue(c.getPhone().getPhoneWork()) : null);
+    c.getPhone().setPhoneWorkMobile(user.hasAttribute(c.getPhone().getPhoneWorkMobile()) ? user.getAttributeValue(c.getPhone().getPhoneWorkMobile()) : null);
+    c.getPhone().setPhoneWorkPager(user.hasAttribute(c.getPhone().getPhoneWorkPager()) ? user.getAttributeValue(c.getPhone().getPhoneWorkPager()) : null);
+    // relation
+    c.getRelation().setRelationAssistant(user.hasAttribute(c.getRelation().getRelationAssistant()) ? user.getAttributeValue(c.getRelation().getRelationAssistant()) : null);
+    c.getRelation().setRelationBrother(user.hasAttribute(c.getRelation().getRelationBrother()) ? user.getAttributeValue(c.getRelation().getRelationBrother()) : null);
+    c.getRelation().setRelationChild(user.hasAttribute(c.getRelation().getRelationChild()) ? user.getAttributeValue(c.getRelation().getRelationChild()) : null);
+    c.getRelation().setRelationDomesticPartner(user.hasAttribute(c.getRelation().getRelationDomesticPartner()) ? user.getAttributeValue(c.getRelation().getRelationDomesticPartner()) : null);
+    c.getRelation().setRelationFather(user.hasAttribute(c.getRelation().getRelationFather()) ? user.getAttributeValue(c.getRelation().getRelationFather()) : null);
+    c.getRelation().setRelationFriend(user.hasAttribute(c.getRelation().getRelationFriend()) ? user.getAttributeValue(c.getRelation().getRelationFriend()) : null);
+    c.getRelation().setRelationManager(user.hasAttribute(c.getRelation().getRelationManager()) ? user.getAttributeValue(c.getRelation().getRelationManager()) : null);
+    c.getRelation().setRelationMother(user.hasAttribute(c.getRelation().getRelationMother()) ? user.getAttributeValue(c.getRelation().getRelationMother()) : null);
+    c.getRelation().setRelationParent(user.hasAttribute(c.getRelation().getRelationParent()) ? user.getAttributeValue(c.getRelation().getRelationParent()) : null);
+    c.getRelation().setRelationPartner(user.hasAttribute(c.getRelation().getRelationPartner()) ? user.getAttributeValue(c.getRelation().getRelationPartner()) : null);
+    c.getRelation().setRelationRefferedBy(user.hasAttribute(c.getRelation().getRelationRefferedBy()) ? user.getAttributeValue(c.getRelation().getRelationRefferedBy()) : null);
+    c.getRelation().setRelationRelative(user.hasAttribute(c.getRelation().getRelationRelative()) ? user.getAttributeValue(c.getRelation().getRelationRelative()) : null);
+    c.getRelation().setRelationSister(user.hasAttribute(c.getRelation().getRelationSister()) ? user.getAttributeValue(c.getRelation().getRelationSister()) : null);
+    c.getRelation().setRelationSpouse(user.hasAttribute(c.getRelation().getRelationSpouse()) ? user.getAttributeValue(c.getRelation().getRelationSpouse()) : null);
+    // sipaddress
+    c.getSipAddress().setHomeSip(user.hasAttribute(c.getSipAddress().getHomeSip()) ? user.getAttributeValue(c.getSipAddress().getHomeSip()) : null);
+    c.getSipAddress().setOtherSip(user.hasAttribute(c.getSipAddress().getOtherSip()) ? user.getAttributeValue(c.getSipAddress().getOtherSip()) : null);
+    c.getSipAddress().setWorkSip(user.hasAttribute(c.getSipAddress().getWorkSip()) ? user.getAttributeValue(c.getSipAddress().getWorkSip()) : null);
+    // structuredname
+    c.getStructuredName().setDisplayName(user.hasAttribute(c.getStructuredName().getDisplayName()) ? user.getAttributeValue(c.getStructuredName().getDisplayName()) : null);
+    c.getStructuredName().setFamilyName(user.hasAttribute(c.getStructuredName().getFamilyName()) ? user.getAttributeValue(c.getStructuredName().getFamilyName()) : null);
+    c.getStructuredName().setGivenName(user.hasAttribute(c.getStructuredName().getGivenName()) ? user.getAttributeValue(c.getStructuredName().getGivenName()) : null);
+    c.getStructuredName().setMiddleName(user.hasAttribute(c.getStructuredName().getMiddleName()) ? user.getAttributeValue(c.getStructuredName().getMiddleName()) : null);
+    c.getStructuredName().setNamePrefix(user.hasAttribute(c.getStructuredName().getNamePrefix()) ? user.getAttributeValue(c.getStructuredName().getNamePrefix()) : null);
+    c.getStructuredName().setNameSuffix(user.hasAttribute(c.getStructuredName().getNameSuffix()) ? user.getAttributeValue(c.getStructuredName().getNameSuffix()) : null);
+    c.getStructuredName().setPhoneticFamilyName(user.hasAttribute(c.getStructuredName().getPhoneticFamilyName()) ? user.getAttributeValue(c.getStructuredName().getPhoneticFamilyName()) : null);
+    c.getStructuredName().setPhoneticGivenName(user.hasAttribute(c.getStructuredName().getPhoneticGivenName()) ? user.getAttributeValue(c.getStructuredName().getPhoneticGivenName()) : null);
+    c.getStructuredName().setPhoneticMiddleName(user.hasAttribute(c.getStructuredName().getPhoneticMiddleName()) ? user.getAttributeValue(c.getStructuredName().getPhoneticMiddleName()) : null);
+    // structured postal 
+    c.getStructuredPostal().setHomeCity(user.hasAttribute(c.getStructuredPostal().getHomeCity()) ? user.getAttributeValue(c.getStructuredPostal().getHomeCity()) : null);
+    c.getStructuredPostal().setHomeCountry(user.hasAttribute(c.getStructuredPostal().getHomeCountry()) ? user.getAttributeValue(c.getStructuredPostal().getHomeCountry()) : null);
+    c.getStructuredPostal().setHomeFormattedAddress(user.hasAttribute(c.getStructuredPostal().getHomeFormattedAddress()) ? user.getAttributeValue(c.getStructuredPostal().getHomeFormattedAddress()) : null);
+    c.getStructuredPostal().setHomeNeighborhood(user.hasAttribute(c.getStructuredPostal().getHomeNeighborhood()) ? user.getAttributeValue(c.getStructuredPostal().getHomeNeighborhood()) : null);
+    c.getStructuredPostal().setHomePOBox(user.hasAttribute(c.getStructuredPostal().getHomePOBox()) ? user.getAttributeValue(c.getStructuredPostal().getHomePOBox()) : null);
+    c.getStructuredPostal().setHomePostalCode(user.hasAttribute(c.getStructuredPostal().getHomePostalCode()) ? user.getAttributeValue(c.getStructuredPostal().getHomePostalCode()) : null);
+    c.getStructuredPostal().setHomeRegion(user.hasAttribute(c.getStructuredPostal().getHomeRegion()) ? user.getAttributeValue(c.getStructuredPostal().getHomeRegion()) : null);
+    c.getStructuredPostal().setHomeStreet(user.hasAttribute(c.getStructuredPostal().getHomeStreet()) ? user.getAttributeValue(c.getStructuredPostal().getHomeStreet()) : null);
+    c.getStructuredPostal().setWorkCity(user.hasAttribute(c.getStructuredPostal().getWorkCity()) ? user.getAttributeValue(c.getStructuredPostal().getWorkCity()) : null);
+    c.getStructuredPostal().setWorkCountry(user.hasAttribute(c.getStructuredPostal().getWorkCountry()) ? user.getAttributeValue(c.getStructuredPostal().getWorkCountry()) : null);
+    c.getStructuredPostal().setWorkFormattedAddress(user.hasAttribute(c.getStructuredPostal().getWorkFormattedAddress()) ? user.getAttributeValue(c.getStructuredPostal().getWorkFormattedAddress()) : null);
+    c.getStructuredPostal().setWorkNeighborhood(user.hasAttribute(c.getStructuredPostal().getWorkNeighborhood()) ? user.getAttributeValue(c.getStructuredPostal().getWorkNeighborhood()) : null);
+    c.getStructuredPostal().setWorkPOBox(user.hasAttribute(c.getStructuredPostal().getWorkPOBox()) ? user.getAttributeValue(c.getStructuredPostal().getWorkPOBox()) : null);
+    c.getStructuredPostal().setWorkPostalCode(user.hasAttribute(c.getStructuredPostal().getWorkPostalCode()) ? user.getAttributeValue(c.getStructuredPostal().getWorkPostalCode()) : null);
+    c.getStructuredPostal().setWorkRegion(user.hasAttribute(c.getStructuredPostal().getWorkRegion()) ? user.getAttributeValue(c.getStructuredPostal().getWorkRegion()) : null);
+    c.getStructuredPostal().setWorkStreet(user.hasAttribute(c.getStructuredPostal().getWorkStreet()) ? user.getAttributeValue(c.getStructuredPostal().getWorkStreet()) : null);
+    c.getStructuredPostal().setOtherCity(user.hasAttribute(c.getStructuredPostal().getOtherCity()) ? user.getAttributeValue(c.getStructuredPostal().getOtherCity()) : null);
+    c.getStructuredPostal().setOtherCountry(user.hasAttribute(c.getStructuredPostal().getOtherCountry()) ? user.getAttributeValue(c.getStructuredPostal().getOtherCountry()) : null);
+    c.getStructuredPostal().setOtherFormattedAddress(user.hasAttribute(c.getStructuredPostal().getOtherFormattedAddress()) ? user.getAttributeValue(c.getStructuredPostal().getOtherFormattedAddress()) : null);
+    c.getStructuredPostal().setOtherNeighborhood(user.hasAttribute(c.getStructuredPostal().getOtherNeighborhood()) ? user.getAttributeValue(c.getStructuredPostal().getOtherNeighborhood()) : null);
+    c.getStructuredPostal().setOtherPOBox(user.hasAttribute(c.getStructuredPostal().getOtherPOBox()) ? user.getAttributeValue(c.getStructuredPostal().getOtherPOBox()) : null);
+    c.getStructuredPostal().setOtherPostalCode(user.hasAttribute(c.getStructuredPostal().getOtherPostalCode()) ? user.getAttributeValue(c.getStructuredPostal().getOtherPostalCode()) : null);
+    c.getStructuredPostal().setOtherRegion(user.hasAttribute(c.getStructuredPostal().getOtherRegion()) ? user.getAttributeValue(c.getStructuredPostal().getOtherRegion()) : null);
+    c.getStructuredPostal().setOtherStreet(user.hasAttribute(c.getStructuredPostal().getOtherStreet()) ? user.getAttributeValue(c.getStructuredPostal().getOtherStreet()) : null);
+    // website
+    c.getWebsite().setWebsiteBlog(user.hasAttribute(c.getWebsite().getWebsiteBlog()) ? user.getAttributeValue(c.getWebsite().getWebsiteBlog()) : null);
+    c.getWebsite().setWebsiteFtp(user.hasAttribute(c.getWebsite().getWebsiteFtp()) ? user.getAttributeValue(c.getWebsite().getWebsiteFtp()) : null);
+    c.getWebsite().setWebsiteHome(user.hasAttribute(c.getWebsite().getWebsiteHome()) ? user.getAttributeValue(c.getWebsite().getWebsiteHome()) : null);
+    c.getWebsite().setWebsiteHomepage(user.hasAttribute(c.getWebsite().getWebsiteHomepage()) ? user.getAttributeValue(c.getWebsite().getWebsiteHomepage()) : null);
+    c.getWebsite().setWebsiteOther(user.hasAttribute(c.getWebsite().getWebsiteOther()) ? user.getAttributeValue(c.getWebsite().getWebsiteOther()) : null);
+    c.getWebsite().setWebsiteProfile(user.hasAttribute(c.getWebsite().getWebsiteProfile()) ? user.getAttributeValue(c.getWebsite().getWebsiteProfile()) : null);
+    c.getWebsite().setWebsiteWork(user.hasAttribute(c.getWebsite().getWebsiteWork()) ? user.getAttributeValue(c.getWebsite().getWebsiteWork()) : null);
+    
+    return c;
   }
   
 //TODO: vnd.com.google.cursor.item/contact_misc add by google?
@@ -687,7 +755,7 @@ public class Mapping {
          // PROTOCOL_CUSTOM. Also provide the actual protocol name as CUSTOM_PROTOCOL.
          // String  CUSTOM_PROTOCOL DATA6
       // TODO:
-       } else if (protocol == Im.PROTOCOL_AIM) {
+       /*} else if (protocol == Im.PROTOCOL_AIM) {
          attributes.add(new Attribute(Constants.IM_NULL_AIM, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
        } else if (protocol == Im.PROTOCOL_GOOGLE_TALK) {
          attributes.add(new Attribute(Constants.IM_NULL_GOOGLE_TALK, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
@@ -704,7 +772,7 @@ public class Mapping {
        } else if (protocol == Im.PROTOCOL_SKYPE) {
          attributes.add(new Attribute(Constants.IM_NULL_SKYPE, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
        } else if (protocol == Im.PROTOCOL_YAHOO) {
-         attributes.add(new Attribute(Constants.IM_NULL_YAHOO, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+         attributes.add(new Attribute(Constants.IM_NULL_YAHOO, cursor.getString(cursor.getColumnIndex(Data.DATA1))));*/
        } else {
          Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
        }
@@ -914,5 +982,475 @@ public class Mapping {
    }
    
    return attributes;
- }
+  }
+  
+  private static void fillContact(Cursor cursor, GoogleContact contact) {
+    
+    String str = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
+    
+    if (str.equals(StructuredName.CONTENT_ITEM_TYPE)) {
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+        contact.getStructuredName().setDisplayName(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      }
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA2))) {
+        contact.getStructuredName().setGivenName(cursor.getString(cursor.getColumnIndex(Data.DATA2)));
+      }
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA3))) {
+        contact.getStructuredName().setFamilyName(cursor.getString(cursor.getColumnIndex(Data.DATA3)));
+      }
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+        contact.getStructuredName().setNamePrefix(cursor.getString(cursor.getColumnIndex(Data.DATA4)));
+      }
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+        contact.getStructuredName().setMiddleName(cursor.getString(cursor.getColumnIndex(Data.DATA5)));
+      }
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+        contact.getStructuredName().setNameSuffix(cursor.getString(cursor.getColumnIndex(Data.DATA6)));
+      }
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+        contact.getStructuredName().setPhoneticGivenName(cursor.getString(cursor.getColumnIndex(Data.DATA7)));
+      }
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+        contact.getStructuredName().setPhoneticMiddleName(cursor.getString(cursor.getColumnIndex(Data.DATA8)));
+      }
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+        contact.getStructuredName().setPhoneticFamilyName(cursor.getString(cursor.getColumnIndex(Data.DATA9)));
+      }
+    } else if (str.equals(Phone.CONTENT_ITEM_TYPE)) {
+      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      if (type == Phone.TYPE_CUSTOM) {
+        //TYPE_CUSTOM. Put the actual type in LABEL.
+        //String  LABEL DATA3
+      } else if (type == Phone.TYPE_ASSISTANT) {
+        contact.getPhone().setPhoneAssistant(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_CALLBACK) {
+        contact.getPhone().setPhoneCallback(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_CAR) {
+        contact.getPhone().setPhoneCar(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_COMPANY_MAIN) {
+        contact.getPhone().setPhoneCompany(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_FAX_HOME) {
+        contact.getPhone().setPhoneFaxHome(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_FAX_WORK) {
+        contact.getPhone().setPhoneFaxWork(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_HOME) {
+        contact.getPhone().setPhoneHome(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_ISDN) {
+        contact.getPhone().setPhoneISDN(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_MAIN) {
+        contact.getPhone().setPhoneMain(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_MMS) {
+        contact.getPhone().setPhoneMMS(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_MOBILE) {
+        contact.getPhone().setPhoneMobile(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_OTHER) {
+        contact.getPhone().setPhoneOther(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_OTHER_FAX) {
+        contact.getPhone().setPhoneOtherFax(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_PAGER) {
+        contact.getPhone().setPhonePager(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_RADIO) {
+        contact.getPhone().setPhoneRadio(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_TELEX) {
+        contact.getPhone().setPhoneTelex(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_TTY_TDD) {
+        contact.getPhone().setPhoneTTYTDD(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_WORK) {
+        contact.getPhone().setPhoneWork(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_WORK_MOBILE) {
+        contact.getPhone().setPhoneWorkMobile(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Phone.TYPE_WORK_PAGER) {
+        contact.getPhone().setPhoneWorkPager(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else {
+        Log.i("NOT SUPPORTED TYPE PHONE", "NOT SUPPORTED TYPE PHONE");
+      }
+    } else if (str.equals(Email.CONTENT_ITEM_TYPE)) {
+      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      if (type == Email.TYPE_HOME) {
+        contact.getEmail().setHomeMail(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Email.TYPE_WORK) {
+        contact.getEmail().setWorkMail(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Email.TYPE_OTHER) {
+        contact.getEmail().setOtherMail(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Email.TYPE_MOBILE) {
+        contact.getEmail().setMobileMail(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Email.TYPE_CUSTOM) {
+        // TODO:
+      } else {
+        Log.i("NOT SUPPORTED TYPE EMAIL", "NOT SUPPORTED TYPE EMAIL");
+      }
+    } else if (str.equals(Photo.CONTENT_ITEM_TYPE)) {
+      
+    } else if (str.equals(Organization.CONTENT_ITEM_TYPE)) {
+      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      if (type == Organization.TYPE_WORK) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+          contact.getOrganization().setOrganizationWorkCompany(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+          contact.getOrganization().setOrganizationWorkTitle(cursor.getString(cursor.getColumnIndex(Data.DATA4)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+          contact.getOrganization().setOrganizationWorkDepartment(cursor.getString(cursor.getColumnIndex(Data.DATA5)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+          contact.getOrganization().setOrganizationWorkJobDescription(cursor.getString(cursor.getColumnIndex(Data.DATA6)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+          contact.getOrganization().setOrganizationWorkSymbol(cursor.getString(cursor.getColumnIndex(Data.DATA7)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+          contact.getOrganization().setOrganizationWorkPhoneticName(cursor.getString(cursor.getColumnIndex(Data.DATA8)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+          contact.getOrganization().setOrganizationWorkOfficeLocation(cursor.getString(cursor.getColumnIndex(Data.DATA9)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+          contact.getOrganization().setOrganizationWorkPhoneticNameStyle(cursor.getString(cursor.getColumnIndex(Data.DATA10)));
+        }
+      } else if (type == Organization.TYPE_OTHER) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+          contact.getOrganization().setOrganizationOtherCompany(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+          contact.getOrganization().setOrganizationOtherTitle(cursor.getString(cursor.getColumnIndex(Data.DATA4)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+          contact.getOrganization().setOrganizationOtherDepartment(cursor.getString(cursor.getColumnIndex(Data.DATA5)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+          contact.getOrganization().setOrganizationOtherJobDescription(cursor.getString(cursor.getColumnIndex(Data.DATA6)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+          contact.getOrganization().setOrganizationOtherSymbol(cursor.getString(cursor.getColumnIndex(Data.DATA7)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+          contact.getOrganization().setOrganizationOtherPhoneticName(cursor.getString(cursor.getColumnIndex(Data.DATA8)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+          contact.getOrganization().setOrganizationOtherOfficeLocation(cursor.getString(cursor.getColumnIndex(Data.DATA9)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+          contact.getOrganization().setOrganizationOtherPhoneticNameStyle(cursor.getString(cursor.getColumnIndex(Data.DATA10)));
+        }
+      } else if (type == Organization.TYPE_CUSTOM) {
+        // TODO:      String  LABEL DATA3 
+      } else {
+        
+      }
+    } else if (str.equals(Im.CONTENT_ITEM_TYPE)) {
+      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      Integer protocol = cursor.getInt(cursor.getColumnIndex(Data.DATA5));
+      if (type == Im.TYPE_CUSTOM) {
+        // TYPE_CUSTOM. Put the actual type in LABEL.
+        // String  LABEL DATA3
+      } else if (type == Im.TYPE_HOME) {
+        if (protocol == Im.PROTOCOL_CUSTOM) {
+          // PROTOCOL_CUSTOM. Also provide the actual protocol name as CUSTOM_PROTOCOL.
+          // String  CUSTOM_PROTOCOL DATA6
+       // TODO:
+        } else if (protocol == Im.PROTOCOL_AIM) {
+          contact.getIm().setImHomeAim(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_GOOGLE_TALK) {
+          contact.getIm().setImHomeGoogleTalk(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_ICQ) {
+          contact.getIm().setImHomeIcq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_JABBER) {
+          contact.getIm().setImHomeJabber(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_MSN) {
+          contact.getIm().setImHomeMsn(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_NETMEETING) {
+          contact.getIm().setImHomeNetmeeting(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_QQ) {
+          contact.getIm().setImHomeQq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_SKYPE) {
+          contact.getIm().setImHomeSkype(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_YAHOO) {
+          contact.getIm().setImHomeYahoo(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else {
+          Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
+        }
+      } else if (type == Im.TYPE_WORK) {
+        if (protocol == Im.PROTOCOL_CUSTOM) {
+          // PROTOCOL_CUSTOM. Also provide the actual protocol name as CUSTOM_PROTOCOL.
+          // String  CUSTOM_PROTOCOL DATA6
+       // TODO:
+        } else if (protocol == Im.PROTOCOL_AIM) {
+          contact.getIm().setImWorkAim(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_GOOGLE_TALK) {
+          contact.getIm().setImWorkGoogleTalk(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_ICQ) {
+          contact.getIm().setImWorkIcq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_JABBER) {
+          contact.getIm().setImWorkJabber(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_MSN) {
+          contact.getIm().setImWorkMsn(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_NETMEETING) {
+          contact.getIm().setImWorkNetmeeting(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_QQ) {
+          contact.getIm().setImWorkQq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_SKYPE) {
+          contact.getIm().setImWorkSkype(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_YAHOO) {
+          contact.getIm().setImWorkYahoo(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else {
+          Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
+        }
+      } else if (type == Im.TYPE_OTHER) {
+        if (protocol == Im.PROTOCOL_CUSTOM) {
+          // PROTOCOL_CUSTOM. Also provide the actual protocol name as CUSTOM_PROTOCOL.
+          // String  CUSTOM_PROTOCOL DATA6
+       // TODO:
+        } else if (protocol == Im.PROTOCOL_AIM) {
+          contact.getIm().setImOtherAim(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_GOOGLE_TALK) {
+          contact.getIm().setImOtherGoogleTalk(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_ICQ) {
+          contact.getIm().setImOtherIcq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_JABBER) {
+          contact.getIm().setImOtherJabber(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_MSN) {
+          contact.getIm().setImOtherMsn(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_NETMEETING) {
+          contact.getIm().setImOtherNetmeeting(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_QQ) {
+          contact.getIm().setImOtherQq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_SKYPE) {
+          contact.getIm().setImOtherSkype(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_YAHOO) {
+          contact.getIm().setImOtherYahoo(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else {
+          Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
+        }
+      } else {
+        if (protocol == Im.PROTOCOL_CUSTOM) {
+          // PROTOCOL_CUSTOM. Also provide the actual protocol name as CUSTOM_PROTOCOL.
+          // String  CUSTOM_PROTOCOL DATA6
+       // TODO:
+        /*} else if (protocol == Im.PROTOCOL_AIM) {
+          contact.getIm().setImNullAim(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_GOOGLE_TALK) {
+          contact.getIm().setImNullGoogleTalk(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_ICQ) {
+          contact.getIm().setImNullIcq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_JABBER) {
+          contact.getIm().setImNullJabber(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_MSN) {
+          contact.getIm().setImNullMsn(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_NETMEETING) {
+          contact.getIm().setImNullNetmeeting(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_QQ) {
+          contact.getIm().setImNullQq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_SKYPE) {
+          contact.getIm().setImNullSkype(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        } else if (protocol == Im.PROTOCOL_YAHOO) {
+          contact.getIm().setImNullYahoo(cursor.getString(cursor.getColumnIndex(Data.DATA1)));*/
+        } else {
+          Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
+        }
+      }
+    } else if (str.equals(Nickname.CONTENT_ITEM_TYPE)) {
+      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      if (type == Nickname.TYPE_DEFAULT) {
+        contact.getNickname().setNicknameDefault(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Nickname.TYPE_OTHER_NAME) {
+        contact.getNickname().setNicknameOther(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Nickname.TYPE_MAIDEN_NAME) {
+        contact.getNickname().setNicknameMaiden(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Nickname.TYPE_SHORT_NAME) {
+        contact.getNickname().setNicknameShort(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Nickname.TYPE_INITIALS) {
+        contact.getNickname().setNicknameInitials(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Nickname.TYPE_CUSTOM) {
+        // TODO: String  LABEL DATA3
+      } else {
+        Log.i("NOT SUPPORTED TYPE NICKNAME", "NOT SUPPORTED TYPE NICKANEME");
+      }
+    } else if (str.equals(Note.CONTENT_ITEM_TYPE)) {
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+        contact.getNote().setNotes(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      }
+    } else if (str.equals(StructuredPostal.CONTENT_ITEM_TYPE)) {
+      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      if (type == StructuredPostal.TYPE_CUSTOM) {
+        // TODO:
+        //TYPE_CUSTOM. Put the actual type in LABEL.
+        // String  LABEL DATA3
+      } else if (type == StructuredPostal.TYPE_HOME) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+          contact.getStructuredPostal().setHomeFormattedAddress(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+          contact.getStructuredPostal().setHomeStreet(cursor.getString(cursor.getColumnIndex(Data.DATA4)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+          contact.getStructuredPostal().setHomePOBox(cursor.getString(cursor.getColumnIndex(Data.DATA5)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+          contact.getStructuredPostal().setHomeNeighborhood(cursor.getString(cursor.getColumnIndex(Data.DATA6)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+          contact.getStructuredPostal().setHomeCity(cursor.getString(cursor.getColumnIndex(Data.DATA7)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+          contact.getStructuredPostal().setHomeRegion(cursor.getString(cursor.getColumnIndex(Data.DATA8)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+          contact.getStructuredPostal().setHomePostalCode(cursor.getString(cursor.getColumnIndex(Data.DATA9)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+          contact.getStructuredPostal().setHomeCountry(cursor.getString(cursor.getColumnIndex(Data.DATA10)));
+        }
+      } else if (type == StructuredPostal.TYPE_WORK) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+          contact.getStructuredPostal().setWorkFormattedAddress(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+          contact.getStructuredPostal().setWorkStreet(cursor.getString(cursor.getColumnIndex(Data.DATA4)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+          contact.getStructuredPostal().setWorkPOBox(cursor.getString(cursor.getColumnIndex(Data.DATA5)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+          contact.getStructuredPostal().setWorkNeighborhood(cursor.getString(cursor.getColumnIndex(Data.DATA6)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+          contact.getStructuredPostal().setWorkCity(cursor.getString(cursor.getColumnIndex(Data.DATA7)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+          contact.getStructuredPostal().setWorkRegion(cursor.getString(cursor.getColumnIndex(Data.DATA8)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+          contact.getStructuredPostal().setWorkPostalCode(cursor.getString(cursor.getColumnIndex(Data.DATA9)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+          contact.getStructuredPostal().setWorkCountry(cursor.getString(cursor.getColumnIndex(Data.DATA10)));
+        }
+      } else if (type == StructuredPostal.TYPE_OTHER) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+          contact.getStructuredPostal().setOtherFormattedAddress(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+          contact.getStructuredPostal().setOtherStreet(cursor.getString(cursor.getColumnIndex(Data.DATA4)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+          contact.getStructuredPostal().setOtherPOBox(cursor.getString(cursor.getColumnIndex(Data.DATA5)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+          contact.getStructuredPostal().setOtherNeighborhood(cursor.getString(cursor.getColumnIndex(Data.DATA6)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+          contact.getStructuredPostal().setOtherCity(cursor.getString(cursor.getColumnIndex(Data.DATA7)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+          contact.getStructuredPostal().setOtherRegion(cursor.getString(cursor.getColumnIndex(Data.DATA8)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+          contact.getStructuredPostal().setOtherPostalCode(cursor.getString(cursor.getColumnIndex(Data.DATA9)));
+        }
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+          contact.getStructuredPostal().setOtherCountry(cursor.getString(cursor.getColumnIndex(Data.DATA10)));
+        }
+      } else {
+        
+      }
+       
+    } else if (str.equals(GroupMembership.CONTENT_ITEM_TYPE)) {
+      // TODO:
+      //long  GROUP_ROW_ID  DATA1
+      //attributes.add(new Attribute(Constants., cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+    } else if (str.equals(Website.CONTENT_ITEM_TYPE)) {
+      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      if (type == Website.TYPE_CUSTOM) {
+        //TODO:String  LABEL DATA3,TYPE_CUSTOM. Put the actual type in LABEL. 
+      } else if (type == Website.TYPE_BLOG) {
+        contact.getWebsite().setWebsiteBlog(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Website.TYPE_FTP) {
+        contact.getWebsite().setWebsiteFtp(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Website.TYPE_HOME) {
+        contact.getWebsite().setWebsiteHome(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Website.TYPE_HOMEPAGE) {
+        contact.getWebsite().setWebsiteHomepage(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Website.TYPE_OTHER) {
+        contact.getWebsite().setWebsiteOther(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Website.TYPE_PROFILE) {
+        contact.getWebsite().setWebsiteProfile(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Website.TYPE_WORK) {
+        contact.getWebsite().setWebsiteWork(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else {
+        Log.i("NOT SUPPORTED TYPE WEBSITE", "NOT SUPPORTED TYPE WEBSITE");
+      }
+    } else if (str.equals(Event.CONTENT_ITEM_TYPE)) {
+      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      if (type == Event.TYPE_CUSTOM) {
+        // TYPE_CUSTOM. Put the actual type in LABEL.
+        // String  LABEL DATA3
+      } else if (type == Event.TYPE_ANNIVERSARY) {
+        contact.getEvent().setEventAnniversary(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Event.TYPE_BIRTHDAY) {
+        contact.getEvent().setEventBirthday(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Event.TYPE_OTHER) {
+        contact.getEvent().setEventOther(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else {
+        Log.i("NOT SUPPORTED TYPE Event", "NOT SUPPORTED TYPE EVENT");
+      }
+    } else if (str.equals(Relation.CONTENT_ITEM_TYPE)) {
+      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      if (type == Relation.TYPE_CUSTOM) {
+        // TODO:
+        //attributes.add(new Attribute(Constants.EVENT_ANNIVERSARY, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+        //String  LABEL DATA3
+      } else if (type == Relation.TYPE_ASSISTANT) {
+        contact.getRelation().setRelationAssistant(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Relation.TYPE_BROTHER) {
+        contact.getRelation().setRelationBrother(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Relation.TYPE_CHILD) {
+        contact.getRelation().setRelationChild(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Relation.TYPE_DOMESTIC_PARTNER) {
+        contact.getRelation().setRelationDomesticPartner(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Relation.TYPE_FATHER) {
+        contact.getRelation().setRelationFather(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Relation.TYPE_FRIEND) {
+        contact.getRelation().setRelationFriend(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Relation.TYPE_MANAGER) {
+        contact.getRelation().setRelationManager(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Relation.TYPE_MOTHER) {
+        contact.getRelation().setRelationMother(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Relation.TYPE_PARENT) {
+        contact.getRelation().setRelationParent(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Relation.TYPE_PARTNER) {
+        contact.getRelation().setRelationPartner(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Relation.TYPE_REFERRED_BY) {
+        contact.getRelation().setRelationRefferedBy(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Relation.TYPE_RELATIVE) {
+        contact.getRelation().setRelationRelative(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Relation.TYPE_SISTER) {
+        contact.getRelation().setRelationSister(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == Relation.TYPE_SPOUSE) {
+        contact.getRelation().setRelationSpouse(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else {
+        Log.i("NOT SUPPORTED TYPE Relation", "NOT SUPPORTED TYPE Relation");
+      }
+    } else if (str.equals(SipAddress.CONTENT_ITEM_TYPE)) {
+      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      if (type == SipAddress.TYPE_CUSTOM) {
+        // TODO:
+        // TYPE_CUSTOM. Put the actual type in LABEL.
+        // String  LABEL DATA3
+      } else if (type == SipAddress.TYPE_HOME) {
+        contact.getSipAddress().setHomeSip(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == SipAddress.TYPE_WORK) {
+        contact.getSipAddress().setWorkSip(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else if (type == SipAddress.TYPE_OTHER) {
+        contact.getSipAddress().setOtherSip(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      } else {
+        Log.i("NOT SUPPORTED TYPE SIP", "NOT SUPPORTED TYPE SIP");
+      }
+    } else if (str.equals(Identity.CONTENT_ITEM_TYPE)) {
+      contact.getIdentity().setIdentityText(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+      contact.getIdentity().setIdentityNamespace(cursor.getString(cursor.getColumnIndex(Data.DATA2)));
+    } else {
+      Log.i("NOT SUPPORTED TYPE MIME", "NOT SUPPORTED TYPE MIME: " + str);
+    }
+  }
 }

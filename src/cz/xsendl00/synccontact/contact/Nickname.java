@@ -7,13 +7,16 @@ import cz.xsendl00.synccontact.utils.Constants;
  * @author portilo
  *
  */
-public class Nickname {
-
-  private String nicknameDefault = Constants.NICKNAME_DEFAULT;
-  private String nicknameOther = Constants.NICKNAME_OTHER;
-  private String nicknameMaiden = Constants.NICKNAME_MAIDEN;
-  private String nicknameShort = Constants.NICKNAME_SHORT;
-  private String nicknameInitials = Constants.NICKNAME_INITIALS;
+public class Nickname implements ContactInterface {
+  
+  private String nicknameDefault;
+  private String nicknameOther;
+  private String nicknameMaiden;
+  private String nicknameShort;
+  private String nicknameInitials;
+  
+  public Nickname() {
+  }
   
   public Nickname(String nicknameDefault, String nicknameOther, String nicknameMaiden, String nicknameShort, String nicknameInitials) {
     this.nicknameDefault = nicknameDefault;
@@ -52,5 +55,21 @@ public class Nickname {
   }
   public void setNicknameInitials(String nicknameInitials) {
     this.nicknameInitials = nicknameInitials;
+  }
+
+  @Override
+  public String toString() {
+    return "Nickname [nicknameDefault=" + nicknameDefault + ", nicknameOther="
+        + nicknameOther + ", nicknameMaiden=" + nicknameMaiden
+        + ", nicknameShort=" + nicknameShort + ", nicknameInitials="
+        + nicknameInitials + "]";
+  }
+  
+  public void defaultValue() {
+    nicknameDefault = Constants.NICKNAME_DEFAULT;
+    nicknameOther = Constants.NICKNAME_OTHER;
+    nicknameMaiden = Constants.NICKNAME_MAIDEN;
+    nicknameShort = Constants.NICKNAME_SHORT;
+    nicknameInitials = Constants.NICKNAME_INITIALS;
   }
 }

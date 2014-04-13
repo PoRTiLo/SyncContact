@@ -7,12 +7,12 @@ import cz.xsendl00.synccontact.utils.Constants;
  * @author portilo
  *
  */
-public class Email {
+public class Email implements ContactInterface {
   
-  private String homeMail = Constants.HOME_MAIL;
-  private String workMail = Constants.WORK_MAIL;
-  private String otherMail = Constants.OTHER_MAIL;
-  private String mobileMail = Constants.MOBILE_MAIL;
+  private String homeMail;
+  private String workMail;;
+  private String otherMail;;
+  private String mobileMail;;
   
   public String getHomeMail() {
     return homeMail;
@@ -37,6 +37,19 @@ public class Email {
   }
   public void setMobileMail(String mobileMail) {
     this.mobileMail = mobileMail;
+  }
+  
+  @Override
+  public String toString() {
+    return "Email [homeMail=" + homeMail + ", workMail=" + workMail
+        + ", otherMail=" + otherMail + ", mobileMail=" + mobileMail + "]";
+  }
+  
+  public void defaultValue() {
+    this.homeMail = Constants.HOME_MAIL;
+    this.workMail = Constants.WORK_MAIL;
+    this.otherMail = Constants.OTHER_MAIL;
+    this.mobileMail = Constants.MOBILE_MAIL;
   }
 
 }

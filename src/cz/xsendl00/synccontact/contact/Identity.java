@@ -11,10 +11,10 @@ import cz.xsendl00.synccontact.utils.Constants;
  * @author portilo
  *
  */
-public class Identity {
+public class Identity implements ContactInterface {
   
-  private String identityText = Constants.IDENTITY_TEXT;
-  private String identityNamespace = Constants.IDENTITY_NAMESPACE;
+  private String identityText;
+  private String identityNamespace;
   
   public String getIdentityText() {
     return identityText;
@@ -29,4 +29,20 @@ public class Identity {
     this.identityNamespace = identityNamespace;
   }
 
+  @Override
+  public String toString() {
+    return "Identity [identityText=" + identityText + ", identityNamespace="
+        + identityNamespace + "]";
+  }
+  
+  public void clear() {
+    this.identityNamespace = null;
+    this.identityText = null;
+  }
+  @Override
+  public void defaultValue() {
+    identityText = Constants.IDENTITY_TEXT;
+    identityNamespace = Constants.IDENTITY_NAMESPACE;
+    
+  }
 }

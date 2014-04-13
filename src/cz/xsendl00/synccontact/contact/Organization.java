@@ -7,24 +7,24 @@ import cz.xsendl00.synccontact.utils.Constants;
  * @author portilo
  *
  */
-public class Organization {
+public class Organization  implements ContactInterface {
 
-  private String organizationWorkCompany = Constants.ORGANIZATION_WORK_COMPANY;
-  private String organizationWorkTitle = Constants.ORGANIZATION_WORK_TITLE;
-  private String organizationWorkDepartment = Constants.ORGANIZATION_WORK_DEPARTMENT;
-  private String organizationWorkJobDescription = Constants.ORGANIZATION_WORK_JOB_DESCRIPTION;
-  private String organizationWorkSymbol = Constants.ORGANIZATION_WORK_SYMBOL;
-  private String organizationWorkPhoneticName = Constants.ORGANIZATION_WORK_PHONETIC_NAME;
-  private String organizationWorkOfficeLocation = Constants.ORGANIZATION_WORK_OFFICE_LOCATION;
-  private String organizationWorkPhoneticNameStyle = Constants.ORGANIZATION_WORK_PHONETIC_NAME_STYLE;
-  private String organizationOtherCompany = Constants.ORGANIZATION_OTHER_COMPANY;
-  private String organizationOtherTitle = Constants.ORGANIZATION_OTHER_TITLE;
-  private String organizationOtherDepartment = Constants.ORGANIZATION_OTHER_DEPARTMENT;
-  private String organizationOtherJobDescription = Constants.ORGANIZATION_OTHER_JOB_DESCRIPTION;
-  private String organizationOtherSymbol = Constants.ORGANIZATION_OTHER_SYMBOL;
-  private String organizationOtherPhoneticName = Constants.ORGANIZATION_OTHER_PHONETIC_NAME;
-  private String organizationOtherOfficeLocation = Constants.ORGANIZATION_OTHER_OFFICE_LOCATION;
-  private String organizationOtherPhoneticNameStyle = Constants.ORGANIZATION_OTHER_PHONETIC_NAME_STYLE;
+  private String organizationWorkCompany;
+  private String organizationWorkTitle;
+  private String organizationWorkDepartment;
+  private String organizationWorkJobDescription;
+  private String organizationWorkSymbol;
+  private String organizationWorkPhoneticName;
+  private String organizationWorkOfficeLocation;
+  private String organizationWorkPhoneticNameStyle;
+  private String organizationOtherCompany;
+  private String organizationOtherTitle;
+  private String organizationOtherDepartment;
+  private String organizationOtherJobDescription;
+  private String organizationOtherSymbol;
+  private String organizationOtherPhoneticName;
+  private String organizationOtherOfficeLocation;
+  private String organizationOtherPhoneticNameStyle;
   
   public String getOrganizationWorkCompany() {
     return organizationWorkCompany;
@@ -130,4 +130,45 @@ public class Organization {
     this.organizationOtherPhoneticNameStyle = organizationOtherPhoneticNameStyle;
   }
   
+  @Override
+  public String toString() {
+    return "Organization [organizationWorkCompany=" + organizationWorkCompany
+        + ", organizationWorkTitle=" + organizationWorkTitle
+        + ", organizationWorkDepartment=" + organizationWorkDepartment
+        + ", organizationWorkJobDescription=" + organizationWorkJobDescription
+        + ", organizationWorkSymbol=" + organizationWorkSymbol
+        + ", organizationWorkPhoneticName=" + organizationWorkPhoneticName
+        + ", organizationWorkOfficeLocation=" + organizationWorkOfficeLocation
+        + ", organizationWorkPhoneticNameStyle="
+        + organizationWorkPhoneticNameStyle + ", organizationOtherCompany="
+        + organizationOtherCompany + ", organizationOtherTitle="
+        + organizationOtherTitle + ", organizationOtherDepartment="
+        + organizationOtherDepartment + ", organizationOtherJobDescription="
+        + organizationOtherJobDescription + ", organizationOtherSymbol="
+        + organizationOtherSymbol + ", organizationOtherPhoneticName="
+        + organizationOtherPhoneticName + ", organizationOtherOfficeLocation="
+        + organizationOtherOfficeLocation
+        + ", organizationOtherPhoneticNameStyle="
+        + organizationOtherPhoneticNameStyle + "]";
+  }
+  @Override
+  public void defaultValue() {
+    organizationWorkCompany = Constants.ORGANIZATION_WORK_COMPANY;
+    organizationWorkTitle = Constants.ORGANIZATION_WORK_TITLE;
+    organizationWorkDepartment = Constants.ORGANIZATION_WORK_DEPARTMENT;
+    organizationWorkJobDescription = Constants.ORGANIZATION_WORK_JOB_DESCRIPTION;
+    organizationWorkSymbol = Constants.ORGANIZATION_WORK_SYMBOL;
+    organizationWorkPhoneticName = Constants.ORGANIZATION_WORK_PHONETIC_NAME;
+    organizationWorkOfficeLocation = Constants.ORGANIZATION_WORK_OFFICE_LOCATION;
+    organizationWorkPhoneticNameStyle = Constants.ORGANIZATION_WORK_PHONETIC_NAME_STYLE;
+    organizationOtherCompany = Constants.ORGANIZATION_OTHER_COMPANY;
+    organizationOtherTitle = Constants.ORGANIZATION_OTHER_TITLE;
+    organizationOtherDepartment = Constants.ORGANIZATION_OTHER_DEPARTMENT;
+    organizationOtherJobDescription = Constants.ORGANIZATION_OTHER_JOB_DESCRIPTION;
+    organizationOtherSymbol = Constants.ORGANIZATION_OTHER_SYMBOL;
+    organizationOtherPhoneticName = Constants.ORGANIZATION_OTHER_PHONETIC_NAME;
+    organizationOtherOfficeLocation = Constants.ORGANIZATION_OTHER_OFFICE_LOCATION;
+    organizationOtherPhoneticNameStyle = Constants.ORGANIZATION_OTHER_PHONETIC_NAME_STYLE;
+    
+  }
 }

@@ -6,7 +6,7 @@ import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.client.Address;
 import cz.xsendl00.synccontact.client.AddressType;
 import cz.xsendl00.synccontact.client.ContactManager;
-import cz.xsendl00.synccontact.client.GoogleContact;
+import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
 import cz.xsendl00.synccontact.utils.Constants;
@@ -257,14 +257,14 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     // if new account
     if (accountData.isNewAccount()) {
       GoogleContact gcMapping = new GoogleContact();
-      gcMapping.init();
-      Bundle userData = Mapping.mapingTo(gcMapping, accountData);
+      //gcMapping.init();
+      //Bundle userData = Mapping.mapingTo(gcMapping, accountData);
       
       // create new account for contact in table accounts
       
       
       //Log.i(TAG, userData.toString());
-      accountManager.addAccountExplicitly(account, accountData.getPassword(), userData);
+      //accountManager.addAccountExplicitly(account, accountData.getPassword(), userData);
       //accountManager.
 
       // Set contacts sync for this account.

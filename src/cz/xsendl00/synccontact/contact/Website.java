@@ -2,14 +2,15 @@ package cz.xsendl00.synccontact.contact;
 
 import cz.xsendl00.synccontact.utils.Constants;
 
-public class Website {
-  private String websiteHomepage = Constants.WEBSITE_HOMEPAGE;
-  private String websiteBlog = Constants.WEBSITE_BLOG;
-  private String websiteProfile = Constants.WEBSITE_PROFILE;
-  private String websiteHome = Constants.WEBSITE_HOME;
-  private String websiteWork = Constants.WEBSITE_WORK;
-  private String websiteFtp = Constants.WEBSITE_FTP;
-  private String websiteOther = Constants.WEBSITE_OTHER;
+public class Website implements ContactInterface {
+
+  private String websiteHomepage;
+  private String websiteBlog;
+  private String websiteProfile;
+  private String websiteHome;
+  private String websiteWork;
+  private String websiteFtp;
+  private String websiteOther;
   
   public String getWebsiteHomepage() {
     return websiteHomepage;
@@ -54,4 +55,22 @@ public class Website {
     this.websiteOther = websiteOther;
   }
 
+  @Override
+  public String toString() {
+    return "Website [websiteHomepage=" + websiteHomepage + ", websiteBlog="
+        + websiteBlog + ", websiteProfile=" + websiteProfile + ", websiteHome="
+        + websiteHome + ", websiteWork=" + websiteWork + ", websiteFtp="
+        + websiteFtp + ", websiteOther=" + websiteOther + "]";
+  }
+  @Override
+  public void defaultValue() {
+    websiteHomepage = Constants.WEBSITE_HOMEPAGE;
+    websiteBlog = Constants.WEBSITE_BLOG;
+    websiteProfile = Constants.WEBSITE_PROFILE;
+    websiteHome = Constants.WEBSITE_HOME;
+    websiteWork = Constants.WEBSITE_WORK;
+    websiteFtp = Constants.WEBSITE_FTP;
+    websiteOther = Constants.WEBSITE_OTHER;
+    
+  }
 }

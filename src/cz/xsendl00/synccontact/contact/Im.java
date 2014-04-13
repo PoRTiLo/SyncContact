@@ -2,45 +2,46 @@ package cz.xsendl00.synccontact.contact;
 
 import cz.xsendl00.synccontact.utils.Constants;
 
-public class Im {
+public class Im  implements ContactInterface {
 
-  private String imHomeAim = Constants.IM_HOME_AIM;
-  private String imHomeGoogleTalk = Constants.IM_HOME_GOOGLE_TALK;
-  private String imHomeIcq = Constants.IM_HOME_ICQ;
-  private String imHomeJabber = Constants.IM_HOME_JABBER;
-  private String imHomeMsn = Constants.IM_HOME_MSN;
-  private String imHomeNetmeeting = Constants.IM_HOME_NETMEETING;
-  private String imHomeQq = Constants.IM_HOME_QQ;
-  private String imHomeSkype = Constants.IM_HOME_SKYPE;
-  private String imHomeYahoo = Constants.IM_HOME_YAHOO;
-  private String imWorkAim = Constants.IM_WORK_AIM;
-  private String imWorkGoogleTalk = Constants.IM_WORK_GOOGLE_TALK;
-  private String imWorkIcq = Constants.IM_WORK_ICQ;
-  private String imWorkJabber = Constants.IM_WORK_JABBER;
-  private String imWorkMsn = Constants.IM_WORK_MSN;
-  private String imWorkNetmeeting = Constants.IM_WORK_NETMEETING;
-  private String imWorkQq = Constants.IM_WORK_QQ;
-  private String imWorkSkype = Constants.IM_WORK_SKYPE;
-  private String imWorkYahoo = Constants.IM_WORK_YAHOO;
-  private String imOtherAim = Constants.IM_OTHER_AIM;
-  private String imOtherGoogleTalk = Constants.IM_OTHER_GOOGLE_TALK;
-  private String imOtherIcq = Constants.IM_OTHER_ICQ;
-  private String imOtherJabber = Constants.IM_OTHER_JABBER;
-  private String imOtherMsn = Constants.IM_OTHER_MSN;
-  private String imOtherNetmeeting = Constants.IM_OTHER_NETMEETING;
-  private String imOtherQq = Constants.IM_OTHER_QQ;
-  private String imOtherSkype = Constants.IM_OTHER_SKYPE;
-  private String imOtherYahoo = Constants.IM_OTHER_YAHOO;
-  private String imNullAim = Constants.IM_NULL_AIM;
-  private String imNullGoogleTalk = Constants.IM_NULL_GOOGLE_TALK;
-  private String imNullIcq = Constants.IM_NULL_ICQ;
-  private String imNullJabber = Constants.IM_NULL_JABBER;
-  private String imNullMsn = Constants.IM_NULL_MSN;
-  private String imNullNetmeeting = Constants.IM_NULL_NETMEETING;
-  private String imNullQq = Constants.IM_NULL_QQ;
-  private String imNullSkype = Constants.IM_NULL_SKYPE;
-  private String imNullYahoo = Constants.IM_NULL_YAHOO;
-  
+ 
+  private String imHomeAim;
+  private String imHomeGoogleTalk;
+  private String imHomeIcq;
+  private String imHomeJabber;
+  private String imHomeMsn;
+  private String imHomeNetmeeting;
+  private String imHomeQq;
+  private String imHomeSkype;
+  private String imHomeYahoo;
+  private String imWorkAim;
+  private String imWorkGoogleTalk;
+  private String imWorkIcq;
+  private String imWorkJabber;
+  private String imWorkMsn;
+  private String imWorkNetmeeting;
+  private String imWorkQq;
+  private String imWorkSkype;
+  private String imWorkYahoo;
+  private String imOtherAim;
+  private String imOtherGoogleTalk;
+  private String imOtherIcq;
+  private String imOtherJabber;
+  private String imOtherMsn;
+  private String imOtherNetmeeting;
+  private String imOtherQq;
+  private String imOtherSkype;
+  private String imOtherYahoo;
+ /* private String imNullAim;
+  private String imNullGoogleTalk;
+  private String imNullIcq;
+  private String imNullJabber;
+  private String imNullMsn;
+  private String imNullNetmeeting;
+  private String imNullQq;
+  private String imNullSkype;
+  private String imNullYahoo;
+ */ 
   public String getImHomeAim() {
     return imHomeAim;
   }
@@ -203,59 +204,52 @@ public class Im {
   public void setImOtherYahoo(String imOtherYahoo) {
     this.imOtherYahoo = imOtherYahoo;
   }
-  public String getImNullAim() {
-    return imNullAim;
-  }
-  public void setImNullAim(String imNullAim) {
-    this.imNullAim = imNullAim;
-  }
-  public String getImNullGoogleTalk() {
-    return imNullGoogleTalk;
-  }
-  public void setImNullGoogleTalk(String imNullGoogleTalk) {
-    this.imNullGoogleTalk = imNullGoogleTalk;
-  }
-  public String getImNullIcq() {
-    return imNullIcq;
-  }
-  public void setImNullIcq(String imNullIcq) {
-    this.imNullIcq = imNullIcq;
-  }
-  public String getImNullJabber() {
-    return imNullJabber;
-  }
-  public void setImNullJabber(String imNullJabber) {
-    this.imNullJabber = imNullJabber;
-  }
-  public String getImNullMsn() {
-    return imNullMsn;
-  }
-  public void setImNullMsn(String imNullMsn) {
-    this.imNullMsn = imNullMsn;
-  }
-  public String getImNullNetmeeting() {
-    return imNullNetmeeting;
-  }
-  public void setImNullNetmeeting(String imNullNetmeeting) {
-    this.imNullNetmeeting = imNullNetmeeting;
-  }
-  public String getImNullQq() {
-    return imNullQq;
-  }
-  public void setImNullQq(String imNullQq) {
-    this.imNullQq = imNullQq;
-  }
-  public String getImNullSkype() {
-    return imNullSkype;
-  }
-  public void setImNullSkype(String imNullSkype) {
-    this.imNullSkype = imNullSkype;
-  }
-  public String getImNullYahoo() {
-    return imNullYahoo;
-  }
-  public void setImNullYahoo(String imNullYahoo) {
-    this.imNullYahoo = imNullYahoo;
+
+  @Override
+  public String toString() {
+    return "Im [imHomeAim=" + imHomeAim + ", imHomeGoogleTalk="
+        + imHomeGoogleTalk + ", imHomeIcq=" + imHomeIcq + ", imHomeJabber="
+        + imHomeJabber + ", imHomeMsn=" + imHomeMsn + ", imHomeNetmeeting="
+        + imHomeNetmeeting + ", imHomeQq=" + imHomeQq + ", imHomeSkype="
+        + imHomeSkype + ", imHomeYahoo=" + imHomeYahoo + ", imWorkAim="
+        + imWorkAim + ", imWorkGoogleTalk=" + imWorkGoogleTalk + ", imWorkIcq="
+        + imWorkIcq + ", imWorkJabber=" + imWorkJabber + ", imWorkMsn="
+        + imWorkMsn + ", imWorkNetmeeting=" + imWorkNetmeeting + ", imWorkQq="
+        + imWorkQq + ", imWorkSkype=" + imWorkSkype + ", imWorkYahoo="
+        + imWorkYahoo + ", imOtherAim=" + imOtherAim + ", imOtherGoogleTalk="
+        + imOtherGoogleTalk + ", imOtherIcq=" + imOtherIcq + ", imOtherJabber="
+        + imOtherJabber + ", imOtherMsn=" + imOtherMsn + ", imOtherNetmeeting="
+        + imOtherNetmeeting + ", imOtherQq=" + imOtherQq + ", imOtherSkype="
+        + imOtherSkype + ", imOtherYahoo=" + imOtherYahoo + "]";
   }
 
+  public void defaultValue() {
+    imHomeAim = Constants.IM_HOME_AIM;
+    imHomeGoogleTalk = Constants.IM_HOME_GOOGLE_TALK;
+    imHomeIcq = Constants.IM_HOME_ICQ;
+    imHomeJabber = Constants.IM_HOME_JABBER;
+    imHomeMsn = Constants.IM_HOME_MSN;
+    imHomeNetmeeting = Constants.IM_HOME_NETMEETING;
+    imHomeQq = Constants.IM_HOME_QQ;
+    imHomeSkype = Constants.IM_HOME_SKYPE;
+    imHomeYahoo = Constants.IM_HOME_YAHOO;
+    imWorkAim = Constants.IM_WORK_AIM;
+    imWorkGoogleTalk = Constants.IM_WORK_GOOGLE_TALK;
+    imWorkIcq = Constants.IM_WORK_ICQ;
+    imWorkJabber = Constants.IM_WORK_JABBER;
+    imWorkMsn = Constants.IM_WORK_MSN;
+    imWorkNetmeeting = Constants.IM_WORK_NETMEETING;
+    imWorkQq = Constants.IM_WORK_QQ;
+    imWorkSkype = Constants.IM_WORK_SKYPE;
+    imWorkYahoo = Constants.IM_WORK_YAHOO;
+    imOtherAim = Constants.IM_OTHER_AIM;
+    imOtherGoogleTalk = Constants.IM_OTHER_GOOGLE_TALK;
+    imOtherIcq = Constants.IM_OTHER_ICQ;
+    imOtherJabber = Constants.IM_OTHER_JABBER;
+    imOtherMsn = Constants.IM_OTHER_MSN;
+    imOtherNetmeeting = Constants.IM_OTHER_NETMEETING;
+    imOtherQq = Constants.IM_OTHER_QQ;
+    imOtherSkype = Constants.IM_OTHER_SKYPE;
+    imOtherYahoo = Constants.IM_OTHER_YAHOO;
+  }
 }

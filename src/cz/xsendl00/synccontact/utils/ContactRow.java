@@ -3,6 +3,7 @@ package cz.xsendl00.synccontact.utils;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.UUID;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
@@ -26,20 +27,22 @@ public class ContactRow {
   private String accouNamePrevious;
   private String accouTypePrevious;
   private String timestamp;
+  private String uuid;
 
   public ContactRow(String id, String name) {
-    this(id, name, false, null, null, null, null, null);
+    this(id, name, false, null, null, null, null, null, null);
   }
   
   public ContactRow(String id, String name, String accouNamePrevious, String accouTypePrevious) {
-    this(id, name, false, null, null, accouNamePrevious, accouTypePrevious, null);
+    this(id, name, false, null, null, accouNamePrevious, accouTypePrevious, null, null);
   }
   
-  public ContactRow(String id, String name, Boolean sync, Integer idTable, String accouNamePrevious, String accouTypePrevious, String timestamp) {
-    this(id, name, sync, null, idTable, accouNamePrevious, accouTypePrevious, timestamp);
+  public ContactRow(String id, String name, Boolean sync, Integer idTable, String accouNamePrevious, String accouTypePrevious, String timestamp, String uuid) {
+    this(id, name, sync, null, idTable, accouNamePrevious, accouTypePrevious, timestamp, uuid);
   }
   
-  public ContactRow(String id, String name, Boolean sync, String[] groups, Integer idTable, String accouNamePrevious, String accouTypePrevious, String timestamp) {
+  public ContactRow(String id, String name, Boolean sync, String[] groups, Integer idTable, String accouNamePrevious, String accouTypePrevious, 
+      String timestamp, String uuid) {
     this.id = id;
     this.name = name;
     this.sync = sync;
@@ -48,6 +51,7 @@ public class ContactRow {
     this.accouNamePrevious = accouNamePrevious;
     this.accouTypePrevious = accouTypePrevious;
     this.timestamp = timestamp;
+    this.setUuid(uuid);
   }
   
   public String getName() {
@@ -172,5 +176,21 @@ public class ContactRow {
     Calendar c = Calendar.getInstance();
     SimpleDateFormat df1 = new SimpleDateFormat("yyyyMMddHHmmss");
     return df1.format(c.getTime()) +"Z";
+  }
+
+  public static String generateUUID() {
+    UUID uuid = UUID.randomUUID();
+    return uuid.toString();
+  }
+  
+  public String getUuid() {
+    if (this.uuid == null) {
+      uuid = generateUUID();
+    }
+    return uuid;
+  }
+
+  public void setUuid(String uuid) {
+    this.uuid = uuid;
   }
 }

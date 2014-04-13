@@ -49,6 +49,7 @@ public class HelperSQL extends SQLiteOpenHelper {
   private static final String CONTACT_KEY_ACCOUNT_NAME = "account_name_previous";
   private static final String CONTACT_KEY_ACCOUNT_TYPE = "account_type_previous";
   private static final String CONTACT_KEY_TIMESTAMP = "timestamp";
+  private static final String CONTACT_KEY_UUID = "uuid";
   
   private static final String CREATE_CONTACT_TABLE = "CREATE TABLE IF NOT EXISTS " + CONTACT_TABLE_NAME + 
       " (" + CONTACT_KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -57,6 +58,7 @@ public class HelperSQL extends SQLiteOpenHelper {
       CONTACT_KEY_ACCOUNT_NAME + " TEXT, " +
       CONTACT_KEY_ACCOUNT_TYPE + " TEXT, " +
       CONTACT_KEY_TIMESTAMP + " TEXT, " +
+      CONTACT_KEY_UUID + " TEXT, " +
       CONTACT_KEY_ID_CONTACT + " TEXT " +");";
   
   private Context context;
@@ -218,6 +220,7 @@ public class HelperSQL extends SQLiteOpenHelper {
     values.put(CONTACT_KEY_ACCOUNT_NAME, contact.getAccouNamePrevious());
     values.put(CONTACT_KEY_ACCOUNT_TYPE, contact.getAccouTypePrevious());
     values.put(CONTACT_KEY_TIMESTAMP, contact.getTimestamp());
+    values.put(CONTACT_KEY_UUID, contact.getUuid());
  
     // Inserting Row
     int id = (int)db.insert(CONTACT_TABLE_NAME, null, values);
@@ -229,13 +232,14 @@ public class HelperSQL extends SQLiteOpenHelper {
   public ContactRow getContact(int id) {
     SQLiteDatabase db = this.getReadableDatabase();
     
-    Cursor cursor = db.query(CONTACT_TABLE_NAME, new String[] { CONTACT_KEY_ID,
-        CONTACT_KEY_NAME, CONTACT_KEY_SYNC, CONTACT_KEY_ID_CONTACT, CONTACT_KEY_ACCOUNT_NAME, CONTACT_KEY_ACCOUNT_TYPE, CONTACT_KEY_TIMESTAMP }, CONTACT_KEY_ID + "=?",
+    Cursor cursor = db.query(CONTACT_TABLE_NAME, new String[] { CONTACT_KEY_ID, CONTACT_KEY_NAME, CONTACT_KEY_SYNC, CONTACT_KEY_ID_CONTACT, 
+        CONTACT_KEY_ACCOUNT_NAME, CONTACT_KEY_ACCOUNT_TYPE, CONTACT_KEY_TIMESTAMP , CONTACT_KEY_UUID}, CONTACT_KEY_ID + "=?",
             new String[] { String.valueOf(id) }, null, null, null, null);
     if (cursor != null) {
         cursor.moveToFirst();
     }
-    return new ContactRow(cursor.getString(6), cursor.getString(1), cursor.getInt(2)>0, cursor.getInt(0), cursor.getString(3), cursor.getString(4), cursor.getString(5));
+    return new ContactRow(cursor.getString(7), cursor.getString(1), cursor.getInt(2)>0, cursor.getInt(0), cursor.getString(3), 
+        cursor.getString(4), cursor.getString(5), cursor.getString(6));
   }
   
   // Getting All Contacts
@@ -247,7 +251,8 @@ public class HelperSQL extends SQLiteOpenHelper {
     if (cursor.moveToFirst()) {
       do {
         // Adding contact to list
-        contactList.add(new ContactRow(cursor.getString(6), cursor.getString(1), cursor.getInt(2)>0, cursor.getInt(0), cursor.getString(3), cursor.getString(4), cursor.getString(5)));
+        contactList.add(new ContactRow(cursor.getString(7), cursor.getString(1), cursor.getInt(2)>0, cursor.getInt(0), cursor.getString(3), 
+            cursor.getString(4), cursor.getString(5), cursor.getString(5)));
       } while (cursor.moveToNext());
     }
     db.close();

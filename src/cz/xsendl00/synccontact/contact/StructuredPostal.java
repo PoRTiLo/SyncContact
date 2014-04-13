@@ -7,32 +7,32 @@ import cz.xsendl00.synccontact.utils.Constants;
  * @author portilo
  *
  */
-public class StructuredPostal {
-  
-  private String homeStreet = Constants.HOME_STREET;
-  private String homePOBox = Constants.HOME_POBOX;
-  private String homeCity = Constants.HOME_CITY;
-  private String homeRegion = Constants.HOME_REGION;
-  private String homePostalCode = Constants.HOME_POSTAL_CODE;
-  private String homeCountry = Constants.HOME_COUNTRY;
-  private String workStreet = Constants.WORK_STREET;
-  private String workPOBox = Constants.WORK_POBOX;
-  private String workCity = Constants.WORK_CITY;
-  private String workRegion = Constants.WORK_REGION;
-  private String workPostalCode = Constants.WORK_POSTAL_CODE;
-  private String workCountry = Constants.WORK_COUNTRY;
-  private String workFormattedAddress = Constants.WORK_FORMATTED_ADDRESS;
-  private String homeFormattedAddress = Constants.HOME_FORMATTED_ADDRESS;
-  private String workNeighborhood = Constants.WORK_NEIGHBORHOOD;
-  private String homeNeighborhood = Constants.HOME_NEIGHBORHOOD;
-  private String otherNeighborhood = Constants.OTHER_NEIGHBORHOOD;
-  private String otherStreet = Constants.OTHER_STREET;
-  private String otherCity = Constants.OTHER_CITY;
-  private String otherPOBox = Constants.OTHER_POBOX;
-  private String otherRegion = Constants.OTHER_REGION;
-  private String otherPostalCode = Constants.OTHER_POSTAL_CODE;
-  private String otherCountry = Constants.OTHER_COUNTRY;
-  private String otherFormattedAddress = Constants.OTHER_FORMATTED_ADDRESS;
+public class StructuredPostal implements ContactInterface {
+
+  private String homeStreet;
+  private String homePOBox;
+  private String homeCity;
+  private String homeRegion;
+  private String homePostalCode;
+  private String homeCountry;
+  private String workStreet;
+  private String workPOBox;
+  private String workCity;
+  private String workRegion;
+  private String workPostalCode;
+  private String workCountry;
+  private String workFormattedAddress;
+  private String homeFormattedAddress;
+  private String workNeighborhood;
+  private String homeNeighborhood;
+  private String otherNeighborhood;
+  private String otherStreet;
+  private String otherCity;
+  private String otherPOBox;
+  private String otherRegion;
+  private String otherPostalCode;
+  private String otherCountry;
+  private String otherFormattedAddress;
   
   public String getHomeStreet() {
     return homeStreet;
@@ -179,4 +179,52 @@ public class StructuredPostal {
     this.otherFormattedAddress = otherFormattedAddress;
   }
 
+  
+  @Override
+  public String toString() {
+    return "StructuredPostal [homeStreet=" + homeStreet + ", homePOBox="
+        + homePOBox + ", homeCity=" + homeCity + ", homeRegion=" + homeRegion
+        + ", homePostalCode=" + homePostalCode + ", homeCountry=" + homeCountry
+        + ", workStreet=" + workStreet + ", workPOBox=" + workPOBox
+        + ", workCity=" + workCity + ", workRegion=" + workRegion
+        + ", workPostalCode=" + workPostalCode + ", workCountry=" + workCountry
+        + ", workFormattedAddress=" + workFormattedAddress
+        + ", homeFormattedAddress=" + homeFormattedAddress
+        + ", workNeighborhood=" + workNeighborhood + ", homeNeighborhood="
+        + homeNeighborhood + ", otherNeighborhood=" + otherNeighborhood
+        + ", otherStreet=" + otherStreet + ", otherCity=" + otherCity
+        + ", otherPOBox=" + otherPOBox + ", otherRegion=" + otherRegion
+        + ", otherPostalCode=" + otherPostalCode + ", otherCountry="
+        + otherCountry + ", otherFormattedAddress=" + otherFormattedAddress
+        + "]";
+  }
+  @Override
+  public void defaultValue() {
+    homeStreet = Constants.HOME_STREET;
+    homePOBox = Constants.HOME_POBOX;
+    homeCity = Constants.HOME_CITY;
+    homeRegion = Constants.HOME_REGION;
+    homePostalCode = Constants.HOME_POSTAL_CODE;
+    homeCountry = Constants.HOME_COUNTRY;
+    workStreet = Constants.WORK_STREET;
+    workPOBox = Constants.WORK_POBOX;
+    workCity = Constants.WORK_CITY;
+    workRegion = Constants.WORK_REGION;
+    workPostalCode = Constants.WORK_POSTAL_CODE;
+    workCountry = Constants.WORK_COUNTRY;
+    workFormattedAddress = Constants.WORK_FORMATTED_ADDRESS;
+    homeFormattedAddress = Constants.HOME_FORMATTED_ADDRESS;
+    workNeighborhood = Constants.WORK_NEIGHBORHOOD;
+    homeNeighborhood = Constants.HOME_NEIGHBORHOOD;
+    otherNeighborhood = Constants.OTHER_NEIGHBORHOOD;
+    otherStreet = Constants.OTHER_STREET;
+    otherCity = Constants.OTHER_CITY;
+    otherPOBox = Constants.OTHER_POBOX;
+    otherRegion = Constants.OTHER_REGION;
+    otherPostalCode = Constants.OTHER_POSTAL_CODE;
+    otherCountry = Constants.OTHER_COUNTRY;
+    otherFormattedAddress = Constants.OTHER_FORMATTED_ADDRESS;
+    
+    
+  }
 }

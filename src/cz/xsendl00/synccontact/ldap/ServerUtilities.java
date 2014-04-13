@@ -5,11 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -22,12 +18,9 @@ import com.unboundid.ldap.sdk.SearchResult;
 import com.unboundid.ldap.sdk.SearchResultEntry;
 import com.unboundid.ldap.sdk.SearchScope;
 import com.unboundid.ldif.LDIFException;
-import com.xsendl00.synccontact.R;
-
 import cz.xsendl00.synccontact.AddServerActivity;
-import cz.xsendl00.synccontact.adapter.SyncService;
 import cz.xsendl00.synccontact.authenticator.AccountData;
-import cz.xsendl00.synccontact.client.GoogleContact;
+import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.Mapping;
@@ -103,7 +96,7 @@ public class ServerUtilities {
     LDAPConnection connection = null;
     try {
       connection = ldapServer.getConnection(handler, context);
-      //connection.add(Mapping.mappingRequest(context.getContentResolver(), ldapServer.getAccountdData().getBaseDn()));
+      connection.add(Mapping.mappingRequest(context.getContentResolver(), "149", ldapServer.getAccountdData().getBaseDn()));
     } catch (LDAPException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -145,9 +138,9 @@ public class ServerUtilities {
     return null;
   }
   
-  public static List<String> fetchModifyTimestampContacts(final ServerInstance ldapServer, final Context context, String timestamp) {
+  public static List<GoogleContact> fetchModifyContacts(final ServerInstance ldapServer, final Context context, String timestamp) {
     LDAPConnection connection = null;
-    List<String> contactsServer = new ArrayList<String>();
+    List<GoogleContact> contactsServer = new ArrayList<GoogleContact>();
     try {
       connection = ldapServer.getConnection(null, context);
       //String filter = "(&(objectClass=googleContact)(" + Constants.LDAP_MODIFY_TIME_STAMP + ":generalizedTimeMatch:="+timestamp+"))";
@@ -162,7 +155,7 @@ public class ServerUtilities {
       for (SearchResultEntry e : searchResult.getSearchEntries()) {
         Log.i(TAG, e.toLDIFString());
         //Log.i(TAG, e.getAttributeValue(Constants.LDAP_MODIFY_TIME_STAMP));
-        //contactsServer.add(e.getAttributeValue(Constants.LDAP_MODIFY_TIME_STAMP));
+        contactsServer.add(Mapping.mappingContactFromLDAP(e));
       }
     } catch (LDAPException e) {
       // TODO Auto-generated catch block
@@ -179,9 +172,8 @@ public class ServerUtilities {
     List<String> contactsDirty = Mapping.fetchDirtyContacts(context, contactsId);
     // get timestamp last synchronization
     String timestamp = db.newerTimestamp();
-    Log.i(TAG, timestamp);
     // get contact from server which was newer than timestamp
-    List<String> contactsServer = fetchModifyTimestampContacts(ldapServer, context, timestamp);
+    List<GoogleContact> contactsServer = fetchModifyContacts(ldapServer, context, timestamp);
     // get all contacts, which must be merged and updated from contact.db
     
     // merge contact
@@ -205,16 +197,13 @@ public class ServerUtilities {
 		  Log.i(TAG, "base Dn:" + accountData.getBaseDn());
 			connection = ldapServer.getConnection(null, context);
 			
-			
 			SearchResult searchResult = connection.search(accountData.getBaseDn(), SearchScope.SUB, accountData.getSearchFilter(), getUsedAttributes(mappingBundle));
 			Log.i(TAG, searchResult.getEntryCount() + " entries returned.");
 
 			for (SearchResultEntry e : searchResult.getSearchEntries()) {
 			  Log.i(TAG, e.toString());
-				GoogleContact u = GoogleContact.valueOf(e, mappingBundle);
-				if (u != null) {
-					friendList.add(u);
-				}
+				GoogleContact u = Mapping.mappingContactFromLDAP(e);
+				friendList.add(u);
 			}
 		} catch (LDAPException e) {
 			/*Log.v(TAG, "LDAPException on fetching contacts", e);

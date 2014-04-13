@@ -2,10 +2,13 @@ package cz.xsendl00.synccontact.contact;
 
 import cz.xsendl00.synccontact.utils.Constants;
 
-public class Event {
-  private String eventOther = Constants.EVENT_OTHER;
-  private String eventBirthday = Constants.EVENT_BIRTHDAY;
-  private String eventAnniversary = Constants.EVENT_ANNIVERSARY;
+public class Event implements ContactInterface {
+
+
+  private String eventOther;
+  private String eventBirthday;
+  private String eventAnniversary;
+  
   public String getEventOther() {
     return eventOther;
   }
@@ -23,5 +26,17 @@ public class Event {
   }
   public void setEventAnniversary(String eventAnniversary) {
     this.eventAnniversary = eventAnniversary;
+  }
+  
+  @Override
+  public String toString() {
+    return "Event [eventOther=" + eventOther + ", eventBirthday="
+        + eventBirthday + ", eventAnniversary=" + eventAnniversary + "]";
+  }
+  
+  public void defaultValue() {
+    this.eventOther = Constants.EVENT_OTHER;
+    this.eventBirthday = Constants.EVENT_BIRTHDAY;
+    this.eventAnniversary = Constants.EVENT_ANNIVERSARY;
   }
 }
