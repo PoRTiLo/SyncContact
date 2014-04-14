@@ -195,6 +195,7 @@ public class Constants {
   public static final String OTHER_POSTAL_CODE = "otherPostalCode";
   public static final String OTHER_COUNTRY = "otherCountry";
   public static final String OTHER_FORMATTED_ADDRESS = "otherFormattedAddress";
+  public static final String UUID = "uuid";
   
   
   /* Person */

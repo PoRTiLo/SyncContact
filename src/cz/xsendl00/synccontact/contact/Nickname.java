@@ -1,5 +1,6 @@
 package cz.xsendl00.synccontact.contact;
 
+import android.content.ContentValues;
 import cz.xsendl00.synccontact.utils.Constants;
 
 /**
@@ -71,5 +72,71 @@ public class Nickname implements ContactInterface {
     nicknameMaiden = Constants.NICKNAME_MAIDEN;
     nicknameShort = Constants.NICKNAME_SHORT;
     nicknameInitials = Constants.NICKNAME_INITIALS;
+  }
+  
+  public static ContentValues compare(Nickname obj1, Nickname obj2) {
+    ContentValues values = new ContentValues();
+    if (obj1 == null && obj2 != null) { // update from LDAP
+      if (obj2.getNicknameDefault() != null) {
+        values.put(Constants.NICKNAME_DEFAULT, obj2.getNicknameDefault());
+      }
+      if (obj2.getNicknameInitials() != null) {
+        values.put(Constants.NICKNAME_INITIALS, obj2.getNicknameInitials());
+      }
+      if (obj2.getNicknameMaiden() != null) {
+        values.put(Constants.NICKNAME_MAIDEN, obj2.getNicknameMaiden());
+      }
+      if (obj2.getNicknameOther() != null) {
+        values.put(Constants.NICKNAME_OTHER, obj2.getNicknameOther());
+      }
+      if (obj2.getNicknameShort() != null) {
+        values.put(Constants.NICKNAME_SHORT, obj2.getNicknameShort());
+      }
+    } else if (obj1 == null && obj2 == null) { // nothing
+      
+    } else if (obj1 != null && obj2 == null) { // clear data in db
+      if (obj1.getNicknameDefault() != null) {
+        values.putNull(Constants.NICKNAME_DEFAULT);
+      }
+      if (obj1.getNicknameInitials() != null) {
+        values.putNull(Constants.NICKNAME_INITIALS);
+      }
+      if (obj1.getNicknameMaiden() != null) {
+        values.putNull(Constants.NICKNAME_MAIDEN);
+      }
+      if (obj1.getNicknameOther() != null) {
+        values.putNull(Constants.NICKNAME_OTHER);
+      }
+      if (obj1.getNicknameShort() != null) {
+        values.putNull(Constants.NICKNAME_SHORT);
+      }
+    } else if (obj1 != null && obj2 != null) { // merge
+      if (obj2.getNicknameDefault() != null) {
+        values.put(Constants.NICKNAME_DEFAULT, obj2.getNicknameDefault());
+      } else {
+        values.putNull(Constants.NICKNAME_DEFAULT);
+      }
+      if (obj2.getNicknameInitials() != null) {
+        values.put(Constants.NICKNAME_INITIALS, obj2.getNicknameInitials());
+      } else {
+        values.putNull(Constants.NICKNAME_INITIALS);
+      }
+      if (obj2.getNicknameMaiden() != null) {
+        values.put(Constants.NICKNAME_MAIDEN, obj2.getNicknameMaiden());
+      } else {
+        values.putNull(Constants.NICKNAME_MAIDEN);
+      }
+      if (obj2.getNicknameOther() != null) {
+        values.put(Constants.NICKNAME_OTHER, obj2.getNicknameOther());
+      } else {
+        values.putNull(Constants.NICKNAME_OTHER);
+      }
+      if (obj2.getNicknameShort() != null) {
+        values.put(Constants.NICKNAME_SHORT, obj2.getNicknameShort());
+      } else {
+        values.putNull(Constants.NICKNAME_SHORT);
+      }
+    }
+    return values;
   }
 }

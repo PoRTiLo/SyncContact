@@ -2,11 +2,15 @@ package cz.xsendl00.synccontact.database;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
+import cz.xsendl00.synccontact.utils.Mapping;
 import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -14,7 +18,6 @@ import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.RawContacts;
@@ -275,6 +278,44 @@ public class HelperSQL extends SQLiteOpenHelper {
     return contactsId;
   }
   
+  // Getting sync contact id 
+  public List<ContactRow> getSyncContacts() {
+    List<ContactRow> contacts = new ArrayList<ContactRow>();
+    String selectQuery = "SELECT " + CONTACT_KEY_ID_CONTACT +","+ CONTACT_KEY_UUID + " FROM " + CONTACT_TABLE_NAME + " WHERE " + CONTACT_KEY_SYNC + " =1";
+    SQLiteDatabase db = this.getWritableDatabase();
+    Cursor cursor = db.rawQuery(selectQuery, null);
+    if (cursor.moveToFirst()) {
+      do {
+        // Adding contact to list
+        ContactRow con = new ContactRow();
+        con.setId(cursor.getString(0));
+        con.setUuid(cursor.getString(1));
+        contacts.add(con);
+        Log.i(TAG, "get Sync contac: "+con.toString());
+      } while (cursor.moveToNext());
+    }
+    db.close();
+    return contacts;
+  }
+  
+  public void updateContactDb(Map<String, GoogleContact> map) {
+    for (Map.Entry<String, GoogleContact> entry : map.entrySet()) {
+      String selectQuery = "SELECT " + CONTACT_KEY_ID_CONTACT + " FROM " + CONTACT_TABLE_NAME + " WHERE " + CONTACT_KEY_UUID + " ="+entry.getKey();
+      SQLiteDatabase db = this.getWritableDatabase();
+      Cursor cursor = db.rawQuery(selectQuery, null);
+      if (cursor.moveToFirst()) {
+        // get contact from db and all data
+        GoogleContact contact = Mapping.mappingContactFromDB(context.getContentResolver(), cursor.getString(0));
+        // compare
+        ContentValues values = new ContentValues();
+        values.putAll(GoogleContact.compare(contact, entry.getValue()));
+      }
+      cursor.close();
+    }
+  }
+  
+
+  
   // Getting contacts Count
   public int getContactCount() {
     String countQuery = "SELECT  * FROM " + CONTACT_TABLE_NAME;
@@ -340,21 +381,24 @@ public class HelperSQL extends SQLiteOpenHelper {
         //Log.i(TAG, con.toString());
         con.setTimestamp(timestamp);
         con.setIdTable(addContact(con));
-        //importContactToSyncAccount(Integer.parseInt(con.getId()));
+        importContactToSyncAccount(Integer.parseInt(con.getId()));
       }
     }
   }
   
   private void importContactToSyncAccount(Integer id) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
-    ops.add(ContentProviderOperation.newUpdate(ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, 1))
+    Log.i(TAG, id.toString());
+    ops.add(ContentProviderOperation.newUpdate(ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, id))
        .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
        .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE).build()
      );
      
     try {
-      context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-      
+      ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+      for (ContentProviderResult cn : con) {
+        Log.i(TAG, cn.toString());
+      }
     } catch (RemoteException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();

@@ -1,5 +1,6 @@
 package cz.xsendl00.synccontact.contact;
 
+import android.content.ContentValues;
 import cz.xsendl00.synccontact.utils.Constants;
 
 /**
@@ -43,6 +44,38 @@ public class Identity implements ContactInterface {
   public void defaultValue() {
     identityText = Constants.IDENTITY_TEXT;
     identityNamespace = Constants.IDENTITY_NAMESPACE;
-    
+  }
+  
+  public static ContentValues compare(Identity obj1, Identity obj2) {
+    ContentValues values = new ContentValues();
+    if (obj1 == null && obj2 != null) { // update from LDAP
+      if (obj2.getIdentityNamespace() != null) {
+        values.put(Constants.IDENTITY_NAMESPACE, obj2.getIdentityNamespace());
+      }
+      if (obj2.getIdentityText() != null) {
+        values.put(Constants.IDENTITY_TEXT, obj2.getIdentityText());
+      }
+    } else if (obj1 == null && obj2 == null) { // nothing
+      
+    } else if (obj1 != null && obj2 == null) { // clear data in db
+      if (obj1.getIdentityNamespace() != null) {
+        values.putNull(Constants.IDENTITY_NAMESPACE);
+      }
+      if (obj1.getIdentityText() != null) {
+        values.putNull(Constants.IDENTITY_TEXT);
+      }
+    } else if (obj1 != null && obj2 != null) { // merge
+      if (obj2.getIdentityNamespace() != null) {
+        values.put(Constants.IDENTITY_NAMESPACE, obj2.getIdentityNamespace());
+      } else {
+        values.putNull(Constants.IDENTITY_NAMESPACE);
+      } 
+      if (obj2.getIdentityText() != null) {
+        values.put(Constants.IDENTITY_TEXT, obj2.getIdentityText());
+      } else {
+        values.putNull(Constants.IDENTITY_TEXT);
+      }
+    }
+    return values;
   }
 }

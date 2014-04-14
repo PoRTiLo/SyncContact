@@ -29,6 +29,10 @@ public class ContactRow {
   private String timestamp;
   private String uuid;
 
+  public ContactRow() {
+    this(null, null, true, null, null, null, null, null, null);
+  }
+  
   public ContactRow(String id, String name) {
     this(id, name, false, null, null, null, null, null, null);
   }

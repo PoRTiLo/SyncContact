@@ -3,7 +3,10 @@ package cz.xsendl00.synccontact.ldap;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -23,6 +26,7 @@ import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.Constants;
+import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.Mapping;
 
 public class ServerUtilities {
@@ -93,14 +97,32 @@ public class ServerUtilities {
   
   
   public static void addContactsToServer(final ServerInstance ldapServer, Handler handler, final Context context) {
+ // get sync user
+    HelperSQL db = new HelperSQL(context);
+    List<ContactRow> contactsId = db.getSyncContacts();
+ // get timestamp last synchronization
+    //String timestamp = db.newerTimestamp();
+    // get contact from server which was newer than timestamp
+    //List<GoogleContact> contactsServer = fetchModifyContacts(ldapServer, context, timestamp);
+    
     LDAPConnection connection = null;
-    try {
-      connection = ldapServer.getConnection(handler, context);
-      connection.add(Mapping.mappingRequest(context.getContentResolver(), "149", ldapServer.getAccountdData().getBaseDn()));
-    } catch (LDAPException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+    
+      try {
+        connection = ldapServer.getConnection(handler, context);
+      } catch (LDAPException e1) {
+        // TODO Auto-generated catch block
+        e1.printStackTrace();
+      }
+      for(ContactRow con : contactsId) {
+        try {
+        connection.add(Mapping.mappingRequest(context.getContentResolver(), String.valueOf(con.getIdTable()), 
+            ldapServer.getAccountdData().getBaseDn(), con.getUuid()));
+        } catch (LDAPException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      }
+    
   }
 
   public static void updateContacts(final ServerInstance ldapServer, final AccountData accountData, Handler handler, final Context context) {
@@ -138,24 +160,18 @@ public class ServerUtilities {
     return null;
   }
   
-  public static List<GoogleContact> fetchModifyContacts(final ServerInstance ldapServer, final Context context, String timestamp) {
+  public static Map<String, GoogleContact> fetchModifyContactsLDAP(final ServerInstance ldapServer, final Context context, String timestamp) {
     LDAPConnection connection = null;
-    List<GoogleContact> contactsServer = new ArrayList<GoogleContact>();
+    Map<String, GoogleContact> contactsServer = new HashMap<String, GoogleContact>();
     try {
       connection = ldapServer.getConnection(null, context);
-      //String filter = "(&(objectClass=googleContact)(" + Constants.LDAP_MODIFY_TIME_STAMP + ":generalizedTimeMatch:="+timestamp+"))";
-      String filter = "(objectClass=googleContact)";
-      //Log.i(TAG, filter);
+      String filter = "(&(objectClass=googleContact)(" + Constants.LDAP_MODIFY_TIME_STAMP + ">="+timestamp+"))";
       SearchResult searchResult = connection.search(
           "ou=users,dc=synccontact,dc=xsendl00,dc=cz", SearchScope.SUB, 
           filter,
           Mapping.createAttributes());
-      //Log.i(TAG, searchResult.getEntryCount() + " entries returned.");
-      
       for (SearchResultEntry e : searchResult.getSearchEntries()) {
-        Log.i(TAG, e.toLDIFString());
-        //Log.i(TAG, e.getAttributeValue(Constants.LDAP_MODIFY_TIME_STAMP));
-        contactsServer.add(Mapping.mappingContactFromLDAP(e));
+        contactsServer.put(e.getAttributeValue(Constants.UUID), Mapping.mappingContactFromLDAP(e));
       }
     } catch (LDAPException e) {
       // TODO Auto-generated catch block
@@ -167,13 +183,29 @@ public class ServerUtilities {
   public static void synchronization(final ServerInstance ldapServer, final Context context) {
     // get sync user
     HelperSQL db = new HelperSQL(context);
-    List<String> contactsId = db.getSyncContactsId();
+    List<ContactRow> contactsId = db.getSyncContacts();
     // get contact with dirty flag
-    List<String> contactsDirty = Mapping.fetchDirtyContacts(context, contactsId);
+    Map<String, GoogleContact> contactsDirty = Mapping.fetchDirtyContacts(context, contactsId);
+    Log.i(TAG, "fetchDirtyContacts: " + contactsDirty.size());
+    //for(GoogleContact c : contactsDirty) {
+    //  Log.i(TAG, c.getStructuredName().getDisplayName());
+    //}
     // get timestamp last synchronization
     String timestamp = db.newerTimestamp();
+    Log.i(TAG, timestamp);
     // get contact from server which was newer than timestamp
-    List<GoogleContact> contactsServer = fetchModifyContacts(ldapServer, context, timestamp);
+    Map<String, GoogleContact> contactsServer = fetchModifyContactsLDAP(ldapServer, context, timestamp);
+    Log.i(TAG, "fetchModifyContactsLDAP: " + contactsServer.size());
+    //for(GoogleContact c : contactsServer) {
+    //  Log.i(TAG, c.getStructuredName().getDisplayName());
+    //}
+    // intersection local change and LDAP change
+    Map<String, GoogleContact> intersection = intersection(contactsDirty, contactsServer);
+    // difference local change and intersection, must be update on LDAP server
+    Map<String, GoogleContact> differenceDirty = difference(contactsDirty, intersection);
+    // difference LDAP change and intersection, must be update on DB
+    Map<String, GoogleContact> differenceLDAP = difference(contactsServer, intersection);
+    
     // get all contacts, which must be merged and updated from contact.db
     
     // merge contact
@@ -187,6 +219,27 @@ public class ServerUtilities {
     // set new timestamp
     
     // set dirty flag to disable (0)
+  }
+  
+  public static <K, V> Map<K, V> intersection(final Map<K, V> map1, final Map<K, V> map2) {
+    Map<K, V> map = new HashMap<K, V>();
+    for (Map.Entry<K, V> entry : map1.entrySet()) {
+      if(map2.get(entry.getKey()) != null) {
+        map.put(entry.getKey(), entry.getValue());
+      }
+    }
+    return map;
+  }
+  
+  public static <K, V> Map<K, V> difference(final Map<K, V> map1, final Map<K, V> map2) {
+    Map<K, V> map = new HashMap<K, V>();
+    map.putAll(map1);
+    for (Map.Entry<K, V> entry : map2.entrySet()) {
+      if(map.get(entry.getKey()) != null) {
+        map.remove(entry.getKey());
+      }
+    }
+    return map;
   }
   
 	public static List<GoogleContact> fetchContacts(final ServerInstance ldapServer, final AccountData accountData, final Bundle mappingBundle, 

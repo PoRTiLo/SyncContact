@@ -1,6 +1,9 @@
 package cz.xsendl00.synccontact.contact;
 
+import java.util.Map;
 import java.util.UUID;
+
+import android.content.ContentValues;
 
 public class GoogleContact {
 
@@ -142,4 +145,33 @@ public class GoogleContact {
         + structuredName + ", structuredPostal=" + structuredPostal
         + ", website=" + website + "]";
   }
+
+  public UUID getUuid() {
+    return uuid;
+  }
+
+  public void setUuid(UUID uuid) {
+    this.uuid = uuid;
+  }
+
+  public String getTimestamp() {
+    return timestamp;
+  }
+
+  public void setTimestamp(String timestamp) {
+    this.timestamp = timestamp;
+  }
+  
+  public static ContentValues compare(GoogleContact con1, GoogleContact con2) {
+    ContentValues values = new ContentValues();
+    
+    values.putAll(Email.compare(con1.getEmail(), con2.getEmail()));
+    values.putAll(Event.compare(con1.getEvent(), con2.getEvent()));
+    values.putAll(Identity.compare(con1.getIdentity(), con2.getIdentity()));
+    values.putAll(Im.compare(con1.getIm(), con2.getIm()));
+    values.putAll(Nickname.compare(con1.getNickname(), con2.getNickname()));
+    
+    return values;
+  }
 }
+

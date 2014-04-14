@@ -1,5 +1,6 @@
 package cz.xsendl00.synccontact.contact;
 
+import android.content.ContentValues;
 import cz.xsendl00.synccontact.utils.Constants;
 
 public class Im  implements ContactInterface {
@@ -251,5 +252,313 @@ public class Im  implements ContactInterface {
     imOtherQq = Constants.IM_OTHER_QQ;
     imOtherSkype = Constants.IM_OTHER_SKYPE;
     imOtherYahoo = Constants.IM_OTHER_YAHOO;
+  }
+  
+  public static ContentValues compare(Im obj1, Im obj2) {
+    ContentValues values = new ContentValues();
+    if (obj1 == null && obj2 != null) { // update from LDAP
+      if (obj2.getImHomeAim() != null) {
+        values.put(Constants.IM_HOME_AIM, obj2.getImHomeAim());
+      }
+      if (obj2.getImHomeGoogleTalk() != null) {
+        values.put(Constants.IM_HOME_GOOGLE_TALK, obj2.getImHomeGoogleTalk());
+      }
+      if (obj2.getImHomeIcq() != null) {
+        values.put(Constants.IM_HOME_ICQ, obj2.getImHomeIcq());
+      }
+      if (obj2.getImHomeJabber() != null) {
+        values.put(Constants.IM_HOME_JABBER, obj2.getImHomeJabber());
+      }
+      if (obj2.getImHomeMsn() != null) {
+        values.put(Constants.IM_HOME_MSN, obj2.getImHomeMsn());
+      }
+      if (obj2.getImHomeNetmeeting() != null) {
+        values.put(Constants.IM_HOME_NETMEETING, obj2.getImHomeNetmeeting());
+      }
+      if (obj2.getImHomeQq() != null) {
+        values.put(Constants.IM_HOME_QQ, obj2.getImHomeQq());
+      }
+      if (obj2.getImHomeSkype() != null) {
+        values.put(Constants.IM_HOME_SKYPE, obj2.getImHomeSkype());
+      }
+      if (obj2.getImHomeYahoo() != null) {
+        values.put(Constants.IM_HOME_YAHOO, obj2.getImHomeYahoo());
+      }
+      if (obj2.getImOtherAim() != null) {
+        values.put(Constants.IM_OTHER_AIM, obj2.getImOtherAim());
+      }
+      if (obj2.getImOtherGoogleTalk() != null) {
+        values.put(Constants.IM_OTHER_GOOGLE_TALK, obj2.getImOtherGoogleTalk());
+      }
+      if (obj2.getImOtherIcq() != null) {
+        values.put(Constants.IM_OTHER_ICQ, obj2.getImOtherIcq());
+      }
+      if (obj2.getImOtherJabber() != null) {
+        values.put(Constants.IM_OTHER_JABBER, obj2.getImOtherJabber());
+      }
+      if (obj2.getImOtherMsn() != null) {
+        values.put(Constants.IM_OTHER_MSN, obj2.getImOtherMsn());
+      }
+      if (obj2.getImOtherNetmeeting() != null) {
+        values.put(Constants.IM_OTHER_NETMEETING, obj2.getImOtherNetmeeting());
+      }
+      if (obj2.getImOtherQq() != null) {
+        values.put(Constants.IM_OTHER_QQ, obj2.getImOtherQq());
+      }
+      if (obj2.getImOtherSkype() != null) {
+        values.put(Constants.IM_OTHER_SKYPE, obj2.getImOtherSkype());
+      }
+      if (obj2.getImOtherYahoo() != null) {
+        values.put(Constants.IM_OTHER_YAHOO, obj2.getImOtherYahoo());
+      }
+      if (obj2.getImWorkAim() != null) {
+        values.put(Constants.IM_WORK_AIM, obj2.getImWorkAim());
+      }
+      if (obj2.getImWorkGoogleTalk() != null) {
+        values.put(Constants.IM_WORK_GOOGLE_TALK, obj2.getImWorkGoogleTalk());
+      }
+      if (obj2.getImWorkIcq() != null) {
+        values.put(Constants.IM_WORK_ICQ, obj2.getImWorkIcq());
+      }
+      if (obj2.getImWorkJabber() != null) {
+        values.put(Constants.IM_WORK_JABBER, obj2.getImWorkJabber());
+      }
+      if (obj2.getImWorkMsn() != null) {
+        values.put(Constants.IM_WORK_MSN, obj2.getImWorkMsn());
+      }
+      if (obj2.getImWorkNetmeeting() != null) {
+        values.put(Constants.IM_WORK_NETMEETING, obj2.getImWorkNetmeeting());
+      }
+      if (obj2.getImWorkQq() != null) {
+        values.put(Constants.IM_WORK_QQ, obj2.getImWorkQq());
+      }
+      if (obj2.getImWorkSkype() != null) {
+        values.put(Constants.IM_WORK_SKYPE, obj2.getImWorkSkype());
+      }
+      if (obj2.getImWorkYahoo() != null) {
+        values.put(Constants.IM_WORK_YAHOO, obj2.getImWorkYahoo());
+      }
+    } else if (obj1 == null && obj2 == null) { // nothing
+      
+    } else if (obj1 != null && obj2 == null) { // clear data in db
+      if (obj1.getImHomeAim() != null) {
+        values.putNull(Constants.IM_WORK_AIM);
+      }
+      if (obj1.getImHomeGoogleTalk() != null) {
+        values.putNull(Constants.IM_HOME_GOOGLE_TALK);
+      }
+      if (obj1.getImHomeIcq() != null) {
+        values.putNull(Constants.IM_HOME_ICQ);
+      }
+      if (obj1.getImHomeJabber() != null) {
+        values.putNull(Constants.IM_HOME_JABBER);
+      }
+      if (obj1.getImHomeMsn() != null) {
+        values.putNull(Constants.IM_HOME_MSN);
+      }
+      if (obj1.getImHomeNetmeeting() != null) {
+        values.putNull(Constants.IM_HOME_NETMEETING);
+      }
+      if (obj1.getImHomeQq() != null) {
+        values.putNull(Constants.IM_HOME_QQ);
+      }
+      if (obj1.getImHomeSkype() != null) {
+        values.putNull(Constants.IM_HOME_SKYPE);
+      }
+      if (obj1.getImHomeYahoo() != null) {
+        values.putNull(Constants.IM_WORK_YAHOO);
+      }
+      if (obj1.getImWorkAim() != null) {
+        values.putNull(Constants.IM_WORK_AIM);
+      }
+      if (obj1.getImWorkGoogleTalk() != null) {
+        values.putNull(Constants.IM_WORK_GOOGLE_TALK);
+      }
+      if (obj1.getImWorkIcq() != null) {
+        values.putNull(Constants.IM_WORK_ICQ);
+      }
+      if (obj1.getImWorkJabber() != null) {
+        values.putNull(Constants.IM_WORK_JABBER);
+      }
+      if (obj1.getImWorkMsn() != null) {
+        values.putNull(Constants.IM_WORK_MSN);
+      }
+      if (obj1.getImWorkNetmeeting() != null) {
+        values.putNull(Constants.IM_WORK_NETMEETING);
+      }
+      if (obj1.getImWorkQq() != null) {
+        values.putNull(Constants.IM_WORK_QQ);
+      }
+      if (obj1.getImWorkSkype() != null) {
+        values.putNull(Constants.IM_WORK_SKYPE);
+      }
+      if (obj1.getImWorkYahoo() != null) {
+        values.putNull(Constants.IM_WORK_YAHOO);
+      }
+      if (obj1.getImOtherAim() != null) {
+        values.putNull(Constants.IM_OTHER_AIM);
+      }
+      if (obj1.getImOtherGoogleTalk() != null) {
+        values.putNull(Constants.IM_OTHER_GOOGLE_TALK);
+      }
+      if (obj1.getImOtherIcq() != null) {
+        values.putNull(Constants.IM_OTHER_ICQ);
+      }
+      if (obj1.getImOtherJabber() != null) {
+        values.putNull(Constants.IM_OTHER_JABBER);
+      }
+      if (obj1.getImOtherMsn() != null) {
+        values.putNull(Constants.IM_OTHER_MSN);
+      }
+      if (obj1.getImOtherNetmeeting() != null) {
+        values.putNull(Constants.IM_OTHER_NETMEETING);
+      }
+      if (obj1.getImOtherQq() != null) {
+        values.putNull(Constants.IM_OTHER_QQ);
+      }
+      if (obj1.getImOtherSkype() != null) {
+        values.putNull(Constants.IM_OTHER_SKYPE);
+      }
+      if (obj1.getImOtherYahoo() != null) {
+        values.putNull(Constants.IM_OTHER_YAHOO);
+      }
+    } else if (obj1 != null && obj2 != null) { // merge
+      if (obj2.getImHomeAim() != null) {
+        values.put(Constants.IM_HOME_AIM, obj2.getImHomeAim());
+      } else {
+        values.putNull(Constants.IM_HOME_AIM);
+      }
+      if (obj2.getImHomeGoogleTalk() != null) {
+        values.put(Constants.IM_HOME_GOOGLE_TALK, obj2.getImHomeGoogleTalk());
+      } else {
+        values.putNull(Constants.IM_HOME_GOOGLE_TALK);
+      }
+      if (obj2.getImHomeIcq() != null) {
+        values.put(Constants.IM_HOME_ICQ, obj2.getImHomeIcq());
+      } else {
+        values.putNull(Constants.IM_HOME_ICQ);
+      }
+      if (obj2.getImHomeJabber() != null) {
+        values.put(Constants.IM_HOME_JABBER, obj2.getImHomeJabber());
+      } else {
+        values.putNull(Constants.IM_HOME_JABBER);
+      }
+      if (obj2.getImHomeMsn() != null) {
+        values.put(Constants.IM_HOME_MSN, obj2.getImHomeMsn());
+      } else {
+        values.putNull(Constants.IM_HOME_MSN);
+      }
+      if (obj2.getImHomeNetmeeting() != null) {
+        values.put(Constants.IM_HOME_NETMEETING, obj2.getImHomeNetmeeting());
+      } else {
+        values.putNull(Constants.IM_HOME_NETMEETING);
+      }
+      if (obj2.getImHomeQq() != null) {
+        values.put(Constants.IM_HOME_QQ, obj2.getImHomeQq());
+      } else {
+        values.putNull(Constants.IM_HOME_QQ);
+      }
+      if (obj2.getImHomeSkype() != null) {
+        values.put(Constants.IM_HOME_SKYPE, obj2.getImHomeSkype());
+      } else {
+        values.putNull(Constants.IM_HOME_SKYPE);
+      }
+      if (obj2.getImHomeYahoo() != null) {
+        values.put(Constants.IM_HOME_YAHOO, obj2.getImHomeYahoo());
+      } else {
+        values.putNull(Constants.IM_HOME_YAHOO);
+      }
+      if (obj2.getImOtherAim() != null) {
+        values.put(Constants.IM_OTHER_AIM, obj2.getImOtherAim());
+      } else {
+        values.putNull(Constants.IM_OTHER_AIM);
+      }
+      if (obj2.getImOtherGoogleTalk() != null) {
+        values.put(Constants.IM_OTHER_GOOGLE_TALK, obj2.getImOtherGoogleTalk());
+      } else {
+        values.putNull(Constants.IM_OTHER_GOOGLE_TALK);
+      }
+      if (obj2.getImOtherIcq() != null) {
+        values.put(Constants.IM_OTHER_ICQ, obj2.getImOtherIcq());
+      } else {
+        values.putNull(Constants.IM_OTHER_ICQ);
+      }
+      if (obj2.getImOtherJabber() != null) {
+        values.put(Constants.IM_OTHER_JABBER, obj2.getImOtherJabber());
+      } else {
+        values.putNull(Constants.IM_OTHER_JABBER);
+      }
+      if (obj2.getImOtherMsn() != null) {
+        values.put(Constants.IM_OTHER_MSN, obj2.getImOtherMsn());
+      } else {
+        values.putNull(Constants.IM_OTHER_MSN);
+      }
+      if (obj2.getImOtherNetmeeting() != null) {
+        values.put(Constants.IM_OTHER_NETMEETING, obj2.getImOtherNetmeeting());
+      } else {
+        values.putNull(Constants.IM_OTHER_NETMEETING);
+      }
+      if (obj2.getImOtherQq() != null) {
+        values.put(Constants.IM_OTHER_QQ, obj2.getImOtherQq());
+      } else {
+        values.putNull(Constants.IM_OTHER_QQ);
+      }
+      if (obj2.getImOtherSkype() != null) {
+        values.put(Constants.IM_OTHER_SKYPE, obj2.getImOtherSkype());
+      } else {
+        values.putNull(Constants.IM_OTHER_SKYPE);
+      }
+      if (obj2.getImOtherYahoo() != null) {
+        values.put(Constants.IM_OTHER_YAHOO, obj2.getImOtherYahoo());
+      } else {
+        values.putNull(Constants.IM_OTHER_YAHOO);
+      }
+      if (obj2.getImWorkAim() != null) {
+        values.put(Constants.IM_WORK_AIM, obj2.getImWorkAim());
+      } else {
+        values.putNull(Constants.IM_WORK_AIM);
+      }
+      if (obj2.getImWorkGoogleTalk() != null) {
+        values.put(Constants.IM_WORK_GOOGLE_TALK, obj2.getImWorkGoogleTalk());
+      } else {
+        values.putNull(Constants.IM_WORK_GOOGLE_TALK);
+      }
+      if (obj2.getImWorkIcq() != null) {
+        values.put(Constants.IM_WORK_ICQ, obj2.getImWorkIcq());
+      } else {
+        values.putNull(Constants.IM_WORK_ICQ);
+      }
+      if (obj2.getImWorkJabber() != null) {
+        values.put(Constants.IM_WORK_JABBER, obj2.getImWorkJabber());
+      } else {
+        values.putNull(Constants.IM_WORK_JABBER);
+      }
+      if (obj2.getImWorkMsn() != null) {
+        values.put(Constants.IM_WORK_MSN, obj2.getImWorkMsn());
+      } else {
+        values.putNull(Constants.IM_WORK_MSN);
+      }
+      if (obj2.getImWorkNetmeeting() != null) {
+        values.put(Constants.IM_WORK_NETMEETING, obj2.getImWorkNetmeeting());
+      } else {
+        values.putNull(Constants.IM_WORK_NETMEETING);
+      }
+      if (obj2.getImWorkQq() != null) {
+        values.put(Constants.IM_WORK_QQ, obj2.getImWorkQq());
+      } else {
+        values.putNull(Constants.IM_WORK_QQ);
+      }
+      if (obj2.getImWorkSkype() != null) {
+        values.put(Constants.IM_WORK_SKYPE, obj2.getImWorkSkype());
+      } else {
+        values.putNull(Constants.IM_WORK_SKYPE);
+      }
+      if (obj2.getImWorkYahoo() != null) {
+        values.put(Constants.IM_WORK_YAHOO, obj2.getImWorkYahoo());
+      } else {
+        values.putNull(Constants.IM_WORK_YAHOO);
+      }
+    }
+    return values;
   }
 }

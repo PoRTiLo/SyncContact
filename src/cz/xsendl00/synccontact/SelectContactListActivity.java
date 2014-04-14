@@ -87,7 +87,7 @@ public class SelectContactListActivity extends FragmentActivity implements Actio
         // refresh
         return true;
       case R.id.action_help:
-        // help action
+        help();
         return true;
       case R.id.action_check_updates:
         // check for updates action
@@ -97,6 +97,11 @@ public class SelectContactListActivity extends FragmentActivity implements Actio
     }
   }
 
+  private void help() {
+    ChangeAccountTask rt = new ChangeAccountTask();
+    rt.execute();
+  }
+  
   // sync all contact
   // upload all contact to server
   private void sync() {
@@ -105,6 +110,24 @@ public class SelectContactListActivity extends FragmentActivity implements Actio
     Log.i(TAG, "sync");
   }
 
+  private class ChangeAccountTask extends AsyncTask<Void, Void, Boolean> {
+    private ProgressDialog progressDialog;
+    @Override
+    protected Boolean doInBackground(Void...params) {
+      ServerUtilities.addContactsToServer(new ServerInstance(AccountData.getAccountData(getApplicationContext())), handler, SelectContactListActivity.this);
+      return true;
+    }
+    protected void onPostExecute(Boolean bool) {
+      progressDialog.dismiss();
+    }
+    
+    protected void onPreExecute() {
+      super.onPreExecute();
+      progressDialog = ProgressDialog.show(SelectContactListActivity.this, "Downloading...","Downloading data from server", true);
+    }
+  }
+  
+  
   private class UpdateTask extends AsyncTask<Void, Void, Boolean> {
     private ProgressDialog progressDialog;
     @Override

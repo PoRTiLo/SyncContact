@@ -60,13 +60,13 @@ public class SyncContactAdapter extends AbstractThreadedSyncAdapter {
 			accountData.setBaseDn((accountManager.getUserData(account, Constants.PAR_BASEDN)));
 			
 			// LDAP name mappings
-			final Bundle userMapping = Mapping.mappingFrom(accountManager, account);
+			//final Bundle userMapping = Mapping.mappingFrom(accountManager, account);
 			
-			users = ServerUtilities.fetchContacts(ldapServer, accountData, userMapping, lastUpdated, this.getContext());
-			if (users == null) {
-				syncResult.stats.numIoExceptions++;
-				return;
-			}
+			//users = ServerUtilities.fetchContacts(ldapServer, accountData, userMapping, lastUpdated, this.getContext());
+			//if (users == null) {
+			//	syncResult.stats.numIoExceptions++;
+			//	return;
+			//}
 
 			// update the last synced date.
 			lastUpdated = new Date();

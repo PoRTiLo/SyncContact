@@ -116,7 +116,7 @@ public class MainActivity extends Activity {
   
   
   public void startMap(View view) {
-    Log.i(TAG, GoogleContact.defaultValue().toString());
+    //Log.i(TAG, GoogleContact.defaultValue().toString());
     
     //Mapping.mappingRequest(getContentResolver(), "149", "baseDn");
     //Mapping.mappingContactFromDB(getContentResolver(), "149");
@@ -132,11 +132,11 @@ public class MainActivity extends Activity {
     private ProgressDialog progressDialog;
     @Override
     protected Boolean doInBackground(Void...params) {
-      ServerUtilities.addContactsToServer(new ServerInstance(AccountData.getAccountData(getApplicationContext())), handler, getApplicationContext());
+      //ServerUtilities.addContactsToServer(new ServerInstance(AccountData.getAccountData(getApplicationContext())), handler, getApplicationContext());
       //ServerUtilities.fetchModifyTimestamp(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
       //ServerUtilities.fetchModifyTimestampContacts(new ServerInstance(AccountData.getAccountData(getApplicationContext())), 
       //    getApplicationContext(), "20140328193405Z");
-      //ServerUtilities.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
+      ServerUtilities.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
       return true;
     }
     protected void onPostExecute(Boolean bool) {
