@@ -8,7 +8,7 @@ import cz.xsendl00.synccontact.utils.Constants;
  * @author portilo
  *
  */
-public class Nickname implements ContactInterface {
+public class Nickname extends AbstractType implements ContactInterface {
   
   private String nicknameDefault;
   private String nicknameOther;

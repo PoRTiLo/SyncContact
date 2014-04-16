@@ -12,7 +12,7 @@ import cz.xsendl00.synccontact.utils.Constants;
  * @author portilo
  *
  */
-public class Identity implements ContactInterface {
+public class Identity extends AbstractType implements ContactInterface {
   
   private String identityText;
   private String identityNamespace;

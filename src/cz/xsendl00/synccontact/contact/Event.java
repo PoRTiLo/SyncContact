@@ -3,7 +3,7 @@ package cz.xsendl00.synccontact.contact;
 import android.content.ContentValues;
 import cz.xsendl00.synccontact.utils.Constants;
 
-public class Event implements ContactInterface {
+public class Event extends AbstractType implements ContactInterface {
 
 
   private String eventOther;

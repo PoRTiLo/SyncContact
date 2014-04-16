@@ -20,6 +20,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.CommonDataKinds.Email;
+import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
 
@@ -309,6 +311,11 @@ public class HelperSQL extends SQLiteOpenHelper {
         // compare
         ContentValues values = new ContentValues();
         values.putAll(GoogleContact.compare(contact, entry.getValue()));
+        ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+
+       
+  // getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+   //ops.add(object)
       }
       cursor.close();
     }

@@ -36,6 +36,7 @@ import android.provider.ContactsContract.CommonDataKinds.Website;
 import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
 import cz.xsendl00.synccontact.contact.GoogleContact;
+import cz.xsendl00.synccontact.contact.ID;
 import cz.xsendl00.synccontact.database.HelperSQL;
 
 public class Mapping {
@@ -900,6 +901,7 @@ public class Mapping {
     String str = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
     
     if (str.equals(StructuredName.CONTENT_ITEM_TYPE)) {
+      contact.getStructuredName().getID().add(new ID(StructuredName.CONTENT_ITEM_TYPE, null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
         contact.getStructuredName().setDisplayName(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       }
@@ -929,6 +931,7 @@ public class Mapping {
       }
     } else if (str.equals(Phone.CONTENT_ITEM_TYPE)) {
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      contact.getPhone().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Phone.TYPE_CUSTOM) {
         //TYPE_CUSTOM. Put the actual type in LABEL.
         //String  LABEL DATA3
@@ -977,6 +980,7 @@ public class Mapping {
       }
     } else if (str.equals(Email.CONTENT_ITEM_TYPE)) {
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      contact.getEmail().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Email.TYPE_HOME) {
         contact.getEmail().setHomeMail(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       } else if (type == Email.TYPE_WORK) {
@@ -994,6 +998,7 @@ public class Mapping {
       
     } else if (str.equals(Organization.CONTENT_ITEM_TYPE)) {
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      contact.getEmail().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Organization.TYPE_WORK) {
         if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
           contact.getOrganization().setOrganizationWorkCompany(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
@@ -1052,6 +1057,7 @@ public class Mapping {
     } else if (str.equals(Im.CONTENT_ITEM_TYPE)) {
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       Integer protocol = cursor.getInt(cursor.getColumnIndex(Data.DATA5));
+      contact.getIm().getID().add(new ID(type.toString(), protocol.toString(), cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Im.TYPE_CUSTOM) {
         // TYPE_CUSTOM. Put the actual type in LABEL.
         // String  LABEL DATA3
@@ -1162,6 +1168,7 @@ public class Mapping {
       }
     } else if (str.equals(Nickname.CONTENT_ITEM_TYPE)) {
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      contact.getNickname().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Nickname.TYPE_DEFAULT) {
         contact.getNickname().setNicknameDefault(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       } else if (type == Nickname.TYPE_OTHER_NAME) {
@@ -1178,11 +1185,13 @@ public class Mapping {
         Log.i("NOT SUPPORTED TYPE NICKNAME", "NOT SUPPORTED TYPE NICKANEME");
       }
     } else if (str.equals(Note.CONTENT_ITEM_TYPE)) {
+      contact.getIm().getID().add(new ID(Note.CONTENT_ITEM_TYPE, null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
         contact.getNote().setNotes(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       }
     } else if (str.equals(StructuredPostal.CONTENT_ITEM_TYPE)) {
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      contact.getStructuredPostal().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == StructuredPostal.TYPE_CUSTOM) {
         // TODO:
         //TYPE_CUSTOM. Put the actual type in LABEL.
@@ -1272,6 +1281,7 @@ public class Mapping {
       //attributes.add(new Attribute(Constants., cursor.getString(cursor.getColumnIndex(Data.DATA1))));
     } else if (str.equals(Website.CONTENT_ITEM_TYPE)) {
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      contact.getWebsite().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Website.TYPE_CUSTOM) {
         //TODO:String  LABEL DATA3,TYPE_CUSTOM. Put the actual type in LABEL. 
       } else if (type == Website.TYPE_BLOG) {
@@ -1293,6 +1303,7 @@ public class Mapping {
       }
     } else if (str.equals(Event.CONTENT_ITEM_TYPE)) {
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      contact.getEvent().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Event.TYPE_CUSTOM) {
         // TYPE_CUSTOM. Put the actual type in LABEL.
         // String  LABEL DATA3
@@ -1307,6 +1318,7 @@ public class Mapping {
       }
     } else if (str.equals(Relation.CONTENT_ITEM_TYPE)) {
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      contact.getRelation().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Relation.TYPE_CUSTOM) {
         // TODO:
         //attributes.add(new Attribute(Constants.EVENT_ANNIVERSARY, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
@@ -1344,6 +1356,7 @@ public class Mapping {
       }
     } else if (str.equals(SipAddress.CONTENT_ITEM_TYPE)) {
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
+      contact.getSipAddress().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == SipAddress.TYPE_CUSTOM) {
         // TODO:
         // TYPE_CUSTOM. Put the actual type in LABEL.
@@ -1358,6 +1371,7 @@ public class Mapping {
         Log.i("NOT SUPPORTED TYPE SIP", "NOT SUPPORTED TYPE SIP");
       }
     } else if (str.equals(Identity.CONTENT_ITEM_TYPE)) {
+      contact.getIdentity().getID().add(new ID(Identity.CONTENT_ITEM_TYPE, null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       contact.getIdentity().setIdentityText(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       contact.getIdentity().setIdentityNamespace(cursor.getString(cursor.getColumnIndex(Data.DATA2)));
     } else {

@@ -1,8 +1,9 @@
 package cz.xsendl00.synccontact.contact;
 
+import android.content.ContentValues;
 import cz.xsendl00.synccontact.utils.Constants;
 
-public class Website implements ContactInterface {
+public class Website extends AbstractType implements ContactInterface {
 
   private String websiteHomepage;
   private String websiteBlog;
@@ -71,6 +72,93 @@ public class Website implements ContactInterface {
     websiteWork = Constants.WEBSITE_WORK;
     websiteFtp = Constants.WEBSITE_FTP;
     websiteOther = Constants.WEBSITE_OTHER;
-    
+  }
+  
+  public static ContentValues compare(Website obj1, Website obj2) {
+    ContentValues values = new ContentValues();
+    if (obj1 == null && obj2 != null) { // update from LDAP
+      if (obj2.getWebsiteBlog() != null) {
+        values.put(Constants.WEBSITE_BLOG, obj2.getWebsiteBlog());
+      }
+      if (obj2.getWebsiteFtp() != null) {
+        values.put(Constants.WEBSITE_FTP, obj2.getWebsiteFtp());
+      }
+      if (obj2.getWebsiteHome() != null) {
+        values.put(Constants.WEBSITE_HOME, obj2.getWebsiteHome());
+      }
+      if (obj2.getWebsiteHomepage() != null) {
+        values.put(Constants.WEBSITE_HOMEPAGE, obj2.getWebsiteHomepage());
+      }
+      if (obj2.getWebsiteOther() != null) {
+        values.put(Constants.WEBSITE_OTHER, obj2.getWebsiteOther());
+      }
+      if (obj2.getWebsiteProfile() != null) {
+        values.put(Constants.WEBSITE_PROFILE, obj2.getWebsiteProfile());
+      }
+      if (obj2.getWebsiteWork() != null) {
+        values.put(Constants.WEBSITE_WORK, obj2.getWebsiteWork());
+      }
+    } else if (obj1 == null && obj2 == null) { // nothing
+      
+    } else if (obj1 != null && obj2 == null) { // clear data in db
+      if (obj1.getWebsiteBlog() != null) {
+        values.putNull(Constants.WEBSITE_BLOG);
+      }
+      if (obj1.getWebsiteFtp() != null) {
+        values.putNull(Constants.WEBSITE_FTP);
+      }
+      if (obj1.getWebsiteHome() != null) {
+        values.putNull(Constants.WEBSITE_HOME);
+      }
+      if (obj1.getWebsiteHomepage() != null) {
+        values.putNull(Constants.WEBSITE_HOMEPAGE);
+      }
+      if (obj1.getWebsiteOther() != null) {
+        values.putNull(Constants.WEBSITE_OTHER);
+      }
+      if (obj1.getWebsiteProfile() != null) {
+        values.putNull(Constants.WEBSITE_PROFILE);
+      }
+      if (obj1.getWebsiteWork() != null) {
+        values.putNull(Constants.WEBSITE_WORK);
+      }
+    } else if (obj1 != null && obj2 != null) { // merge
+      if (obj2.getWebsiteBlog() != null) {
+        values.put(Constants.WEBSITE_BLOG, obj2.getWebsiteBlog());
+      } else {
+        values.putNull(Constants.WEBSITE_BLOG);
+      }
+      if (obj2.getWebsiteFtp() != null) {
+        values.put(Constants.WEBSITE_FTP, obj2.getWebsiteFtp());
+      } else {
+        values.putNull(Constants.WEBSITE_FTP);
+      }
+      if (obj2.getWebsiteHome() != null) {
+        values.put(Constants.WEBSITE_HOME, obj2.getWebsiteHome());
+      } else {
+        values.putNull(Constants.WEBSITE_HOME);
+      }
+      if (obj2.getWebsiteHomepage() != null) {
+        values.put(Constants.WEBSITE_HOMEPAGE, obj2.getWebsiteHomepage());
+      } else {
+        values.putNull(Constants.WEBSITE_HOMEPAGE);
+      }
+      if (obj2.getWebsiteOther() != null) {
+        values.put(Constants.WEBSITE_OTHER, obj2.getWebsiteOther());
+      } else {
+        values.putNull(Constants.WEBSITE_OTHER);
+      }
+      if (obj2.getWebsiteProfile() != null) {
+        values.put(Constants.WEBSITE_PROFILE, obj2.getWebsiteProfile());
+      } else {
+        values.putNull(Constants.WEBSITE_WORK);
+      }
+      if (obj2.getWebsiteWork() != null) {
+        values.put(Constants.WEBSITE_WORK, obj2.getWebsiteWork());
+      } else {
+        values.putNull(Constants.WEBSITE_WORK);
+      }
+    }
+    return values;
   }
 }

@@ -1,20 +1,20 @@
 package cz.xsendl00.synccontact.contact;
 
-import java.util.Map;
 import java.util.UUID;
 
+import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 
 public class GoogleContact {
 
-  private Email email;
+  private EmailSync email;
   private Event event;
   private Identity identity;
   private Im im;
   private Nickname nickname;
   private Note note;
   private Organization organization;
-  private Phone phone;
+  private PhoneSync phone;
   private Relation relation;
   private SipAddress sipAddress;
   private StructuredName structuredName;
@@ -24,14 +24,14 @@ public class GoogleContact {
   private UUID uuid;
   
   public GoogleContact() {
-    this.email = new Email();
+    this.email = new EmailSync();
     this.event = new Event();
     this.identity = new Identity();
     this.im = new Im();
     this.nickname = new Nickname();
     this.note = new Note();
     this.organization = new Organization();
-    this.phone = new Phone();
+    this.phone = new PhoneSync();
     this.relation = new Relation();
     this.sipAddress = new SipAddress();
     this.structuredName = new StructuredName();
@@ -57,10 +57,10 @@ public class GoogleContact {
     return contact;
   }
   
-  public Email getEmail() {
+  public EmailSync getEmail() {
     return email;
   }
-  public void setEmail(Email email) {
+  public void setEmail(EmailSync email) {
     this.email = email;
   }
   public Event getEvent() {
@@ -99,10 +99,10 @@ public class GoogleContact {
   public void setOrganization(Organization organization) {
     this.organization = organization;
   }
-  public Phone getPhone() {
+  public PhoneSync getPhone() {
     return phone;
   }
-  public void setPhone(Phone phone) {
+  public void setPhone(PhoneSync phone) {
     this.phone = phone;
   }
   public Relation getRelation() {
@@ -165,13 +165,26 @@ public class GoogleContact {
   public static ContentValues compare(GoogleContact con1, GoogleContact con2) {
     ContentValues values = new ContentValues();
     
-    values.putAll(Email.compare(con1.getEmail(), con2.getEmail()));
+    values.putAll(EmailSync.compare(con1.getEmail(), con2.getEmail()));
     values.putAll(Event.compare(con1.getEvent(), con2.getEvent()));
     values.putAll(Identity.compare(con1.getIdentity(), con2.getIdentity()));
     values.putAll(Im.compare(con1.getIm(), con2.getIm()));
     values.putAll(Nickname.compare(con1.getNickname(), con2.getNickname()));
+    values.putAll(Note.compare(con1.getNote(), con2.getNote()));
+    values.putAll(Organization.compare(con1.getOrganization(), con2.getOrganization()));
+    values.putAll(PhoneSync.compare(con1.getPhone(), con2.getPhone()));
+    values.putAll(Relation.compare(con1.getRelation(), con2.getRelation()));
+    values.putAll(SipAddress.compare(con1.getSipAddress(), con2.getSipAddress()));
+    values.putAll(StructuredName.compare(con1.getStructuredName(), con2.getStructuredName()));
+    values.putAll(StructuredPostal.compare(con1.getStructuredPostal(), con2.getStructuredPostal()));
+    values.putAll(Website.compare(con1.getWebsite(), con2.getWebsite()));
     
     return values;
+  }
+  
+  public static ContentProviderOperation createUpdate(GoogleContact con1, GoogleContact con2) {
+    //ContentProviderOperation
+    return null;
   }
 }
 
