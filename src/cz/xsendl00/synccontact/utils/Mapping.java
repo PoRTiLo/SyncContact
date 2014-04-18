@@ -4,19 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import com.unboundid.ldap.sdk.AddRequest;
 import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldap.sdk.ReadOnlyEntry;
-import com.unboundid.ldap.sdk.SearchResultEntry;
-
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
-import android.os.Bundle;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Event;
@@ -258,6 +252,7 @@ public class Mapping {
   public static GoogleContact mappingContactFromDB(ContentResolver cr, String id) {
     Cursor cursor = ContactDetail.fetchAllDataOfContact(cr, id);
     GoogleContact contact = new GoogleContact();
+    contact.setId(id);
     while (cursor.moveToNext()) {
       fillContact(cursor, contact);
     }

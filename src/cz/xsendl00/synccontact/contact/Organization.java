@@ -359,4 +359,5 @@ public class Organization extends AbstractType implements ContactInterface {
     return values;
   }
   
+  
 }

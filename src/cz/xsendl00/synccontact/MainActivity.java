@@ -8,6 +8,7 @@ import java.util.UUID;
 import com.xsendl00.synccontact.R;
 
 import cz.xsendl00.synccontact.authenticator.AccountData;
+import cz.xsendl00.synccontact.contact.EmailSync;
 import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
@@ -20,6 +21,7 @@ import cz.xsendl00.synccontact.utils.Mapping;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.ContentProviderOperation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -116,13 +118,28 @@ public class MainActivity extends Activity {
   
   
   public void startMap(View view) {
+    EmailSync em2 = new EmailSync();
+    EmailSync em1 = new EmailSync();
+    em2.setHomeMail("ddd");
+    em1.setHomeMail("aaa");
+    ArrayList<ContentProviderOperation> op = EmailSync.operation(null, em1, em2);
+    if (op != null) {
+      System.out.println("not null");
+    } else {
+      System.out.println("null");
+    }
+    for (ContentProviderOperation p : op) {
+      System.out.println(p.toString());
+    }
+    
+    //ContentValue a = EmailSync.operation(null, null, null);
     //Log.i(TAG, GoogleContact.defaultValue().toString());
     
     //Mapping.mappingRequest(getContentResolver(), "149", "baseDn");
     //Mapping.mappingContactFromDB(getContentResolver(), "149");
     //Mapping.fetchDirtyContacts(getApplicationContext());
-    UpdateTask rt = new UpdateTask();
-    rt.execute();
+    //UpdateTask rt = new UpdateTask();
+    //rt.execute();
     //Log.i(TAG, ContactRow.createTimestamp());
     //ServerUtilities.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
     

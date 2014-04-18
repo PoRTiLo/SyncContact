@@ -9,8 +9,10 @@ import java.util.List;
 import java.util.Map;
 
 import android.content.Context;
+import android.content.OperationApplicationException;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.RemoteException;
 import android.util.Log;
 
 import com.unboundid.ldap.sdk.AddRequest;
@@ -24,6 +26,7 @@ import com.unboundid.ldif.LDIFException;
 import cz.xsendl00.synccontact.AddServerActivity;
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.contact.GoogleContact;
+import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
@@ -180,7 +183,7 @@ public class ServerUtilities {
     return contactsServer;
   }
   
-  public static void synchronization(final ServerInstance ldapServer, final Context context) {
+  public static void synchronization(final ServerInstance ldapServer, final Context context) throws RemoteException, OperationApplicationException {
     // get sync user
     HelperSQL db = new HelperSQL(context);
     List<ContactRow> contactsId = db.getSyncContacts();
@@ -206,14 +209,12 @@ public class ServerUtilities {
     // difference LDAP change and intersection, must be update on DB
     Map<String, GoogleContact> differenceLDAP = difference(contactsServer, intersection);
     
-    // get all contacts, which must be merged and updated from contact.db
-    
     // merge contact
     
     // update db syncContact.db
     
     // update db contact.db
-    
+    AndroidDB.updateContactsDb(context, differenceLDAP);
     // update server contact
     
     // set new timestamp

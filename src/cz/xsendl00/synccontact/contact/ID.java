@@ -7,6 +7,12 @@ public class ID {
   private String type;
   private String category;
   
+  /**
+   * 
+   * @param type type, als TYPE_HOME, ....
+   * @param cat als protocol PROTOCOL_AIM ...
+   * @param id id from db
+   */
   public ID(String type, String cat, String id) {
     this.type = type;
     this.category = cat;
@@ -34,6 +40,13 @@ public class ID {
     this.id = id;
   }
   
+  /**
+   * 
+   * @param list array of IDs
+   * @param type like TYPE_HOME
+   * @param cat like PROTOCOL_AIM
+   * @return
+   */
   public static String getIdByValue(List<ID> list, String type, String cat) {
     if (list != null && list.size() > 0) {
       for (ID id : list) {

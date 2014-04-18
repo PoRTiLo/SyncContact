@@ -1,9 +1,14 @@
 package cz.xsendl00.synccontact.contact;
 
+import java.util.ArrayList;
+
+import android.content.ContentProviderOperation;
 import android.content.ContentValues;
+import android.provider.ContactsContract.CommonDataKinds.Im;
+import android.provider.ContactsContract.Data;
 import cz.xsendl00.synccontact.utils.Constants;
 
-public class Im extends AbstractType implements ContactInterface {
+public class ImSync extends AbstractType implements ContactInterface {
 
  
   private String imHomeAim;
@@ -33,16 +38,7 @@ public class Im extends AbstractType implements ContactInterface {
   private String imOtherQq;
   private String imOtherSkype;
   private String imOtherYahoo;
- /* private String imNullAim;
-  private String imNullGoogleTalk;
-  private String imNullIcq;
-  private String imNullJabber;
-  private String imNullMsn;
-  private String imNullNetmeeting;
-  private String imNullQq;
-  private String imNullSkype;
-  private String imNullYahoo;
- */ 
+  
   public String getImHomeAim() {
     return imHomeAim;
   }
@@ -254,7 +250,7 @@ public class Im extends AbstractType implements ContactInterface {
     imOtherYahoo = Constants.IM_OTHER_YAHOO;
   }
   
-  public static ContentValues compare(Im obj1, Im obj2) {
+  public static ContentValues compare(ImSync obj1, ImSync obj2) {
     ContentValues values = new ContentValues();
     if (obj1 == null && obj2 != null) { // update from LDAP
       if (obj2.getImHomeAim() != null) {
@@ -560,5 +556,346 @@ public class Im extends AbstractType implements ContactInterface {
       }
     }
     return values;
+  }
+  
+  /**
+   * 
+   * @param id        raw_contact id
+   * @param value     name of protocol
+   * @param protocol  like {@link Im.PROTOCOl_AIM}
+   * @param type      like Im.TYPE_HOME
+   * @return
+   */
+  public static ContentProviderOperation add(String id, String value, int protocol, int type) {
+    return ContentProviderOperation.newInsert(Data.CONTENT_URI)
+    .withValue(Data.RAW_CONTACT_ID, id)
+    .withValue(Data.MIMETYPE, Im.CONTENT_ITEM_TYPE)
+    .withValue(Im.PROTOCOL, protocol)
+    .withValue(Im.TYPE, type)
+    .withValue(Im.DATA, value)
+    .build();
+  }
+  
+  public static ContentProviderOperation update(String id, String value, int type) {
+    return ContentProviderOperation.newUpdate(Data.CONTENT_URI)
+        .withSelection(Data._ID + "=?", new String[]{String.valueOf(id)})
+        .withValue(Data.MIMETYPE, Im.CONTENT_ITEM_TYPE)
+        .withValue(Im.DATA, value)
+        .build();
+  }
+  
+
+  public static ArrayList<ContentProviderOperation> operation(String id, ImSync em1, ImSync em2) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    if (em1 == null && em2 != null) { // create new from LDAP and insert to db
+      if (em2.getImHomeAim() != null) {
+        ops.add(add(id, em2.getImHomeAim(), Im.PROTOCOL_AIM, Im.TYPE_HOME));
+      }
+      if (em2.getImHomeGoogleTalk() != null) {
+        ops.add(add(id, em2.getImHomeGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_HOME));
+      }
+      if (em2.getImHomeIcq() != null) {
+        ops.add(add(id, em2.getImHomeIcq(), Im.PROTOCOL_ICQ, Im.TYPE_HOME));
+      }
+      if (em2.getImHomeJabber() != null) {
+        ops.add(add(id, em2.getImHomeJabber(), Im.PROTOCOL_JABBER, Im.TYPE_HOME));
+      }
+      if (em2.getImHomeMsn() != null) {
+        ops.add(add(id, em2.getImHomeMsn(), Im.PROTOCOL_MSN, Im.TYPE_HOME));
+      }
+      if (em2.getImHomeNetmeeting() != null) {
+        ops.add(add(id, em2.getImHomeNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_HOME));
+      }
+      if (em2.getImHomeQq() != null) {
+        ops.add(add(id, em2.getImHomeQq(), Im.PROTOCOL_QQ, Im.TYPE_HOME));
+      }
+      if (em2.getImHomeSkype() != null) {
+        ops.add(add(id, em2.getImHomeSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_HOME));
+      }
+      if (em2.getImHomeYahoo() != null) {
+        ops.add(add(id, em2.getImHomeYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_HOME));
+      }
+      
+      if (em2.getImWorkAim() != null) {
+        ops.add(add(id, em2.getImWorkAim(), Im.PROTOCOL_AIM, Im.TYPE_WORK));
+      }
+      if (em2.getImWorkGoogleTalk() != null) {
+        ops.add(add(id, em2.getImWorkGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_WORK));
+      }
+      if (em2.getImWorkIcq() != null) {
+        ops.add(add(id, em2.getImWorkIcq(), Im.PROTOCOL_ICQ, Im.TYPE_WORK));
+      }
+      if (em2.getImWorkJabber() != null) {
+        ops.add(add(id, em2.getImWorkJabber(), Im.PROTOCOL_JABBER, Im.TYPE_WORK));
+      }
+      if (em2.getImWorkMsn() != null) {
+        ops.add(add(id, em2.getImWorkMsn(), Im.PROTOCOL_MSN, Im.TYPE_WORK));
+      }
+      if (em2.getImWorkNetmeeting() != null) {
+        ops.add(add(id, em2.getImWorkNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_WORK));
+      }
+      if (em2.getImWorkQq() != null) {
+        ops.add(add(id, em2.getImWorkQq(), Im.PROTOCOL_QQ, Im.TYPE_WORK));
+      }
+      if (em2.getImWorkSkype() != null) {
+        ops.add(add(id, em2.getImWorkSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_WORK));
+      }
+      if (em2.getImWorkYahoo() != null) {
+        ops.add(add(id, em2.getImHomeYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_WORK));
+      }
+      
+      if (em2.getImOtherAim() != null) {
+        ops.add(add(id, em2.getImOtherAim(), Im.PROTOCOL_AIM, Im.TYPE_OTHER));
+      }
+      if (em2.getImOtherGoogleTalk() != null) {
+        ops.add(add(id, em2.getImOtherGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_OTHER));
+      }
+      if (em2.getImOtherIcq() != null) {
+        ops.add(add(id, em2.getImOtherIcq(), Im.PROTOCOL_ICQ, Im.TYPE_OTHER));
+      }
+      if (em2.getImOtherJabber() != null) {
+        ops.add(add(id, em2.getImOtherJabber(), Im.PROTOCOL_JABBER, Im.TYPE_OTHER));
+      }
+      if (em2.getImOtherMsn() != null) {
+        ops.add(add(id, em2.getImOtherMsn(), Im.PROTOCOL_MSN, Im.TYPE_OTHER));
+      }
+      if (em2.getImOtherNetmeeting() != null) {
+        ops.add(add(id, em2.getImOtherNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_OTHER));
+      }
+      if (em2.getImOtherQq() != null) {
+        ops.add(add(id, em2.getImOtherQq(), Im.PROTOCOL_QQ, Im.TYPE_OTHER));
+      }
+      if (em2.getImOtherSkype() != null) {
+        ops.add(add(id, em2.getImOtherSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_OTHER));
+      }
+      if (em2.getImOtherYahoo() != null) {
+        ops.add(add(id, em2.getImOtherYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_OTHER));
+      }
+    } else if (em1 == null && em2 == null) { // nothing
+      
+    } else if (em1 != null && em2 == null) { // delete
+      if (em1.getImHomeAim() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_AIM))));
+      }
+      if (em1.getImHomeGoogleTalk() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_GOOGLE_TALK))));
+      }
+      if (em1.getImHomeIcq() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_ICQ))));
+      }
+      if (em1.getImHomeJabber() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_JABBER))));
+      }
+      if (em1.getImHomeMsn() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_MSN))));
+      }
+      if (em1.getImHomeNetmeeting() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_NETMEETING))));
+      }
+      if (em1.getImHomeQq() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_QQ))));
+      }
+      if (em1.getImHomeSkype() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_SKYPE))));
+      }
+      if (em1.getImHomeYahoo() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_YAHOO))));
+      }
+      
+      if (em1.getImWorkAim() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_AIM))));
+      }
+      if (em1.getImWorkGoogleTalk() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_GOOGLE_TALK))));
+      }
+      if (em1.getImWorkIcq() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_ICQ))));
+      }
+      if (em1.getImWorkJabber() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_JABBER))));
+      }
+      if (em1.getImWorkMsn() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_MSN))));
+      }
+      if (em1.getImWorkNetmeeting() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_NETMEETING))));
+      }
+      if (em1.getImWorkQq() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_QQ))));
+      }
+      if (em1.getImWorkSkype() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_SKYPE))));
+      }
+      if (em1.getImWorkYahoo() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_YAHOO))));
+      }
+      
+      if (em1.getImOtherAim() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_AIM))));
+      }
+      if (em1.getImOtherGoogleTalk() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_GOOGLE_TALK))));
+      }
+      if (em1.getImOtherIcq() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_ICQ))));
+      }
+      if (em1.getImOtherJabber() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_JABBER))));
+      }
+      if (em1.getImOtherMsn() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_MSN))));
+      }
+      if (em1.getImOtherNetmeeting() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_NETMEETING))));
+      }
+      if (em1.getImOtherQq() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_QQ))));
+      }
+      if (em1.getImOtherSkype() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_SKYPE))));
+      }
+      if (em1.getImOtherYahoo() != null ) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_YAHOO))));
+      }
+    } else if (em1 != null && em2 != null) { // clear or update data in db
+      if (em2.getImHomeAim() != null) {
+        ops.add(add(id, em2.getImHomeAim(), Im.PROTOCOL_AIM, Im.TYPE_HOME));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_AIM))));
+      }
+      if (em2.getImHomeGoogleTalk() != null) {
+        ops.add(add(id, em2.getImHomeGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_HOME));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_GOOGLE_TALK))));
+      }
+      if (em2.getImHomeIcq() != null) {
+        ops.add(add(id, em2.getImHomeIcq(), Im.PROTOCOL_ICQ, Im.TYPE_HOME));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_ICQ))));
+      }
+      if (em2.getImHomeJabber() != null) {
+        ops.add(add(id, em2.getImHomeJabber(), Im.PROTOCOL_JABBER, Im.TYPE_HOME));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_JABBER))));
+      }
+      if (em2.getImHomeMsn() != null) {
+        ops.add(add(id, em2.getImHomeMsn(), Im.PROTOCOL_MSN, Im.TYPE_HOME));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_MSN))));
+      }
+      if (em2.getImHomeNetmeeting() != null) {
+        ops.add(add(id, em2.getImHomeNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_HOME));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_NETMEETING))));
+      }
+      if (em2.getImHomeQq() != null) {
+        ops.add(add(id, em2.getImHomeQq(), Im.PROTOCOL_QQ, Im.TYPE_HOME));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_QQ))));
+      }
+      if (em2.getImHomeSkype() != null) {
+        ops.add(add(id, em2.getImHomeSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_HOME));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_SKYPE))));
+      }
+      if (em2.getImHomeYahoo() != null) {
+        ops.add(add(id, em2.getImHomeYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_HOME));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_YAHOO))));
+      }
+      
+      if (em2.getImWorkAim() != null) {
+        ops.add(add(id, em2.getImWorkAim(), Im.PROTOCOL_AIM, Im.TYPE_WORK));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_AIM))));
+      }
+      if (em2.getImWorkGoogleTalk() != null) {
+        ops.add(add(id, em2.getImWorkGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_WORK));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_GOOGLE_TALK))));
+      }
+      if (em2.getImWorkIcq() != null) {
+        ops.add(add(id, em2.getImWorkIcq(), Im.PROTOCOL_ICQ, Im.TYPE_WORK));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_ICQ))));
+      }
+      if (em2.getImWorkJabber() != null) {
+        ops.add(add(id, em2.getImWorkJabber(), Im.PROTOCOL_JABBER, Im.TYPE_WORK));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_JABBER))));
+      }
+      if (em2.getImWorkMsn() != null) {
+        ops.add(add(id, em2.getImWorkMsn(), Im.PROTOCOL_MSN, Im.TYPE_WORK));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_MSN))));
+      }
+      if (em2.getImWorkNetmeeting() != null) {
+        ops.add(add(id, em2.getImWorkNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_WORK));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_NETMEETING))));
+      }
+      if (em2.getImWorkQq() != null) {
+        ops.add(add(id, em2.getImWorkQq(), Im.PROTOCOL_QQ, Im.TYPE_WORK));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_QQ))));
+      }
+      if (em2.getImWorkSkype() != null) {
+        ops.add(add(id, em2.getImWorkSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_WORK));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_SKYPE))));
+      }
+      if (em2.getImWorkYahoo() != null) {
+        ops.add(add(id, em2.getImHomeYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_WORK));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_YAHOO))));
+      }
+      
+      if (em2.getImOtherAim() != null) {
+        ops.add(add(id, em2.getImOtherAim(), Im.PROTOCOL_AIM, Im.TYPE_OTHER));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_AIM))));
+      }
+      if (em2.getImOtherGoogleTalk() != null) {
+        ops.add(add(id, em2.getImOtherGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_OTHER));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_GOOGLE_TALK))));
+      }
+      if (em2.getImOtherIcq() != null) {
+        ops.add(add(id, em2.getImOtherIcq(), Im.PROTOCOL_ICQ, Im.TYPE_OTHER));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_ICQ))));
+      }
+      if (em2.getImOtherJabber() != null) {
+        ops.add(add(id, em2.getImOtherJabber(), Im.PROTOCOL_JABBER, Im.TYPE_OTHER));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_JABBER))));
+      }
+      if (em2.getImOtherMsn() != null) {
+        ops.add(add(id, em2.getImOtherMsn(), Im.PROTOCOL_MSN, Im.TYPE_OTHER));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_MSN))));
+      }
+      if (em2.getImOtherNetmeeting() != null) {
+        ops.add(add(id, em2.getImOtherNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_OTHER));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_NETMEETING))));
+      }
+      if (em2.getImOtherQq() != null) {
+        ops.add(add(id, em2.getImOtherQq(), Im.PROTOCOL_QQ, Im.TYPE_OTHER));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_QQ))));
+      }
+      if (em2.getImOtherSkype() != null) {
+        ops.add(add(id, em2.getImOtherSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_OTHER));
+      } else {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_SKYPE))));
+      }
+      if (em2.getImOtherYahoo() != null) {
+        ops.add(add(id, em2.getImOtherYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_OTHER));
+      } else {
+          ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_YAHOO))));
+        }
+    }
+    return ops.size() > 0 ? ops : null;
   }
 }
