@@ -18,7 +18,6 @@ public class NoteSync extends AbstractType implements ContactInterface {
   
   private String notes;
 
-
   public String getNotes() {
     return notes;
   }
@@ -76,7 +75,7 @@ public class NoteSync extends AbstractType implements ContactInterface {
     .build();
   }
   
-  public static ContentProviderOperation update(String id, String value, int type) {
+  public static ContentProviderOperation update(String id, String value) {
     return ContentProviderOperation.newUpdate(Data.CONTENT_URI)
         .withSelection(Data._ID + "=?", new String[]{String.valueOf(id)})
         .withValue(Data.MIMETYPE, Nickname.CONTENT_ITEM_TYPE)
@@ -98,8 +97,10 @@ public class NoteSync extends AbstractType implements ContactInterface {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), Note.CONTENT_ITEM_TYPE, null)));
       }
     } else if (em1 != null && em2 != null) { // clear or update data in db
-      if (em2.getNotes() != null) {
+      if (em2.getNotes() != null && em1.getNotes() == null) {
         ops.add(add(id, em2.getNotes()));
+      } else if (em2.getNotes() != null && em1.getNotes() != null && !em2.getNotes().equals(em1.getNotes())) {
+        ops.add(update(ID.getIdByValue(em1.getID(), Note.CONTENT_ITEM_TYPE, null), em2.getNotes()));
       } else {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), Note.CONTENT_ITEM_TYPE, null)));
       }

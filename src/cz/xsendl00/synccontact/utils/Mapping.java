@@ -7,6 +7,9 @@ import java.util.Map;
 
 import com.unboundid.ldap.sdk.AddRequest;
 import com.unboundid.ldap.sdk.Attribute;
+import com.unboundid.ldap.sdk.Modification;
+import com.unboundid.ldap.sdk.ModificationType;
+import com.unboundid.ldap.sdk.ModifyRequest;
 import com.unboundid.ldap.sdk.ReadOnlyEntry;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -29,8 +32,20 @@ import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.CommonDataKinds.Website;
 import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
+import cz.xsendl00.synccontact.contact.EmailSync;
+import cz.xsendl00.synccontact.contact.EventSync;
 import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.contact.ID;
+import cz.xsendl00.synccontact.contact.IdentitySync;
+import cz.xsendl00.synccontact.contact.ImSync;
+import cz.xsendl00.synccontact.contact.NicknameSync;
+import cz.xsendl00.synccontact.contact.OrganizationSync;
+import cz.xsendl00.synccontact.contact.PhoneSync;
+import cz.xsendl00.synccontact.contact.RelationSync;
+import cz.xsendl00.synccontact.contact.SipAddressSync;
+import cz.xsendl00.synccontact.contact.StructuredNameSync;
+import cz.xsendl00.synccontact.contact.StructuredPostalSync;
+import cz.xsendl00.synccontact.contact.WebsiteSync;
 import cz.xsendl00.synccontact.database.HelperSQL;
 
 public class Mapping {
@@ -221,6 +236,7 @@ public class Mapping {
     ldapAttributes.add(Constants.OTHER_POSTAL_CODE );
     ldapAttributes.add(Constants.OTHER_COUNTRY);
     ldapAttributes.add(Constants.OTHER_FORMATTED_ADDRESS);
+    ldapAttributes.add(Constants.UUID);
     
     String[] ldapArray = new String[ldapAttributes.size()];
     ldapArray = ldapAttributes.toArray(ldapArray);
@@ -244,9 +260,26 @@ public class Mapping {
     }
     cursor.close();
     AddRequest addRequest = new AddRequest("uuid="+rdn+",ou=users,"+baseDn, attributes);
-    
+
+    //(final String dn, final List<Modification> mods)
     Log.i(TAG, addRequest.toLDIFString());
     return addRequest;
+  }
+  
+  public static ModifyRequest mappingRequest(GoogleContact gc, String baseDn) {
+    
+    List<Modification> mod;
+    
+    mod = fill(gc);
+    if (mod != null && mod.size() > 0) {
+      Log.i(TAG,"uuid=" + gc.getUuid().toString());
+      Log.i(TAG,",ou=users," + baseDn );
+      return new ModifyRequest("uuid=" + gc.getUuid().toString() + ",ou=users," + baseDn, mod);
+    } else {
+      return null;
+    }
+    
+    
   }
   
   public static GoogleContact mappingContactFromDB(ContentResolver cr, String id) {
@@ -258,12 +291,12 @@ public class Mapping {
     }
     cursor.close();
     
-    //Log.i(TAG, contact.toString());
     return contact;
   }
   
   public static GoogleContact mappingContactFromLDAP(ReadOnlyEntry user) {
     GoogleContact c = GoogleContact.defaultValue();
+    c.setUuid(user.hasAttribute(Constants.UUID) ? user.getAttributeValue(Constants.UUID) : null);
     // email
     c.getEmail().setHomeMail(user.hasAttribute(c.getEmail().getHomeMail()) ? user.getAttributeValue(c.getEmail().getHomeMail()) : null);
     c.getEmail().setMobileMail(user.hasAttribute(c.getEmail().getMobileMail()) ? user.getAttributeValue(c.getEmail().getMobileMail()) : null);
@@ -277,33 +310,33 @@ public class Mapping {
     c.getIdentity().setIdentityNamespace(user.hasAttribute(c.getIdentity().getIdentityNamespace()) ? user.getAttributeValue(c.getIdentity().getIdentityNamespace()) : null);
     c.getIdentity().setIdentityText(user.hasAttribute(c.getIdentity().getIdentityText()) ? user.getAttributeValue(c.getIdentity().getIdentityText()) : null);
     // im
-    c.getIm().setImHomeAim(user.hasAttribute(c.getIm().getImHomeAim()) ? user.getAttributeValue(c.getIm().getImHomeAim()) : null);
-    c.getIm().setImHomeGoogleTalk(user.hasAttribute(c.getIm().getImHomeGoogleTalk()) ? user.getAttributeValue(c.getIm().getImHomeGoogleTalk()) : null);
-    c.getIm().setImHomeIcq(user.hasAttribute(c.getIm().getImHomeIcq()) ? user.getAttributeValue(c.getIm().getImHomeIcq()) : null);
-    c.getIm().setImHomeJabber(user.hasAttribute(c.getIm().getImHomeJabber()) ? user.getAttributeValue(c.getIm().getImHomeJabber()) : null);
-    c.getIm().setImHomeMsn(user.hasAttribute(c.getIm().getImHomeMsn()) ? user.getAttributeValue(c.getIm().getImHomeMsn()) : null);
-    c.getIm().setImHomeNetmeeting(user.hasAttribute(c.getIm().getImHomeNetmeeting()) ? user.getAttributeValue(c.getIm().getImHomeNetmeeting()) : null);
-    c.getIm().setImHomeQq(user.hasAttribute(c.getIm().getImHomeQq()) ? user.getAttributeValue(c.getIm().getImHomeQq()) : null);
-    c.getIm().setImHomeSkype(user.hasAttribute(c.getIm().getImHomeSkype()) ? user.getAttributeValue(c.getIm().getImHomeSkype()) : null);
-    c.getIm().setImHomeYahoo(user.hasAttribute(c.getIm().getImHomeYahoo()) ? user.getAttributeValue(c.getIm().getImHomeYahoo()) : null);
-    c.getIm().setImOtherAim(user.hasAttribute(c.getIm().getImOtherAim()) ? user.getAttributeValue(c.getIm().getImOtherAim()) : null);
-    c.getIm().setImOtherGoogleTalk(user.hasAttribute(c.getIm().getImOtherGoogleTalk()) ? user.getAttributeValue(c.getIm().getImOtherGoogleTalk()) : null);
-    c.getIm().setImOtherIcq(user.hasAttribute(c.getIm().getImOtherIcq()) ? user.getAttributeValue(c.getIm().getImOtherIcq()) : null);
-    c.getIm().setImOtherJabber(user.hasAttribute(c.getIm().getImOtherJabber()) ? user.getAttributeValue(c.getIm().getImOtherJabber()) : null);
-    c.getIm().setImOtherMsn(user.hasAttribute(c.getIm().getImOtherMsn()) ? user.getAttributeValue(c.getIm().getImOtherMsn()) : null);
-    c.getIm().setImOtherNetmeeting(user.hasAttribute(c.getIm().getImOtherNetmeeting()) ? user.getAttributeValue(c.getIm().getImOtherNetmeeting()) : null);
-    c.getIm().setImOtherQq(user.hasAttribute(c.getIm().getImOtherQq()) ? user.getAttributeValue(c.getIm().getImOtherQq()) : null);
-    c.getIm().setImOtherSkype(user.hasAttribute(c.getIm().getImOtherSkype()) ? user.getAttributeValue(c.getIm().getImOtherSkype()) : null);
-    c.getIm().setImOtherYahoo(user.hasAttribute(c.getIm().getImOtherYahoo()) ? user.getAttributeValue(c.getIm().getImOtherYahoo()) : null);
-    c.getIm().setImWorkAim(user.hasAttribute(c.getIm().getImWorkAim()) ? user.getAttributeValue(c.getIm().getImWorkAim()) : null);
-    c.getIm().setImWorkGoogleTalk(user.hasAttribute(c.getIm().getImWorkGoogleTalk()) ? user.getAttributeValue(c.getIm().getImWorkGoogleTalk()) : null);
-    c.getIm().setImWorkIcq(user.hasAttribute(c.getIm().getImWorkIcq()) ? user.getAttributeValue(c.getIm().getImWorkIcq()) : null);
-    c.getIm().setImWorkJabber(user.hasAttribute(c.getIm().getImWorkJabber()) ? user.getAttributeValue(c.getIm().getImWorkJabber()) : null);
-    c.getIm().setImWorkMsn(user.hasAttribute(c.getIm().getImWorkMsn()) ? user.getAttributeValue(c.getIm().getImWorkMsn()) : null);
-    c.getIm().setImWorkNetmeeting(user.hasAttribute(c.getIm().getImWorkNetmeeting()) ? user.getAttributeValue(c.getIm().getImWorkNetmeeting()) : null);
-    c.getIm().setImWorkQq(user.hasAttribute(c.getIm().getImWorkQq()) ? user.getAttributeValue(c.getIm().getImWorkQq()) : null);
-    c.getIm().setImWorkSkype(user.hasAttribute(c.getIm().getImWorkSkype()) ? user.getAttributeValue(c.getIm().getImWorkSkype()) : null);
-    c.getIm().setImWorkYahoo(user.hasAttribute(c.getIm().getImWorkYahoo()) ? user.getAttributeValue(c.getIm().getImWorkYahoo()) : null);
+    c.getImSync().setImHomeAim(user.hasAttribute(c.getImSync().getImHomeAim()) ? user.getAttributeValue(c.getImSync().getImHomeAim()) : null);
+    c.getImSync().setImHomeGoogleTalk(user.hasAttribute(c.getImSync().getImHomeGoogleTalk()) ? user.getAttributeValue(c.getImSync().getImHomeGoogleTalk()) : null);
+    c.getImSync().setImHomeIcq(user.hasAttribute(c.getImSync().getImHomeIcq()) ? user.getAttributeValue(c.getImSync().getImHomeIcq()) : null);
+    c.getImSync().setImHomeJabber(user.hasAttribute(c.getImSync().getImHomeJabber()) ? user.getAttributeValue(c.getImSync().getImHomeJabber()) : null);
+    c.getImSync().setImHomeMsn(user.hasAttribute(c.getImSync().getImHomeMsn()) ? user.getAttributeValue(c.getImSync().getImHomeMsn()) : null);
+    c.getImSync().setImHomeNetmeeting(user.hasAttribute(c.getImSync().getImHomeNetmeeting()) ? user.getAttributeValue(c.getImSync().getImHomeNetmeeting()) : null);
+    c.getImSync().setImHomeQq(user.hasAttribute(c.getImSync().getImHomeQq()) ? user.getAttributeValue(c.getImSync().getImHomeQq()) : null);
+    c.getImSync().setImHomeSkype(user.hasAttribute(c.getImSync().getImHomeSkype()) ? user.getAttributeValue(c.getImSync().getImHomeSkype()) : null);
+    c.getImSync().setImHomeYahoo(user.hasAttribute(c.getImSync().getImHomeYahoo()) ? user.getAttributeValue(c.getImSync().getImHomeYahoo()) : null);
+    c.getImSync().setImOtherAim(user.hasAttribute(c.getImSync().getImOtherAim()) ? user.getAttributeValue(c.getImSync().getImOtherAim()) : null);
+    c.getImSync().setImOtherGoogleTalk(user.hasAttribute(c.getImSync().getImOtherGoogleTalk()) ? user.getAttributeValue(c.getImSync().getImOtherGoogleTalk()) : null);
+    c.getImSync().setImOtherIcq(user.hasAttribute(c.getImSync().getImOtherIcq()) ? user.getAttributeValue(c.getImSync().getImOtherIcq()) : null);
+    c.getImSync().setImOtherJabber(user.hasAttribute(c.getImSync().getImOtherJabber()) ? user.getAttributeValue(c.getImSync().getImOtherJabber()) : null);
+    c.getImSync().setImOtherMsn(user.hasAttribute(c.getImSync().getImOtherMsn()) ? user.getAttributeValue(c.getImSync().getImOtherMsn()) : null);
+    c.getImSync().setImOtherNetmeeting(user.hasAttribute(c.getImSync().getImOtherNetmeeting()) ? user.getAttributeValue(c.getImSync().getImOtherNetmeeting()) : null);
+    c.getImSync().setImOtherQq(user.hasAttribute(c.getImSync().getImOtherQq()) ? user.getAttributeValue(c.getImSync().getImOtherQq()) : null);
+    c.getImSync().setImOtherSkype(user.hasAttribute(c.getImSync().getImOtherSkype()) ? user.getAttributeValue(c.getImSync().getImOtherSkype()) : null);
+    c.getImSync().setImOtherYahoo(user.hasAttribute(c.getImSync().getImOtherYahoo()) ? user.getAttributeValue(c.getImSync().getImOtherYahoo()) : null);
+    c.getImSync().setImWorkAim(user.hasAttribute(c.getImSync().getImWorkAim()) ? user.getAttributeValue(c.getImSync().getImWorkAim()) : null);
+    c.getImSync().setImWorkGoogleTalk(user.hasAttribute(c.getImSync().getImWorkGoogleTalk()) ? user.getAttributeValue(c.getImSync().getImWorkGoogleTalk()) : null);
+    c.getImSync().setImWorkIcq(user.hasAttribute(c.getImSync().getImWorkIcq()) ? user.getAttributeValue(c.getImSync().getImWorkIcq()) : null);
+    c.getImSync().setImWorkJabber(user.hasAttribute(c.getImSync().getImWorkJabber()) ? user.getAttributeValue(c.getImSync().getImWorkJabber()) : null);
+    c.getImSync().setImWorkMsn(user.hasAttribute(c.getImSync().getImWorkMsn()) ? user.getAttributeValue(c.getImSync().getImWorkMsn()) : null);
+    c.getImSync().setImWorkNetmeeting(user.hasAttribute(c.getImSync().getImWorkNetmeeting()) ? user.getAttributeValue(c.getImSync().getImWorkNetmeeting()) : null);
+    c.getImSync().setImWorkQq(user.hasAttribute(c.getImSync().getImWorkQq()) ? user.getAttributeValue(c.getImSync().getImWorkQq()) : null);
+    c.getImSync().setImWorkSkype(user.hasAttribute(c.getImSync().getImWorkSkype()) ? user.getAttributeValue(c.getImSync().getImWorkSkype()) : null);
+    c.getImSync().setImWorkYahoo(user.hasAttribute(c.getImSync().getImWorkYahoo()) ? user.getAttributeValue(c.getImSync().getImWorkYahoo()) : null);
     // nickname
     c.getNickname().setNicknameDefault(user.hasAttribute(c.getNickname().getNicknameDefault()) ? user.getAttributeValue(c.getNickname().getNicknameDefault()) : null);
     c.getNickname().setNicknameInitials(user.hasAttribute(c.getNickname().getNicknameInitials()) ? user.getAttributeValue(c.getNickname().getNicknameInitials()) : null);
@@ -414,6 +447,468 @@ public class Mapping {
     c.getWebsite().setWebsiteWork(user.hasAttribute(c.getWebsite().getWebsiteWork()) ? user.getAttributeValue(c.getWebsite().getWebsiteWork()) : null);
     
     return c;
+  }
+  
+  private static List<Modification> fill(GoogleContact gc) {
+    List<Modification> mod = new ArrayList<Modification>();
+    
+    EmailSync e = gc.getEmail(); 
+    if ( e != null) {
+      if (e.getHomeMail() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.HOME_MAIL, e.getHomeMail()));
+      }
+      if (e.getMobileMail() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.MOBILE_MAIL, e.getMobileMail()));
+      }
+      if (e.getOtherMail() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.OTHER_MAIL, e.getOtherMail()));
+      }
+      if (e.getWorkMail() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WORK_MAIL, e.getWorkMail()));
+      }
+    }
+    
+    EventSync ev = gc.getEvent();
+    if (ev != null) {
+      if (ev.getEventAnniversary() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.EVENT_ANNIVERSARY, ev.getEventAnniversary()));
+      }
+      if (ev.getEventBirthday() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.EVENT_BIRTHDAY, ev.getEventBirthday()));
+      }
+      if (ev.getEventOther() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.EVENT_OTHER, ev.getEventOther()));
+      }
+    }
+    
+    IdentitySync id = gc.getIdentity();
+    if (id != null) {
+      if (id.getIdentityNamespace() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IDENTITY_NAMESPACE, id.getIdentityNamespace()));
+      }
+      if (id.getIdentityText() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IDENTITY_TEXT, id.getIdentityText()));
+      }
+    }
+    
+    ImSync im = gc.getImSync();
+    if (im != null) {
+      if (im.getImHomeAim() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_HOME_AIM, im.getImHomeAim()));
+      }
+      if (im.getImHomeGoogleTalk() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_HOME_GOOGLE_TALK, im.getImHomeGoogleTalk()));
+      }
+      if (im.getImHomeIcq() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_HOME_ICQ, im.getImHomeIcq()));
+      }
+      if (im.getImHomeJabber() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_HOME_JABBER, im.getImHomeJabber()));
+      }
+      if (im.getImHomeMsn() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_HOME_MSN, im.getImHomeMsn()));
+      }
+      if (im.getImHomeNetmeeting() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_HOME_NETMEETING, im.getImHomeNetmeeting()));
+      }
+      if (im.getImHomeQq() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_HOME_QQ, im.getImHomeQq()));
+      }
+      if (im.getImHomeSkype() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_HOME_SKYPE, im.getImHomeSkype()));
+      }
+      if (im.getImHomeYahoo() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_HOME_YAHOO, im.getImHomeYahoo()));
+      }
+      
+      if (im.getImWorkAim() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_WORK_AIM, im.getImWorkAim()));
+      }
+      if (im.getImWorkGoogleTalk() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_WORK_GOOGLE_TALK, im.getImWorkGoogleTalk()));
+      }
+      if (im.getImWorkIcq() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_WORK_ICQ, im.getImWorkIcq()));
+      }
+      if (im.getImWorkJabber() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_WORK_JABBER, im.getImWorkJabber()));
+      }
+      if (im.getImWorkMsn() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_WORK_MSN, im.getImWorkMsn()));
+      }
+      if (im.getImWorkNetmeeting() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_WORK_NETMEETING, im.getImWorkNetmeeting()));
+      }
+      if (im.getImWorkQq() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_WORK_QQ, im.getImWorkQq()));
+      }
+      if (im.getImWorkSkype() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_WORK_SKYPE, im.getImWorkSkype()));
+      }
+      if (im.getImWorkYahoo() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_WORK_YAHOO, im.getImWorkYahoo()));
+      }
+      
+      if (im.getImOtherAim() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_OTHER_AIM, im.getImOtherAim()));
+      }
+      if (im.getImOtherGoogleTalk() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_OTHER_GOOGLE_TALK, im.getImOtherGoogleTalk()));
+      }
+      if (im.getImOtherIcq() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_OTHER_ICQ, im.getImOtherIcq()));
+      }
+      if (im.getImOtherJabber() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_OTHER_JABBER, im.getImOtherJabber()));
+      }
+      if (im.getImOtherMsn() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_OTHER_MSN, im.getImOtherMsn()));
+      }
+      if (im.getImOtherNetmeeting() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_OTHER_NETMEETING, im.getImOtherNetmeeting()));
+      }
+      if (im.getImOtherQq() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_OTHER_QQ, im.getImOtherQq()));
+      }
+      if (im.getImOtherSkype() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_OTHER_SKYPE, im.getImOtherSkype()));
+      }
+      if (im.getImOtherYahoo() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.IM_OTHER_YAHOO, im.getImOtherYahoo()));
+      }
+    }
+    
+    NicknameSync ni = gc.getNickname();
+    if (ni != null) {
+      if (ni.getNicknameDefault() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.NICKNAME_DEFAULT, ni.getNicknameDefault()));
+      }
+      if (ni.getNicknameInitials() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.NICKNAME_INITIALS, ni.getNicknameInitials()));
+      }
+      if (ni.getNicknameMaiden() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.NICKNAME_MAIDEN, ni.getNicknameMaiden()));
+      }
+      if (ni.getNicknameOther() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.NICKNAME_OTHER, ni.getNicknameOther()));
+      }
+      if (ni.getNicknameShort() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.NICKNAME_SHORT, ni.getNicknameShort()));
+      }
+    }
+    
+    if( gc.getNote().getNotes() != null) {
+      mod.add(new Modification(ModificationType.REPLACE, Constants.NOTES, gc.getNote().getNotes()));
+    }
+    
+    OrganizationSync or = gc.getOrganization();
+    if (or!= null) {
+      if (or.getOrganizationOtherCompany() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_OTHER_COMPANY, or.getOrganizationOtherCompany()));
+      }
+      if (or.getOrganizationOtherDepartment() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_OTHER_DEPARTMENT, or.getOrganizationOtherDepartment()));
+      }
+      if (or.getOrganizationOtherJobDescription() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_OTHER_JOB_DESCRIPTION, or.getOrganizationOtherJobDescription()));
+      }
+      if (or.getOrganizationOtherOfficeLocation() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_OTHER_OFFICE_LOCATION, or.getOrganizationOtherOfficeLocation()));
+      }
+      if (or.getOrganizationOtherPhoneticName() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_OTHER_PHONETIC_NAME, or.getOrganizationOtherPhoneticName()));
+      }
+      if (or.getOrganizationOtherPhoneticNameStyle() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_OTHER_PHONETIC_NAME_STYLE, or.getOrganizationOtherPhoneticNameStyle()));
+      }
+      if (or.getOrganizationOtherSymbol() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_OTHER_SYMBOL, or.getOrganizationOtherSymbol()));
+      }
+      if (or.getOrganizationOtherTitle() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_OTHER_TITLE, or.getOrganizationOtherTitle()));
+      }
+      
+      if (or.getOrganizationWorkCompany() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_WORK_COMPANY, or.getOrganizationWorkCompany()));
+      }
+      if (or.getOrganizationWorkDepartment() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_WORK_DEPARTMENT, or.getOrganizationWorkDepartment()));
+      }
+      if (or.getOrganizationWorkJobDescription() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_WORK_JOB_DESCRIPTION, or.getOrganizationWorkJobDescription()));
+      }
+      if (or.getOrganizationWorkOfficeLocation() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_WORK_OFFICE_LOCATION, or.getOrganizationWorkOfficeLocation()));
+      }
+      if (or.getOrganizationWorkPhoneticName() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_WORK_PHONETIC_NAME, or.getOrganizationWorkPhoneticName()));
+      }
+      if (or.getOrganizationWorkPhoneticNameStyle() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_WORK_PHONETIC_NAME_STYLE, or.getOrganizationWorkPhoneticNameStyle()));
+      }
+      if (or.getOrganizationWorkSymbol() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_WORK_SYMBOL, or.getOrganizationWorkSymbol()));
+      }
+      if (or.getOrganizationWorkTitle() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_WORK_TITLE, or.getOrganizationWorkTitle()));
+      }
+    }
+    
+    PhoneSync ph = gc.getPhone();
+    if (ph != null) {
+      if (ph.getPhoneAssistant() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_ASSISTANT, ph.getPhoneAssistant()));
+      }
+      if (ph.getPhoneCallback() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_CALLBACK, ph.getPhoneCallback()));
+      }
+      if (ph.getPhoneCar() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_CAR, ph.getPhoneCar()));
+      }
+      if (ph.getPhoneCompany() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_COMPANY, ph.getPhoneCompany()));
+      }
+      if (ph.getPhoneFaxHome() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_FAX_HOME, ph.getPhoneFaxHome()));
+      }
+      if (ph.getPhoneFaxWork() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_FAX_WORK, ph.getPhoneFaxWork()));
+      }
+      if (ph.getPhoneHome() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_HOME, ph.getPhoneHome()));
+      }
+      if (ph.getPhoneISDN() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_ISDN, ph.getPhoneISDN()));
+      }
+      if (ph.getPhoneMain() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_MAIN, ph.getPhoneMain()));
+      }
+      if (ph.getPhoneMMS() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_MMS, ph.getPhoneMMS()));
+      }
+      if (ph.getPhoneMobile() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_MOBILE, ph.getPhoneMobile()));
+      }
+      if (ph.getPhoneOther() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_OTHER, ph.getPhoneOther()));
+      }
+      if (ph.getPhoneOtherFax() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_OTHER_FAX, ph.getPhoneOtherFax()));
+      }
+      if (ph.getPhonePager() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_PAGER, ph.getPhonePager()));
+      }
+      if (ph.getPhoneRadio() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_RADIO, ph.getPhoneRadio()));
+      }
+      if (ph.getPhoneTelex() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_TELEX, ph.getPhoneTelex()));
+      }
+      if (ph.getPhoneTTYTDD() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_TTY_TDD, ph.getPhoneTTYTDD()));
+      }
+      if (ph.getPhoneWork() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_WORK, ph.getPhoneWork()));
+      }
+      if (ph.getPhoneWorkMobile() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_WORK_MOBILE, ph.getPhoneWorkMobile()));
+      }
+      if (ph.getPhoneWorkPager() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_WORK_PAGER, ph.getPhoneWorkPager()));
+      }
+    }
+    
+    RelationSync re = gc.getRelation();
+    if (re != null) {
+      if (re.getRelationAssistant() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.RELATION_ASSISTANT, re.getRelationAssistant()));
+      }
+      if (re.getRelationBrother() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.RELATION_BROTHER, re.getRelationBrother()));
+      }
+      if (re.getRelationChild() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.RELATION_CHILD, re.getRelationChild()));
+      }
+      if (re.getRelationDomesticPartner() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.RELATION_DOMESTIC_PARTNER, re.getRelationDomesticPartner()));
+      }
+      if (re.getRelationFather() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.RELATION_FATHER, re.getRelationFather()));
+      }
+      if (re.getRelationFriend() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.RELATION_FRIEND, re.getRelationFriend()));
+      }
+      if (re.getRelationManager() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.RELATION_MANAGER, re.getRelationManager()));
+      }
+      if (re.getRelationMother() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.RELATION_MOTHER, re.getRelationMother()));
+      }
+      if (re.getRelationParent() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.RELATION_PARENT, re.getRelationParent()));
+      }
+      if (re.getRelationPartner() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.RELATION_PARTNER, re.getRelationPartner()));
+      }
+      if (re.getRelationRefferedBy() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.RELATION_REFFERED_BY, re.getRelationRefferedBy()));
+      }
+      if (re.getRelationRelative() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.RELATION_RELATIVE, re.getRelationRelative()));
+      }
+      if (re.getRelationSister() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.RELATION_SISTER, re.getRelationSister()));
+      }
+      if (re.getRelationSpouse() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.RELATION_SPOUSE, re.getRelationSpouse()));
+      }
+    }
+    
+    SipAddressSync si = gc.getSipAddress();
+    if (si != null) {
+      if (si.getHomeSip() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.HOME_SIP, si.getHomeSip()));
+      }
+      if (si.getOtherSip() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.OTHER_SIP, si.getOtherSip()));
+      }
+      if (si.getWorkSip() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WORK_SIP, si.getWorkSip()));
+      }
+    }
+    
+    StructuredNameSync sn = gc.getStructuredName();
+    if (sn != null) {
+      if (sn.getDisplayName() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.DISPLAY_NAME, sn.getDisplayName()));
+      }
+      if (sn.getFamilyName() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.FAMILY_NAME, sn.getFamilyName()));
+      }
+      if (sn.getGivenName() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.GIVEN_NAME, sn.getGivenName()));
+      }
+      if (sn.getMiddleName() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.MIDDLE_NAME, sn.getMiddleName()));
+      }
+      if (sn.getNamePrefix() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.NAME_PREFIX, sn.getNamePrefix()));
+      }
+      if (sn.getNameSuffix() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.NAME_SUFFIX, sn.getNameSuffix()));
+      }
+      if (sn.getPhoneticFamilyName() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONETIC_FAMILY_NAME, sn.getPhoneticFamilyName()));
+      }
+      if (sn.getPhoneticGivenName() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONETIC_GIVEN_NAME, sn.getPhoneticGivenName()));
+      }
+      if (sn.getPhoneticMiddleName() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.PHONETIC_MIDDLE_NAME, sn.getPhoneticFamilyName()));
+      }
+    }
+    
+    StructuredPostalSync sp = gc.getStructuredPostal();
+    if (sp != null) {
+      if (sp.getHomeCity() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.HOME_CITY, sp.getHomeCity()));
+      }
+      if (sp.getHomeCountry() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.HOME_COUNTRY, sp.getHomeCountry()));
+      }
+      if (sp.getHomeFormattedAddress() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.HOME_FORMATTED_ADDRESS, sp.getHomeFormattedAddress()));
+      }
+      if (sp.getHomeNeighborhood() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.HOME_NEIGHBORHOOD, sp.getHomeNeighborhood()));
+      }
+      if (sp.getHomePOBox() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.HOME_POBOX, sp.getHomePOBox()));
+      }
+      if (sp.getHomePostalCode() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.HOME_POSTAL_CODE, sp.getHomePostalCode()));
+      }
+      if (sp.getHomeRegion() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.HOME_REGION, sp.getHomeRegion()));
+      }
+      if (sp.getHomeStreet() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.HOME_STREET, sp.getHomeStreet()));
+      }
+      if (sp.getWorkCity() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WORK_CITY, sp.getWorkCity()));
+      }
+      if (sp.getWorkCountry() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WORK_COUNTRY, sp.getWorkCountry()));
+      }
+      if (sp.getWorkFormattedAddress() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WORK_FORMATTED_ADDRESS, sp.getWorkFormattedAddress()));
+      }
+      if (sp.getWorkNeighborhood() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WORK_NEIGHBORHOOD, sp.getWorkNeighborhood()));
+      }
+      if (sp.getWorkPOBox() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WORK_POBOX, sp.getWorkPOBox()));
+      }
+      if (sp.getWorkPostalCode() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WORK_POSTAL_CODE, sp.getWorkPostalCode()));
+      }
+      if (sp.getWorkRegion() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WORK_REGION, sp.getWorkRegion()));
+      }
+      if (sp.getWorkStreet() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WORK_STREET, sp.getWorkStreet()));
+      }
+      if (sp.getOtherCity() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.OTHER_CITY, sp.getOtherCity()));
+      }
+      if (sp.getOtherCountry() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.OTHER_COUNTRY, sp.getOtherCountry()));
+      }
+      if (sp.getOtherFormattedAddress() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.OTHER_FORMATTED_ADDRESS, sp.getOtherFormattedAddress()));
+      }
+      if (sp.getOtherNeighborhood() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.OTHER_NEIGHBORHOOD, sp.getOtherNeighborhood()));
+      }
+      if (sp.getOtherPOBox() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.OTHER_POBOX, sp.getOtherPOBox()));
+      }
+      if (sp.getOtherPostalCode() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.OTHER_POSTAL_CODE, sp.getOtherPostalCode()));
+      }
+      if (sp.getOtherRegion() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.OTHER_REGION, sp.getOtherRegion()));
+      }
+      if (sp.getOtherStreet() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.OTHER_STREET, sp.getOtherStreet()));
+      }
+    }
+    
+    WebsiteSync we = gc.getWebsite();
+    if (we != null) {
+      if (we.getWebsiteBlog() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WEBSITE_BLOG, we.getWebsiteBlog()));
+      }
+      if (we.getWebsiteFtp() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WEBSITE_FTP, we.getWebsiteFtp()));
+      }
+      if (we.getWebsiteHome() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WEBSITE_HOME, we.getWebsiteHome()));
+      }
+      if (we.getWebsiteHomepage() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WEBSITE_HOMEPAGE, we.getWebsiteHomepage()));
+      }
+      if (we.getWebsiteOther() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WEBSITE_OTHER, we.getWebsiteOther()));
+      }
+      if (we.getWebsiteProfile() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WEBSITE_PROFILE, we.getWebsiteProfile()));
+      }
+      if (we.getWebsiteWork() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WEBSITE_WORK, we.getWebsiteWork()));
+      }
+    }
+    return mod;
   }
   
 //TODO: vnd.com.google.cursor.item/contact_misc add by google?
@@ -895,7 +1390,9 @@ public class Mapping {
     
     String str = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
     
+    //Log.i(TAG, contact.toString());
     if (str.equals(StructuredName.CONTENT_ITEM_TYPE)) {
+      contact.initStructuredName();
       contact.getStructuredName().getID().add(new ID(StructuredName.CONTENT_ITEM_TYPE, null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
         contact.getStructuredName().setDisplayName(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
@@ -925,6 +1422,7 @@ public class Mapping {
         contact.getStructuredName().setPhoneticFamilyName(cursor.getString(cursor.getColumnIndex(Data.DATA9)));
       }
     } else if (str.equals(Phone.CONTENT_ITEM_TYPE)) {
+      contact.initPhone();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getPhone().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Phone.TYPE_CUSTOM) {
@@ -974,8 +1472,9 @@ public class Mapping {
         Log.i("NOT SUPPORTED TYPE PHONE", "NOT SUPPORTED TYPE PHONE");
       }
     } else if (str.equals(Email.CONTENT_ITEM_TYPE)) {
+      contact.initEmail();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
-      contact.getEmail().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
+      //contact.getEmail().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Email.TYPE_HOME) {
         contact.getEmail().setHomeMail(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       } else if (type == Email.TYPE_WORK) {
@@ -992,6 +1491,7 @@ public class Mapping {
     } else if (str.equals(Photo.CONTENT_ITEM_TYPE)) {
       
     } else if (str.equals(Organization.CONTENT_ITEM_TYPE)) {
+      contact.initOrganization();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getEmail().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Organization.TYPE_WORK) {
@@ -1050,9 +1550,10 @@ public class Mapping {
         
       }
     } else if (str.equals(Im.CONTENT_ITEM_TYPE)) {
+      contact.initIm();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       Integer protocol = cursor.getInt(cursor.getColumnIndex(Data.DATA5));
-      contact.getIm().getID().add(new ID(type.toString(), protocol.toString(), cursor.getString(cursor.getColumnIndex(Data._ID))));
+      contact.getImSync().getID().add(new ID(type.toString(), protocol.toString(), cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Im.TYPE_CUSTOM) {
         // TYPE_CUSTOM. Put the actual type in LABEL.
         // String  LABEL DATA3
@@ -1062,23 +1563,23 @@ public class Mapping {
           // String  CUSTOM_PROTOCOL DATA6
        // TODO:
         } else if (protocol == Im.PROTOCOL_AIM) {
-          contact.getIm().setImHomeAim(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImHomeAim(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_GOOGLE_TALK) {
-          contact.getIm().setImHomeGoogleTalk(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImHomeGoogleTalk(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_ICQ) {
-          contact.getIm().setImHomeIcq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImHomeIcq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_JABBER) {
-          contact.getIm().setImHomeJabber(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImHomeJabber(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_MSN) {
-          contact.getIm().setImHomeMsn(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImHomeMsn(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_NETMEETING) {
-          contact.getIm().setImHomeNetmeeting(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImHomeNetmeeting(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_QQ) {
-          contact.getIm().setImHomeQq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImHomeQq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_SKYPE) {
-          contact.getIm().setImHomeSkype(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImHomeSkype(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_YAHOO) {
-          contact.getIm().setImHomeYahoo(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImHomeYahoo(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else {
           Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
         }
@@ -1088,23 +1589,23 @@ public class Mapping {
           // String  CUSTOM_PROTOCOL DATA6
        // TODO:
         } else if (protocol == Im.PROTOCOL_AIM) {
-          contact.getIm().setImWorkAim(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImWorkAim(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_GOOGLE_TALK) {
-          contact.getIm().setImWorkGoogleTalk(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImWorkGoogleTalk(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_ICQ) {
-          contact.getIm().setImWorkIcq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImWorkIcq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_JABBER) {
-          contact.getIm().setImWorkJabber(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImWorkJabber(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_MSN) {
-          contact.getIm().setImWorkMsn(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImWorkMsn(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_NETMEETING) {
-          contact.getIm().setImWorkNetmeeting(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImWorkNetmeeting(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_QQ) {
-          contact.getIm().setImWorkQq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImWorkQq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_SKYPE) {
-          contact.getIm().setImWorkSkype(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImWorkSkype(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_YAHOO) {
-          contact.getIm().setImWorkYahoo(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImWorkYahoo(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else {
           Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
         }
@@ -1114,23 +1615,23 @@ public class Mapping {
           // String  CUSTOM_PROTOCOL DATA6
        // TODO:
         } else if (protocol == Im.PROTOCOL_AIM) {
-          contact.getIm().setImOtherAim(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImOtherAim(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_GOOGLE_TALK) {
-          contact.getIm().setImOtherGoogleTalk(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImOtherGoogleTalk(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_ICQ) {
-          contact.getIm().setImOtherIcq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImOtherIcq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_JABBER) {
-          contact.getIm().setImOtherJabber(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImOtherJabber(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_MSN) {
-          contact.getIm().setImOtherMsn(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImOtherMsn(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_NETMEETING) {
-          contact.getIm().setImOtherNetmeeting(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImOtherNetmeeting(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_QQ) {
-          contact.getIm().setImOtherQq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImOtherQq(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_SKYPE) {
-          contact.getIm().setImOtherSkype(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImOtherSkype(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else if (protocol == Im.PROTOCOL_YAHOO) {
-          contact.getIm().setImOtherYahoo(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+          contact.getImSync().setImOtherYahoo(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else {
           Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
         }
@@ -1162,6 +1663,7 @@ public class Mapping {
         }
       }
     } else if (str.equals(Nickname.CONTENT_ITEM_TYPE)) {
+      contact.initNickname();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getNickname().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Nickname.TYPE_DEFAULT) {
@@ -1180,11 +1682,13 @@ public class Mapping {
         Log.i("NOT SUPPORTED TYPE NICKNAME", "NOT SUPPORTED TYPE NICKANEME");
       }
     } else if (str.equals(Note.CONTENT_ITEM_TYPE)) {
-      contact.getIm().getID().add(new ID(Note.CONTENT_ITEM_TYPE, null, cursor.getString(cursor.getColumnIndex(Data._ID))));
+      contact.initNote();
+      contact.getNote().getID().add(new ID(Note.CONTENT_ITEM_TYPE, null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
         contact.getNote().setNotes(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       }
     } else if (str.equals(StructuredPostal.CONTENT_ITEM_TYPE)) {
+      contact.initStructuredPostalSync();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getStructuredPostal().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == StructuredPostal.TYPE_CUSTOM) {
@@ -1275,6 +1779,7 @@ public class Mapping {
       //long  GROUP_ROW_ID  DATA1
       //attributes.add(new Attribute(Constants., cursor.getString(cursor.getColumnIndex(Data.DATA1))));
     } else if (str.equals(Website.CONTENT_ITEM_TYPE)) {
+      contact.initWebsite();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getWebsite().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Website.TYPE_CUSTOM) {
@@ -1297,6 +1802,7 @@ public class Mapping {
         Log.i("NOT SUPPORTED TYPE WEBSITE", "NOT SUPPORTED TYPE WEBSITE");
       }
     } else if (str.equals(Event.CONTENT_ITEM_TYPE)) {
+      contact.initEvent();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getEvent().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Event.TYPE_CUSTOM) {
@@ -1312,6 +1818,7 @@ public class Mapping {
         Log.i("NOT SUPPORTED TYPE Event", "NOT SUPPORTED TYPE EVENT");
       }
     } else if (str.equals(Relation.CONTENT_ITEM_TYPE)) {
+      contact.initRelation();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getRelation().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Relation.TYPE_CUSTOM) {
@@ -1350,6 +1857,7 @@ public class Mapping {
         Log.i("NOT SUPPORTED TYPE Relation", "NOT SUPPORTED TYPE Relation");
       }
     } else if (str.equals(SipAddress.CONTENT_ITEM_TYPE)) {
+      contact.initSipAddressSync();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getSipAddress().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == SipAddress.TYPE_CUSTOM) {
@@ -1366,6 +1874,7 @@ public class Mapping {
         Log.i("NOT SUPPORTED TYPE SIP", "NOT SUPPORTED TYPE SIP");
       }
     } else if (str.equals(Identity.CONTENT_ITEM_TYPE)) {
+      contact.initIdentity();
       contact.getIdentity().getID().add(new ID(Identity.CONTENT_ITEM_TYPE, null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       contact.getIdentity().setIdentityText(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       contact.getIdentity().setIdentityNamespace(cursor.getString(cursor.getColumnIndex(Data.DATA2)));

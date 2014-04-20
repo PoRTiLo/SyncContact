@@ -2,6 +2,7 @@ package cz.xsendl00.synccontact.database;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
@@ -9,6 +10,7 @@ import android.content.Context;
 import android.content.OperationApplicationException;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
+import android.util.Log;
 import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.utils.Mapping;
 
@@ -20,6 +22,8 @@ import cz.xsendl00.synccontact.utils.Mapping;
  */
 public class AndroidDB {
 
+  private static final String TAG = "AndroidDB";
+  
   /**
    * Update Contacts
    * 
@@ -36,11 +40,23 @@ public class AndroidDB {
     ArrayList<ContentProviderOperation> op = new ArrayList<ContentProviderOperation>();
 
     for (Map.Entry<String, GoogleContact> entry : differenceLDAP.entrySet()) {
-      GoogleContact gc = Mapping.mappingContactFromDB(context.getContentResolver(), entry.getKey());
+      Log.i(TAG, "zpracovava se: " + entry.getValue().getStructuredName().getDisplayName());
+      HelperSQL s = new HelperSQL(context);
+      Log.i(TAG, "create sql heleper ");
+      String id = s.getContactId(entry.getKey());
+      Log.i(TAG, "uuid:: " + entry.getKey() + " mapping to:" + id);
+      GoogleContact gc = Mapping.mappingContactFromDB(context.getContentResolver(), id);
+      Log.i(TAG, "z db se vzal: " + entry.getValue().getStructuredName().getDisplayName());
       op.addAll(GoogleContact.createOperationUpdate(gc, entry.getValue()));
     }
-
-    ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, op);
+    for (ContentProviderOperation o : op) {
+      Log.i(TAG, o.toString());
+    }
+    //Log.i(TAG, String.valueOf(op.size()));
+    //ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, op);
+    //for (ContentProviderResult a : contactUri) {
+    //  Log.i(TAG, "res:" + a);
+   // }
 
     return true;
   }

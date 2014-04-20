@@ -14,7 +14,7 @@ public class EventSync extends AbstractType implements ContactInterface {
   private String eventOther;
   private String eventBirthday;
   private String eventAnniversary;
-  
+
   public String getEventOther() {
     return eventOther;
   }
@@ -111,7 +111,7 @@ public class EventSync extends AbstractType implements ContactInterface {
   public static ArrayList<ContentProviderOperation> operation(String id, EventSync em1, EventSync em2) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
-      
+
       if (em2.getEventAnniversary() != null) {
         ops.add(add(id, em2.getEventAnniversary(), Event.TYPE_ANNIVERSARY));
       }
@@ -122,8 +122,9 @@ public class EventSync extends AbstractType implements ContactInterface {
         ops.add(add(id, em2.getEventOther(), Event.TYPE_OTHER));
       }
     } else if (em1 == null && em2 == null) { // nothing
-      
+
     } else if (em1 != null && em2 == null) { // clear or update data in db
+
       if (em1.getEventAnniversary() != null) {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Event.TYPE_ANNIVERSARY), null)));
       }
@@ -133,24 +134,34 @@ public class EventSync extends AbstractType implements ContactInterface {
       if (em1.getEventOther() != null) {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Event.TYPE_OTHER), null)));
       }
+
     } else if (em1 != null && em2 != null) { // merge
+      
       String i = ID.getIdByValue(em1.getID(), String.valueOf(Event.TYPE_ANNIVERSARY), null);
-      if (em2.getEventAnniversary() != null) {
+      if (i == null && em2.getEventAnniversary() != null) {
+        ops.add(add(id, em2.getEventAnniversary(), Event.TYPE_ANNIVERSARY));
+      } else if ( i != null && em2.getEventAnniversary() == null) {
+        ops.add(GoogleContact.delete(i));
+      } else if (i != null && em2.getEventAnniversary() != null && !em2.getEventAnniversary().equals(em1.getEventAnniversary())) { 
         ops.add(update(i, em2.getEventAnniversary(), Event.TYPE_ANNIVERSARY));
-      } else {
-        ops.add(GoogleContact.delete(i));
       }
+      
       i = ID.getIdByValue(em1.getID(), String.valueOf(Event.TYPE_BIRTHDAY), null);
-      if (em2.getEventBirthday() != null) {
+      if (i == null && em2.getEventBirthday() != null) {
+        ops.add(add(id, em2.getEventBirthday(), Event.TYPE_BIRTHDAY));
+      } else if ( i != null && em2.getEventBirthday() == null) {
+        ops.add(GoogleContact.delete(i));
+      } else if (i != null && em2.getEventBirthday() != null && !em2.getEventBirthday().equals(em1.getEventBirthday())) { 
         ops.add(update(i, em2.getEventBirthday(), Event.TYPE_BIRTHDAY));
-      } else {
-        ops.add(GoogleContact.delete(i));
       }
+      
       i = ID.getIdByValue(em1.getID(), String.valueOf(Event.TYPE_OTHER), null);
-      if (em2.getEventOther() != null) {
-        ops.add(update(i, em2.getEventOther(), Event.TYPE_OTHER));
-      } else {
+      if (i == null && em2.getEventOther() != null) {
+        ops.add(add(id, em2.getEventOther(), Event.TYPE_OTHER));
+      } else if ( i != null && em2.getEventOther() == null) {
         ops.add(GoogleContact.delete(i));
+      } else if (i != null && em2.getEventOther() != null && !em2.getEventOther().equals(em1.getEventOther())) { 
+        ops.add(update(i, em2.getEventOther(), Event.TYPE_OTHER));
       }
     }
     return ops.size() > 0 ? ops : null;

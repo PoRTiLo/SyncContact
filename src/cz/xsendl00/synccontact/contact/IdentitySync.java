@@ -115,8 +115,10 @@ public class IdentitySync extends AbstractType implements ContactInterface {
   }
   
   public static ArrayList<ContentProviderOperation> operation(String id, IdentitySync em1, IdentitySync em2) {
+    
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     Map<String, String> value = new HashMap<String, String>();
+    
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       
       if (em2.getIdentityNamespace() != null) {
@@ -125,7 +127,9 @@ public class IdentitySync extends AbstractType implements ContactInterface {
       if (em2.getIdentityText() != null) {
         value.put(Identity.IDENTITY, em2.getIdentityText());
       }
-      ops.add(add(id,value));
+      if (value.size() > 0) {
+        ops.add(add(id,value));
+      }
     } else if (em1 == null && em2 == null) { // nothing
       
     } else if (em1 != null && em2 == null) { // clear or update data in db
@@ -134,15 +138,26 @@ public class IdentitySync extends AbstractType implements ContactInterface {
       }
     } else if (em1 != null && em2 != null) { // merge
       String i = ID.getIdByValue(em1.getID(), String.valueOf(Identity.CONTENT_ITEM_TYPE), null);
-      if (em2.getIdentityNamespace() == null || em2.getIdentityText() == null) {
-        ops.add(GoogleContact.delete(i));
-      } else {
+      
+      if (i == null ) { // add
         if (em2.getIdentityNamespace() != null) {
           value.put(Identity.NAMESPACE, em2.getIdentityNamespace());
-        } else if (em2.getIdentityText() != null) {
+        } 
+        if (em2.getIdentityText() != null) {
           value.put(Identity.IDENTITY, em2.getIdentityText());
         }
-        ops.add(update(id,value));
+        if (value.size() > 0) {
+          ops.add(add(id,value));
+        }
+        
+      } else {
+        if (em2.getIdentityNamespace() != null || em2.getIdentityText() != null) {
+          value.put(Identity.IDENTITY, em2.getIdentityText());
+          value.put(Identity.NAMESPACE, em2.getIdentityNamespace());
+          ops.add(update(id,value));
+        } else if (em2.getIdentityNamespace() == null || em2.getIdentityText() == null) {
+          ops.add(GoogleContact.delete(i));
+        }
       }
     }
     return ops.size() > 0 ? ops : null;

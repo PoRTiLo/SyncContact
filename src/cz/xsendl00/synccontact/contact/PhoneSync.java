@@ -1,6 +1,12 @@
 package cz.xsendl00.synccontact.contact;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import android.content.ContentProviderOperation;
 import android.content.ContentValues;
+import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
 import cz.xsendl00.synccontact.utils.Constants;
 
 public class PhoneSync extends AbstractType implements ContactInterface{
@@ -25,7 +31,7 @@ public class PhoneSync extends AbstractType implements ContactInterface{
   private String phoneWork;
   private String phoneWorkMobile;
   private String phoneWorkPager;
-  
+
   public String getPhoneAssistant() {
     return phoneAssistant;
   }
@@ -415,4 +421,282 @@ public class PhoneSync extends AbstractType implements ContactInterface{
     }
     return values;
   }
+  
+  /**
+   * 
+   * @param id        raw_contact id
+   * @param value     name of protocol
+   * @param protocol  like {@link Phone.PROTOCOl_AIM}
+   * @param type      like Phone.TYPE_HOME
+   * @return
+   */
+  public static ContentProviderOperation add(String id, String value, int type) {
+    return ContentProviderOperation.newInsert(Data.CONTENT_URI)
+    .withValue(Data.RAW_CONTACT_ID, id)
+    .withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
+    .withValue(Phone.TYPE, type)
+    .withValue(Phone.DATA, value)
+    .build();
+  }
+  
+  public static ContentProviderOperation update(String id, String value, int type) {
+    return ContentProviderOperation.newUpdate(Data.CONTENT_URI)
+        .withSelection(Data._ID + "=?", new String[]{String.valueOf(id)})
+        .withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
+        .withValue(Phone.DATA, value)
+        .build();
+  }
+  
+
+  public static ArrayList<ContentProviderOperation> operation(String id, PhoneSync em1, PhoneSync em2) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    if (em1 == null && em2 != null) { // create new from LDAP and insert to db
+      if (em2.getPhoneAssistant() != null) {
+        ops.add(add(id, em2.getPhoneAssistant(), Phone.TYPE_ASSISTANT));
+      }
+      if (em2.getPhoneCallback() != null) {
+        ops.add(add(id, em2.getPhoneCallback(), Phone.TYPE_CALLBACK));
+      }
+      if (em2.getPhoneCar() != null) {
+        ops.add(add(id, em2.getPhoneCar(), Phone.TYPE_CAR));
+      }
+      if (em2.getPhoneCompany() != null) {
+        ops.add(add(id, em2.getPhoneCompany(), Phone.TYPE_COMPANY_MAIN));
+      }
+      if (em2.getPhoneFaxHome() != null) {
+        ops.add(add(id, em2.getPhoneFaxHome(), Phone.TYPE_FAX_HOME));
+      }
+      if (em2.getPhoneFaxWork() != null) {
+        ops.add(add(id, em2.getPhoneFaxWork(), Phone.TYPE_FAX_WORK));
+      }
+      if (em2.getPhoneHome()  != null) {
+        ops.add(add(id, em2.getPhoneHome(), Phone.TYPE_HOME));
+      }
+      if (em2.getPhoneISDN() != null) {
+        ops.add(add(id, em2.getPhoneISDN(), Phone.TYPE_ISDN));
+      }
+      if (em2.getPhoneMain() != null) {
+        ops.add(add(id, em2.getPhoneMain(), Phone.TYPE_MAIN));
+      }
+      if (em2.getPhoneMMS() != null) {
+        ops.add(add(id, em2.getPhoneMMS(), Phone.TYPE_MMS));
+      }
+      if (em2.getPhoneMobile() != null) {
+        ops.add(add(id, em2.getPhoneMobile(), Phone.TYPE_MOBILE));
+      }
+      if (em2.getPhoneOther() != null) {
+        ops.add(add(id, em2.getPhoneOther(), Phone.TYPE_OTHER));
+      }
+      if (em2.getPhoneOtherFax() != null) {
+        ops.add(add(id, em2.getPhoneOtherFax(), Phone.TYPE_OTHER_FAX));
+      }
+      if (em2.getPhonePager() != null) {
+        ops.add(add(id, em2.getPhonePager(), Phone.TYPE_PAGER));
+      }
+      if (em2.getPhoneRadio() != null) {
+        ops.add(add(id, em2.getPhoneRadio(), Phone.TYPE_RADIO));
+      }
+      if (em2.getPhoneTelex() != null) {
+        ops.add(add(id, em2.getPhoneTelex(), Phone.TYPE_TELEX));
+      }
+      if (em2.getPhoneTTYTDD() != null) {
+        ops.add(add(id, em2.getPhoneTTYTDD(), Phone.TYPE_TTY_TDD));
+      }
+      if (em2.getPhoneWork() != null) {
+        ops.add(add(id, em2.getPhoneWork(), Phone.TYPE_WORK));
+      }
+      if (em2.getPhoneWorkMobile() != null) {
+        ops.add(add(id, em2.getPhoneWorkMobile(), Phone.TYPE_WORK_MOBILE));
+      }
+      if (em2.getPhoneWorkPager() != null) {
+        ops.add(add(id, em2.getPhoneWorkPager(), Phone.TYPE_WORK_PAGER));
+      }
+    } else if (em1 == null && em2 == null) { // nothing
+      
+    } else if (em1 != null && em2 == null) { // delete
+      if (em1.getPhoneAssistant() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_ASSISTANT), null)));
+      }
+      if (em1.getPhoneCallback() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_CALLBACK), null)));
+      }
+      if (em1.getPhoneCar() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_CAR), null)));
+      }
+      if (em1.getPhoneCompany() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_COMPANY_MAIN), null)));
+      }
+      if (em1.getPhoneFaxHome() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_FAX_HOME), null)));
+      }
+      if (em1.getPhoneFaxWork() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_FAX_WORK), null)));
+      }
+      if (em1.getPhoneHome()  != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_HOME), null)));
+      }
+      if (em1.getPhoneISDN() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_ISDN), null)));
+      }
+      if (em1.getPhoneMain() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_MAIN), null)));
+      }
+      if (em1.getPhoneMMS() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_MMS), null)));
+      }
+      if (em1.getPhoneMobile() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_MOBILE), null)));
+      }
+      if (em1.getPhoneOther() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_OTHER), null)));
+      }
+      if (em1.getPhoneOtherFax() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_OTHER_FAX), null)));
+      }
+      if (em1.getPhonePager() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_PAGER), null)));
+      }
+      if (em1.getPhoneRadio() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_RADIO), null)));
+      }
+      if (em1.getPhoneTelex() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_TELEX), null)));
+      }
+      if (em1.getPhoneTTYTDD() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_TTY_TDD), null)));
+      }
+      if (em1.getPhoneWork() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_WORK), null)));
+      }
+      if (em1.getPhoneWorkMobile() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_WORK_MOBILE), null)));
+      }
+      if (em1.getPhoneWorkPager() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Phone.TYPE_WORK_PAGER), null)));
+      }
+    } else if (em1 != null && em2 != null) { // clear or update data in db
+      ArrayList<ContentProviderOperation> op;
+      op = createOps(em1.getPhoneAssistant(), em2.getPhoneAssistant(), em1.getID(), Phone.TYPE_ASSISTANT, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      op = createOps(em1.getPhoneCallback(), em2.getPhoneCallback(), em1.getID(), Phone.TYPE_CALLBACK, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneCar(), em2.getPhoneCar(), em1.getID(), Phone.TYPE_CAR, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneCompany(), em2.getPhoneCompany(), em1.getID(), Phone.TYPE_COMPANY_MAIN, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneFaxHome(), em2.getPhoneFaxHome(), em1.getID(), Phone.TYPE_FAX_HOME, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneFaxWork(), em2.getPhoneFaxWork(), em1.getID(), Phone.TYPE_FAX_WORK, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneHome(), em2.getPhoneHome(), em1.getID(), Phone.TYPE_HOME, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      op = createOps(em1.getPhoneISDN(), em2.getPhoneISDN(), em1.getID(), Phone.TYPE_ISDN, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneMain(), em2.getPhoneMain(), em1.getID(), Phone.TYPE_MAIN, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneMMS(), em2.getPhoneMMS(), em1.getID(), Phone.TYPE_MMS, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneMobile(), em2.getPhoneMobile(), em1.getID(), Phone.TYPE_MOBILE, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneOther(), em2.getPhoneOther(), em1.getID(), Phone.TYPE_OTHER, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneOtherFax(), em2.getPhoneOtherFax(), em1.getID(), Phone.TYPE_OTHER_FAX, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      op = createOps(em1.getPhonePager(), em2.getPhonePager(), em1.getID(), Phone.TYPE_PAGER, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneRadio(), em2.getPhoneRadio(), em1.getID(), Phone.TYPE_RADIO, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneTelex(), em2.getPhoneTelex(), em1.getID(), Phone.TYPE_TELEX, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneTTYTDD(), em2.getPhoneTTYTDD(), em1.getID(), Phone.TYPE_TTY_TDD, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneWork(), em2.getPhoneWork(), em1.getID(), Phone.TYPE_WORK, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      op = createOps(em1.getPhoneWorkMobile(), em2.getPhoneWorkMobile(), em1.getID(), Phone.TYPE_WORK_MOBILE, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneWorkPager(), em2.getPhoneWorkPager(), em1.getID(), Phone.TYPE_WORK_PAGER, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+    }
+    return ops.size() > 0 ? ops : null;
+  }
+  
+  /**
+   * 
+   * @param value1
+   * @param value2
+   * @param ids
+   * @param type
+   * @param id
+   * @return
+   */
+  private static ArrayList<ContentProviderOperation> createOps(String value1, String value2, List<ID> ids, int type, String id) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    if(value2 != null || value2 != null) {
+      String i = ID.getIdByValue(ids, String.valueOf(type), null);
+      if (i == null && value2 != null) {
+        ops.add(add(id, value2, type));
+      } else if ( i != null && value2 == null) {
+        ops.add(GoogleContact.delete(i));
+      } else if (i != null && value2 != null && !value2.equals(value1)) { 
+        ops.add(update(id, value2, type));
+      }
+    }
+    return ops.size() > 0 ? ops : null;
+  }
+  
 }

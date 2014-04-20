@@ -2,7 +2,13 @@ package cz.xsendl00.synccontact.contact;
 
 import java.util.List;
 
+import android.util.Log;
+
 public class ID {
+  
+  
+  private static final String TAG = "ID";
+  
   private String id;
   private String type;
   private String category;
@@ -19,6 +25,11 @@ public class ID {
     this.setId(id);
   }
   
+  @Override
+  public String toString() {
+    return "ID [id=" + id + ", type=" + type + ", category=" + category + "]";
+  }
+
   public String getCategory() {
     return category;
   }
@@ -50,11 +61,15 @@ public class ID {
   public static String getIdByValue(List<ID> list, String type, String cat) {
     if (list != null && list.size() > 0) {
       for (ID id : list) {
-        if (id.getType().equals(type) && id.getCategory().equals(cat)) {
+        Log.i(TAG, id.toString() + "vstup:" + type + ", " + cat);
+        if (id.getType() != null && id.getType().equals(type) && 
+            ((id.getCategory() == null && cat == null) || (id.getCategory() != null && cat != null && id.equals(cat)))) {
+          Log.i(TAG, "return:" +id.getId());
           return id.getId();
         }
       }
     }
+    Log.i(TAG, "return: null" );
     return null;
   }
 }

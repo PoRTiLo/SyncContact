@@ -8,7 +8,7 @@ import cz.xsendl00.synccontact.utils.Constants;
  * @author portilo
  *
  */
-public class StructuredPostal extends AbstractType implements ContactInterface {
+public class StructuredPostalSync extends AbstractType implements ContactInterface {
 
   private String homeStreet;
   private String homePOBox;
@@ -34,7 +34,7 @@ public class StructuredPostal extends AbstractType implements ContactInterface {
   private String otherPostalCode;
   private String otherCountry;
   private String otherFormattedAddress;
-  
+
   public String getHomeStreet() {
     return homeStreet;
   }
@@ -183,7 +183,7 @@ public class StructuredPostal extends AbstractType implements ContactInterface {
   
   @Override
   public String toString() {
-    return "StructuredPostal [homeStreet=" + homeStreet + ", homePOBox="
+    return "StructuredPostalSync [homeStreet=" + homeStreet + ", homePOBox="
         + homePOBox + ", homeCity=" + homeCity + ", homeRegion=" + homeRegion
         + ", homePostalCode=" + homePostalCode + ", homeCountry=" + homeCountry
         + ", workStreet=" + workStreet + ", workPOBox=" + workPOBox
@@ -227,7 +227,7 @@ public class StructuredPostal extends AbstractType implements ContactInterface {
     otherFormattedAddress = Constants.OTHER_FORMATTED_ADDRESS;
   }
   
-  public static ContentValues compare(StructuredPostal obj1, StructuredPostal obj2) {
+  public static ContentValues compare(StructuredPostalSync obj1, StructuredPostalSync obj2) {
     ContentValues values = new ContentValues();
     if (obj1 == null && obj2 != null) { // update from LDAP
       if (obj2.getHomeCity() != null) {

@@ -24,10 +24,12 @@ import android.app.ProgressDialog;
 import android.content.ContentProviderOperation;
 import android.content.Context;
 import android.content.Intent;
+import android.content.OperationApplicationException;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -118,7 +120,7 @@ public class MainActivity extends Activity {
   
   
   public void startMap(View view) {
-    EmailSync em2 = new EmailSync();
+   /* EmailSync em2 = new EmailSync();
     EmailSync em1 = new EmailSync();
     em2.setHomeMail("ddd");
     em1.setHomeMail("aaa");
@@ -131,15 +133,15 @@ public class MainActivity extends Activity {
     for (ContentProviderOperation p : op) {
       System.out.println(p.toString());
     }
-    
+    */
     //ContentValue a = EmailSync.operation(null, null, null);
     //Log.i(TAG, GoogleContact.defaultValue().toString());
     
     //Mapping.mappingRequest(getContentResolver(), "149", "baseDn");
     //Mapping.mappingContactFromDB(getContentResolver(), "149");
     //Mapping.fetchDirtyContacts(getApplicationContext());
-    //UpdateTask rt = new UpdateTask();
-    //rt.execute();
+    UpdateTask rt = new UpdateTask();
+    rt.execute();
     //Log.i(TAG, ContactRow.createTimestamp());
     //ServerUtilities.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
     
@@ -153,7 +155,15 @@ public class MainActivity extends Activity {
       //ServerUtilities.fetchModifyTimestamp(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
       //ServerUtilities.fetchModifyTimestampContacts(new ServerInstance(AccountData.getAccountData(getApplicationContext())), 
       //    getApplicationContext(), "20140328193405Z");
-      ServerUtilities.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
+      try {
+        ServerUtilities.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
+      } catch (RemoteException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch (OperationApplicationException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
       return true;
     }
     protected void onPostExecute(Boolean bool) {

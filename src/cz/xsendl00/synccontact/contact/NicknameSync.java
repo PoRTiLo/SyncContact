@@ -1,6 +1,7 @@
 package cz.xsendl00.synccontact.contact;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
@@ -20,7 +21,7 @@ public class NicknameSync extends AbstractType implements ContactInterface {
   private String nicknameMaiden;
   private String nicknameShort;
   private String nicknameInitials;
-  
+
   public NicknameSync() {
   }
   
@@ -209,30 +210,53 @@ public class NicknameSync extends AbstractType implements ContactInterface {
       }
       
     } else if (em1 != null && em2 != null) { // clear or update data in db
-      if (em2.getNicknameDefault() != null) {
-        ops.add(add(id, em2.getNicknameDefault(), Nickname.TYPE_OTHER_NAME));
-      } else {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Nickname.TYPE_DEFAULT), null)));
+      ArrayList<ContentProviderOperation> op;
+      op = createOps(em1.getNicknameDefault(), em2.getNicknameDefault(), em1.getID(), Nickname.TYPE_DEFAULT, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
       }
-      if (em2.getNicknameInitials() != null) {
-        ops.add(add(id, em2.getNicknameInitials(), Nickname.TYPE_INITIALS));
-      } else {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Nickname.TYPE_INITIALS), null)));
+      op = createOps(em1.getNicknameInitials(), em2.getNicknameInitials(), em1.getID(), Nickname.TYPE_INITIALS, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
       }
-      if (em2.getNicknameMaiden() != null) {
-        ops.add(add(id, em2.getNicknameMaiden(), Nickname.TYPE_MAIDEN_NAME));
-      } else {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Nickname.TYPE_MAIDEN_NAME), null)));
+      
+      op = createOps(em1.getNicknameMaiden(), em2.getNicknameMaiden(), em1.getID(), Nickname.TYPE_MAIDEN_NAME, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
       }
-      if (em2.getNicknameOther() != null) {
-        ops.add(add(id, em2.getNicknameOther(), Nickname.TYPE_OTHER_NAME));
-      } else {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Nickname.TYPE_OTHER_NAME), null)));
+      
+      op = createOps(em1.getNicknameOther(), em2.getNicknameOther(), em1.getID(), Nickname.TYPE_OTHER_NAME, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
       }
-      if (em2.getNicknameShort() != null) {
-        ops.add(add(id, em2.getNicknameShort(), Nickname.TYPE_SHORT_NAME));
-      } else {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Nickname.TYPE_SHORT_NAME), null)));
+      
+      op = createOps(em1.getNicknameShort(), em2.getNicknameShort(), em1.getID(), Nickname.TYPE_SHORT_NAME, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+    }
+    return ops.size() > 0 ? ops : null;
+  }
+  
+  /**
+   * 
+   * @param value1
+   * @param value2
+   * @param ids
+   * @param type
+   * @param id
+   * @return
+   */
+  private static ArrayList<ContentProviderOperation> createOps(String value1, String value2, List<ID> ids, int type, String id) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    if(value2 != null || value2 != null) {
+      String i = ID.getIdByValue(ids, String.valueOf(type), null);
+      if (i == null && value2 != null) {
+        ops.add(add(id, value2, type));
+      } else if ( i != null && value2 == null) {
+        ops.add(GoogleContact.delete(i));
+      } else if (i != null && value2 != null && !value2.equals(value1)) { 
+        ops.add(update(id, value2, type));
       }
     }
     return ops.size() > 0 ? ops : null;

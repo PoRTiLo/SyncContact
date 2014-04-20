@@ -1,6 +1,14 @@
 package cz.xsendl00.synccontact.contact;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import android.content.ContentProviderOperation;
 import android.content.ContentValues;
+import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.CommonDataKinds.Organization;
 import cz.xsendl00.synccontact.utils.Constants;
 
 /**
@@ -8,7 +16,7 @@ import cz.xsendl00.synccontact.utils.Constants;
  * @author portilo
  *
  */
-public class Organization extends AbstractType implements ContactInterface {
+public class OrganizationSync extends AbstractType implements ContactInterface {
 
   private String organizationWorkCompany;
   private String organizationWorkTitle;
@@ -172,7 +180,7 @@ public class Organization extends AbstractType implements ContactInterface {
     organizationOtherPhoneticNameStyle = Constants.ORGANIZATION_OTHER_PHONETIC_NAME_STYLE;
   }
   
-  public static ContentValues compare(Organization obj1, Organization obj2) {
+  public static ContentValues compare(OrganizationSync obj1, OrganizationSync obj2) {
     ContentValues values = new ContentValues();
     if (obj1 == null && obj2 != null) { // update from LDAP
       if (obj2.getOrganizationOtherCompany() != null) {
@@ -360,4 +368,255 @@ public class Organization extends AbstractType implements ContactInterface {
   }
   
   
+
+  public static ContentProviderOperation add(String id, Map<String, String> values, int type) {
+    ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newInsert(Data.CONTENT_URI);
+    operationBuilder.withValue(Data.RAW_CONTACT_ID, id)
+      .withValue(Data.MIMETYPE, Organization.CONTENT_ITEM_TYPE)
+      .withValue(Organization.TYPE, type);
+    Iterator<String> iter = values.keySet().iterator();
+    while(iter.hasNext()) {
+      String key = (String)iter.next();
+      String val = (String)values.get(key);
+      operationBuilder.withValue(key, val);
+    }
+    return operationBuilder.build();
+  }
+  
+  public static ContentProviderOperation update(String id, Map<String, String> values, int type) {
+    ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(Data.CONTENT_URI);
+    operationBuilder.withSelection(Data._ID + "=?", new String[] {id})
+        .withValue(Data.MIMETYPE,Organization.CONTENT_ITEM_TYPE)
+        .withValue(Organization.TYPE, type);;
+    
+    Iterator<String> iter = values.keySet().iterator();
+    while(iter.hasNext()) {
+      String key = (String)iter.next();
+      String val = (String)values.get(key);
+      operationBuilder.withValue(key, val);
+    }
+    return operationBuilder.build();
+  }
+  
+
+  public static ArrayList<ContentProviderOperation> operation(String id, OrganizationSync em1, OrganizationSync em2) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    if (em1 == null && em2 != null) { // create new from LDAP and insert to db
+      Map<String, String> value = new HashMap<String, String>();
+      if (em2.getOrganizationOtherCompany() != null) {
+        value.put(Organization.DATA1, em2.getOrganizationOtherCompany());
+      }
+      if (em2.getOrganizationOtherDepartment() != null) {
+        value.put(Organization.DATA5, em2.getOrganizationOtherDepartment());
+      }
+      if (em2.getOrganizationOtherJobDescription() != null) {
+        value.put(Organization.DATA6, em2.getOrganizationOtherJobDescription());
+      }
+      if (em2.getOrganizationOtherOfficeLocation() != null) {
+        value.put(Organization.DATA9, em2.getOrganizationOtherOfficeLocation());
+      }
+      if (em2.getOrganizationOtherPhoneticName() != null) {
+        value.put(Organization.DATA8, em2.getOrganizationOtherPhoneticName());
+      }
+      if (em2.getOrganizationOtherPhoneticNameStyle()!= null) {
+        value.put(Organization.DATA10, em2.getOrganizationOtherPhoneticNameStyle());
+      }
+      if (em2.getOrganizationOtherSymbol() != null) {
+        value.put(Organization.DATA7, em2.getOrganizationOtherSymbol());
+      }
+      if (em2.getOrganizationOtherTitle() != null) {
+        value.put(Organization.DATA4, em2.getOrganizationOtherTitle());
+      }
+      if (value.size() > 0) {
+        ops.add(add(id,value, Organization.TYPE_OTHER));
+      }
+      value.clear();
+      if (em2.getOrganizationWorkCompany() != null) {
+        value.put(Organization.DATA1, em2.getOrganizationWorkCompany());
+      }
+      if (em2.getOrganizationWorkDepartment() != null) {
+        value.put(Organization.DATA5, em2.getOrganizationWorkDepartment());
+      }
+      if (em2.getOrganizationWorkJobDescription() != null) {
+        value.put(Organization.DATA6, em2.getOrganizationWorkJobDescription());
+      }
+      if (em2.getOrganizationWorkOfficeLocation() != null) {
+        value.put(Organization.DATA9, em2.getOrganizationWorkOfficeLocation());
+      }
+      if (em2.getOrganizationWorkPhoneticName() != null) {
+        value.put(Organization.DATA8, em2.getOrganizationWorkPhoneticName());
+      }
+      if (em2.getOrganizationWorkPhoneticNameStyle()!= null) {
+        value.put(Organization.DATA10, em2.getOrganizationWorkPhoneticNameStyle());
+      }
+      if (em2.getOrganizationWorkSymbol() != null) {
+        value.put(Organization.DATA7, em2.getOrganizationWorkSymbol());
+      }
+      if (em2.getOrganizationWorkTitle() != null) {
+        value.put(Organization.DATA4, em2.getOrganizationWorkTitle());
+      }
+      if (value.size() > 0) {
+        ops.add(add(id,value, Organization.TYPE_WORK));
+      }
+    } else if (em1 == null && em2 == null) { // nothing
+      
+    } else if (em1 != null && em2 == null) { // delete
+      ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Organization.TYPE_OTHER), null)));
+      ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Organization.TYPE_WORK), null)));
+    } else if (em1 != null && em2 != null) { // clear or update data in db
+      Map<String, String> value = new HashMap<String, String>();
+      if ((em2.getOrganizationOtherCompany() != null && em1.getOrganizationOtherCompany() != null 
+          && !em2.getOrganizationOtherCompany().equals(em1.getOrganizationOtherCompany())) 
+          ||
+          (em2.getOrganizationOtherCompany() != null && em1.getOrganizationOtherCompany() == null)
+          ||
+          (em2.getOrganizationOtherCompany() == null && em1.getOrganizationOtherCompany() != null )) {
+        value.put(Organization.DATA1, em2.getOrganizationOtherCompany());
+      }
+      
+      if ((em2.getOrganizationOtherDepartment() != null && em1.getOrganizationOtherDepartment() != null 
+          && !em2.getOrganizationOtherDepartment().equals(em1.getOrganizationOtherDepartment())) 
+          ||
+          (em2.getOrganizationOtherDepartment() != null && em1.getOrganizationOtherDepartment() == null)
+          ||
+          (em2.getOrganizationOtherDepartment() == null && em1.getOrganizationOtherDepartment() != null )) {
+        value.put(Organization.DATA5, em2.getOrganizationOtherDepartment());
+      }
+      
+      if ((em2.getOrganizationOtherJobDescription() != null && em1.getOrganizationOtherJobDescription() != null 
+          && !em2.getOrganizationOtherJobDescription().equals(em1.getOrganizationOtherJobDescription())) 
+          ||
+          (em2.getOrganizationOtherJobDescription() != null && em1.getOrganizationOtherJobDescription() == null)
+          ||
+          (em2.getOrganizationOtherJobDescription() == null && em1.getOrganizationOtherJobDescription() != null )) {
+        value.put(Organization.DATA6, em2.getOrganizationOtherJobDescription());
+      }
+      
+      if ((em2.getOrganizationOtherOfficeLocation() != null && em1.getOrganizationOtherOfficeLocation() != null 
+          && !em2.getOrganizationOtherOfficeLocation().equals(em1.getOrganizationOtherOfficeLocation())) 
+          ||
+          (em2.getOrganizationOtherOfficeLocation() != null && em1.getOrganizationOtherOfficeLocation() == null)
+          ||
+          (em2.getOrganizationOtherOfficeLocation() == null && em1.getOrganizationOtherOfficeLocation() != null )) {
+        value.put(Organization.DATA9, em2.getOrganizationOtherOfficeLocation());
+      }
+      
+      if ((em2.getOrganizationOtherPhoneticName() != null && em1.getOrganizationOtherPhoneticName() != null 
+          && !em2.getOrganizationOtherPhoneticName().equals(em1.getOrganizationOtherPhoneticName())) 
+          ||
+          (em2.getOrganizationOtherPhoneticName() != null && em1.getOrganizationOtherPhoneticName() == null)
+          ||
+          (em2.getOrganizationOtherPhoneticName() == null && em1.getOrganizationOtherPhoneticName() != null )) {
+        value.put(Organization.DATA8, em2.getOrganizationOtherPhoneticName());
+      }
+      
+      if ((em2.getOrganizationOtherPhoneticNameStyle() != null && em1.getOrganizationOtherPhoneticNameStyle() != null 
+          && !em2.getOrganizationOtherPhoneticNameStyle().equals(em1.getOrganizationOtherPhoneticNameStyle())) 
+          ||
+          (em2.getOrganizationOtherPhoneticNameStyle() != null && em1.getOrganizationOtherPhoneticNameStyle() == null)
+          ||
+          (em2.getOrganizationOtherPhoneticNameStyle() == null && em1.getOrganizationOtherPhoneticNameStyle() != null )) {
+        value.put(Organization.DATA10, em2.getOrganizationOtherPhoneticNameStyle());
+      }
+      
+      if ((em2.getOrganizationOtherSymbol() != null && em1.getOrganizationOtherSymbol() != null 
+          && !em2.getOrganizationOtherSymbol().equals(em1.getOrganizationOtherSymbol())) 
+          ||
+          (em2.getOrganizationOtherSymbol() != null && em1.getOrganizationOtherSymbol() == null)
+          ||
+          (em2.getOrganizationOtherSymbol() == null && em1.getOrganizationOtherSymbol() != null )) {
+        value.put(Organization.DATA7, em2.getOrganizationOtherSymbol());
+      }
+      
+      if ((em2.getOrganizationOtherTitle() != null && em1.getOrganizationOtherTitle() != null 
+          && !em2.getOrganizationOtherTitle().equals(em1.getOrganizationOtherTitle())) 
+          ||
+          (em2.getOrganizationOtherTitle() != null && em1.getOrganizationOtherTitle() == null)
+          ||
+          (em2.getOrganizationOtherTitle() == null && em1.getOrganizationOtherTitle() != null )) {
+        value.put(Organization.DATA4, em2.getOrganizationOtherTitle());
+      }
+      if (value.size() > 0) {
+        ops.add(update(ID.getIdByValue(em1.getID(), String.valueOf(Organization.TYPE_OTHER), null), value, Organization.TYPE_OTHER));
+      }
+      value.clear();
+      if ((em2.getOrganizationWorkCompany() != null && em1.getOrganizationWorkCompany() != null 
+          && !em2.getOrganizationWorkCompany().equals(em1.getOrganizationWorkCompany())) 
+          ||
+          (em2.getOrganizationWorkCompany() != null && em1.getOrganizationWorkCompany() == null)
+          ||
+          (em2.getOrganizationWorkCompany() == null && em1.getOrganizationWorkCompany() != null )) {
+        value.put(Organization.DATA1, em2.getOrganizationWorkCompany());
+      }
+      
+      if ((em2.getOrganizationWorkDepartment() != null && em1.getOrganizationWorkDepartment() != null 
+          && !em2.getOrganizationWorkDepartment().equals(em1.getOrganizationWorkDepartment())) 
+          ||
+          (em2.getOrganizationWorkDepartment() != null && em1.getOrganizationWorkDepartment() == null)
+          ||
+          (em2.getOrganizationWorkDepartment() == null && em1.getOrganizationWorkDepartment() != null )) {
+        value.put(Organization.DATA5, em2.getOrganizationWorkDepartment());
+      }
+      
+      if ((em2.getOrganizationWorkJobDescription() != null && em1.getOrganizationWorkJobDescription() != null 
+          && !em2.getOrganizationWorkJobDescription().equals(em1.getOrganizationWorkJobDescription())) 
+          ||
+          (em2.getOrganizationWorkJobDescription() != null && em1.getOrganizationWorkJobDescription() == null)
+          ||
+          (em2.getOrganizationWorkJobDescription() == null && em1.getOrganizationWorkJobDescription() != null )) {
+        value.put(Organization.DATA6, em2.getOrganizationWorkJobDescription());
+      }
+      
+      if ((em2.getOrganizationWorkOfficeLocation() != null && em1.getOrganizationWorkOfficeLocation() != null 
+          && !em2.getOrganizationWorkOfficeLocation().equals(em1.getOrganizationWorkOfficeLocation())) 
+          ||
+          (em2.getOrganizationWorkOfficeLocation() != null && em1.getOrganizationWorkOfficeLocation() == null)
+          ||
+          (em2.getOrganizationWorkOfficeLocation() == null && em1.getOrganizationWorkOfficeLocation() != null )) {
+        value.put(Organization.DATA9, em2.getOrganizationWorkOfficeLocation());
+      }
+      
+      if ((em2.getOrganizationWorkPhoneticName() != null && em1.getOrganizationWorkPhoneticName() != null 
+          && !em2.getOrganizationWorkPhoneticName().equals(em1.getOrganizationWorkPhoneticName())) 
+          ||
+          (em2.getOrganizationWorkPhoneticName() != null && em1.getOrganizationWorkPhoneticName() == null)
+          ||
+          (em2.getOrganizationWorkPhoneticName() == null && em1.getOrganizationWorkPhoneticName() != null )) {
+        value.put(Organization.DATA8, em2.getOrganizationWorkPhoneticName());
+      }
+      
+      if ((em2.getOrganizationWorkPhoneticNameStyle() != null && em1.getOrganizationWorkPhoneticNameStyle() != null 
+          && !em2.getOrganizationWorkPhoneticNameStyle().equals(em1.getOrganizationWorkPhoneticNameStyle())) 
+          ||
+          (em2.getOrganizationWorkPhoneticNameStyle() != null && em1.getOrganizationWorkPhoneticNameStyle() == null)
+          ||
+          (em2.getOrganizationWorkPhoneticNameStyle() == null && em1.getOrganizationWorkPhoneticNameStyle() != null )) {
+        value.put(Organization.DATA10, em2.getOrganizationWorkPhoneticNameStyle());
+      }
+      
+      if ((em2.getOrganizationWorkSymbol() != null && em1.getOrganizationWorkSymbol() != null 
+          && !em2.getOrganizationWorkSymbol().equals(em1.getOrganizationWorkSymbol())) 
+          ||
+          (em2.getOrganizationWorkSymbol() != null && em1.getOrganizationWorkSymbol() == null)
+          ||
+          (em2.getOrganizationWorkSymbol() == null && em1.getOrganizationWorkSymbol() != null )) {
+        value.put(Organization.DATA7, em2.getOrganizationWorkSymbol());
+      }
+      
+      if ((em2.getOrganizationWorkTitle() != null && em1.getOrganizationWorkTitle() != null 
+          && !em2.getOrganizationWorkTitle().equals(em1.getOrganizationWorkTitle())) 
+          ||
+          (em2.getOrganizationWorkTitle() != null && em1.getOrganizationWorkTitle() == null)
+          ||
+          (em2.getOrganizationWorkTitle() == null && em1.getOrganizationWorkTitle() != null )) {
+        value.put(Organization.DATA4, em2.getOrganizationWorkTitle());
+      }
+      if (value.size() > 0) {
+        ops.add(update(ID.getIdByValue(em1.getID(), String.valueOf(Organization.TYPE_WORK), null), value, Organization.TYPE_WORK));
+      }
+    }
+    return ops.size() > 0 ? ops : null;
+  }
+  
+
 }

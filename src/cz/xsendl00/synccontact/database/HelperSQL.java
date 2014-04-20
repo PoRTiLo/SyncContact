@@ -281,6 +281,23 @@ public class HelperSQL extends SQLiteOpenHelper {
   }
   
   // Getting sync contact id 
+  public String getContactId(String uuid) {
+    Log.i(TAG, " getContactId");
+    String contactsId = null;
+    String selectQuery = "SELECT " + CONTACT_KEY_ID_CONTACT + " FROM " + CONTACT_TABLE_NAME + " WHERE " + CONTACT_KEY_UUID + " ='" + uuid + "'";
+    Log.i(TAG, selectQuery);
+    SQLiteDatabase db = this.getWritableDatabase();
+    Cursor cursor = db.rawQuery(selectQuery, null);
+    if (cursor.moveToFirst()) {
+      contactsId = cursor.getString(0);
+    }
+    db.close();
+    return contactsId;
+  }
+  
+  
+  
+  // Getting sync contact id 
   public List<ContactRow> getSyncContacts() {
     List<ContactRow> contacts = new ArrayList<ContactRow>();
     String selectQuery = "SELECT " + CONTACT_KEY_ID_CONTACT +","+ CONTACT_KEY_UUID + " FROM " + CONTACT_TABLE_NAME + " WHERE " + CONTACT_KEY_SYNC + " =1";

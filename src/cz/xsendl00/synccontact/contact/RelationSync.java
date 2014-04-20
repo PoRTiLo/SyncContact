@@ -1,9 +1,15 @@
 package cz.xsendl00.synccontact.contact;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import android.content.ContentProviderOperation;
 import android.content.ContentValues;
+import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.CommonDataKinds.Relation;
 import cz.xsendl00.synccontact.utils.Constants;
 
-public class Relation extends AbstractType implements ContactInterface{
+public class RelationSync extends AbstractType implements ContactInterface{
 
   private String relationAssistant;
   private String relationBrother;
@@ -138,7 +144,7 @@ public class Relation extends AbstractType implements ContactInterface{
     
   }
   
-  public static ContentValues compare(Relation obj1, Relation obj2) {
+  public static ContentValues compare(RelationSync obj1, RelationSync obj2) {
     ContentValues values = new ContentValues();
     if (obj1 == null && obj2 != null) { // update from LDAP
       if (obj2.getRelationAssistant() != null) {
@@ -301,5 +307,214 @@ public class Relation extends AbstractType implements ContactInterface{
       }
     }
     return values;
+  }
+
+  /**
+   * 
+   * @param id        raw_contact id
+   * @param value     name of protocol
+   * @param protocol  like {@link Relation.PROTOCOl_AIM}
+   * @param type      like Relation.TYPE_HOME
+   * @return
+   */
+  public static ContentProviderOperation add(String id, String value, int type) {
+    return ContentProviderOperation.newInsert(Data.CONTENT_URI)
+    .withValue(Data.RAW_CONTACT_ID, id)
+    .withValue(Data.MIMETYPE, Relation.CONTENT_ITEM_TYPE)
+    .withValue(Relation.TYPE, type)
+    .withValue(Relation.DATA, value)
+    .build();
+  }
+  
+  public static ContentProviderOperation update(String id, String value, int type) {
+    return ContentProviderOperation.newUpdate(Data.CONTENT_URI)
+        .withSelection(Data._ID + "=?", new String[]{String.valueOf(id)})
+        .withValue(Data.MIMETYPE, Relation.CONTENT_ITEM_TYPE)
+        .withValue(Relation.DATA, value)
+        .build();
+  }
+  
+
+  public static ArrayList<ContentProviderOperation> operation(String id, RelationSync em1, RelationSync em2) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    if (em1 == null && em2 != null) { // create new from LDAP and insert to db
+      if (em2.getRelationAssistant() != null) {
+        ops.add(add(id, em2.getRelationAssistant(), Relation.TYPE_ASSISTANT));
+      }
+      if (em2.getRelationBrother()!= null) {
+        ops.add(add(id, em2.getRelationBrother(), Relation.TYPE_BROTHER));
+      }
+      if (em2.getRelationChild() != null) {
+        ops.add(add(id, em2.getRelationChild(), Relation.TYPE_CHILD));
+      }
+      if (em2.getRelationDomesticPartner() != null) {
+        ops.add(add(id, em2.getRelationDomesticPartner(), Relation.TYPE_DOMESTIC_PARTNER));
+      }
+      if (em2.getRelationFather() != null) {
+        ops.add(add(id, em2.getRelationFather(), Relation.TYPE_FATHER));
+      }
+      if (em2.getRelationFriend() != null) {
+        ops.add(add(id, em2.getRelationFriend(), Relation.TYPE_FRIEND));
+      }
+      if (em2.getRelationManager() != null) {
+        ops.add(add(id, em2.getRelationManager(), Relation.TYPE_MANAGER));
+      }
+      if (em2.getRelationMother() != null) {
+        ops.add(add(id, em2.getRelationMother(), Relation.TYPE_MOTHER));
+      }
+      if (em2.getRelationParent() != null) {
+        ops.add(add(id, em2.getRelationParent(), Relation.TYPE_PARENT));
+      }
+      if (em2.getRelationPartner() != null) {
+        ops.add(add(id, em2.getRelationPartner(), Relation.TYPE_PARTNER));
+      }
+      if (em2.getRelationRefferedBy() != null) {
+        ops.add(add(id, em2.getRelationRefferedBy(), Relation.TYPE_REFERRED_BY));
+      }
+      if (em2.getRelationRelative() != null) {
+        ops.add(add(id, em2.getRelationRelative(), Relation.TYPE_RELATIVE));
+      }
+      if (em2.getRelationSister() != null) {
+        ops.add(add(id, em2.getRelationSister(), Relation.TYPE_SISTER));
+      }
+      if (em2.getRelationSpouse() != null) {
+        ops.add(add(id, em2.getRelationSpouse(), Relation.TYPE_SPOUSE));
+      }
+    } else if (em1 == null && em2 == null) { // nothing
+      
+    } else if (em1 != null && em2 == null) { // delete
+      if (em1.getRelationAssistant() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_ASSISTANT), null)));
+      }
+      if (em1.getRelationBrother() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_BROTHER), null)));
+      }
+      if (em1.getRelationChild() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_CHILD), null)));
+      }
+      if (em1.getRelationDomesticPartner() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_DOMESTIC_PARTNER), null)));
+      }
+      if (em1.getRelationFather() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_FATHER), null)));
+      }
+      if (em1.getRelationFriend() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_FRIEND), null)));
+      }
+      if (em1.getRelationManager()  != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_MANAGER), null)));
+      }
+      if (em1.getRelationMother() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_MOTHER), null)));
+      }
+      if (em1.getRelationParent() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_PARENT), null)));
+      }
+      if (em1.getRelationPartner() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_PARTNER), null)));
+      }
+      if (em1.getRelationRefferedBy() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_REFERRED_BY), null)));
+      }
+      if (em1.getRelationRelative() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_RELATIVE), null)));
+      }
+      if (em1.getRelationSister() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_SISTER), null)));
+      }
+      if (em1.getRelationSpouse() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_SPOUSE), null)));
+      }
+    } else if (em1 != null && em2 != null) { // clear or update data in db
+      ArrayList<ContentProviderOperation> op;
+      op = createOps(em1.getRelationAssistant(), em2.getRelationAssistant(), em1.getID(), Relation.TYPE_ASSISTANT, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      op = createOps(em1.getRelationBrother(), em2.getRelationBrother(), em1.getID(), Relation.TYPE_BROTHER, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getRelationDomesticPartner(), em2.getRelationDomesticPartner(), em1.getID(), Relation.TYPE_DOMESTIC_PARTNER, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getRelationFather(), em2.getRelationFather(), em1.getID(), Relation.TYPE_FATHER, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getRelationFriend(), em2.getRelationFriend(), em1.getID(), Relation.TYPE_FRIEND, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getRelationManager(), em2.getRelationManager(), em1.getID(), Relation.TYPE_MANAGER, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getRelationMother(), em2.getRelationMother(), em1.getID(), Relation.TYPE_MOTHER, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      op = createOps(em1.getRelationParent(), em2.getRelationParent(), em1.getID(), Relation.TYPE_PARENT, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getRelationPartner() , em2.getRelationPartner(), em1.getID(), Relation.TYPE_PARTNER, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getRelationRefferedBy(), em2.getRelationRefferedBy(), em1.getID(), Relation.TYPE_REFERRED_BY, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getRelationRelative(), em2.getRelationRelative(), em1.getID(), Relation.TYPE_RELATIVE, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getRelationSister(), em2.getRelationSister(), em1.getID(), Relation.TYPE_SISTER, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getRelationSpouse(), em2.getRelationSpouse(), em1.getID(), Relation.TYPE_SPOUSE, id);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+    }
+    return ops.size() > 0 ? ops : null;
+  }
+  
+  /**
+   * 
+   * @param value1
+   * @param value2
+   * @param ids
+   * @param type
+   * @param id
+   * @return
+   */
+  private static ArrayList<ContentProviderOperation> createOps(String value1, String value2, List<ID> ids, int type, String id) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    if(value2 != null || value2 != null) {
+      String i = ID.getIdByValue(ids, String.valueOf(type), null);
+      if (i == null && value2 != null) {
+        ops.add(add(id, value2, type));
+      } else if ( i != null && value2 == null) {
+        ops.add(GoogleContact.delete(i));
+      } else if (i != null && value2 != null && !value2.equals(value1)) { 
+        ops.add(update(id, value2, type));
+      }
+    }
+    return ops.size() > 0 ? ops : null;
   }
 }

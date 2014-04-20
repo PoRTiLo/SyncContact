@@ -257,7 +257,7 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     // if new account
     if (accountData.isNewAccount()) {
       GoogleContact gcMapping = new GoogleContact();
-      //gcMapping.init();
+      gcMapping.init();
       //Bundle userData = Mapping.mapingTo(gcMapping, accountData);
       
       // create new account for contact in table accounts

@@ -19,7 +19,7 @@ public class EmailSync extends AbstractType implements ContactInterface {
   private String workMail;;
   private String otherMail;;
   private String mobileMail;;
-  
+
   public String getHomeMail() {
     return homeMail;
   }
@@ -124,7 +124,7 @@ public class EmailSync extends AbstractType implements ContactInterface {
   
   public static ContentProviderOperation update(String id, String email, int type) {
     return ContentProviderOperation.newUpdate(Data.CONTENT_URI)
-        .withSelection(Data._ID + "=?", new String[]{String.valueOf(id)})
+        .withSelection(Data._ID + "=?", new String[]{id})
         .withValue(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE)
         .withValue(Email.ADDRESS, email)
         .withValue(Email.TYPE, type)
@@ -136,7 +136,6 @@ public class EmailSync extends AbstractType implements ContactInterface {
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       
       if (em2.getHomeMail() != null) {
-        System.out.println("tadyy");
         ops.add(add(id, em2.getHomeMail(), Email.TYPE_HOME));
       }
       if (em2.getMobileMail() != null) {
@@ -148,8 +147,8 @@ public class EmailSync extends AbstractType implements ContactInterface {
       if (em2.getWorkMail() != null) {
         ops.add(add(id, em2.getWorkMail(), Email.TYPE_WORK));
       }
-    } else if (em1 == null && em2 == null) { // nothing
       
+    } else if (em1 == null && em2 == null) { // nothing
     } else if (em1 != null && em2 == null) { // clear or update data in db
       if (em1.getHomeMail() != null) {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Email.TYPE_HOME), null)));
@@ -164,29 +163,41 @@ public class EmailSync extends AbstractType implements ContactInterface {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Email.TYPE_WORK), null)));
       }
     } else if (em1 != null && em2 != null) { // merge
+      
       String i = ID.getIdByValue(em1.getID(), String.valueOf(Email.TYPE_HOME), null);
-      if (em2.getHomeMail() != null) {
+      if (i == null && em2.getHomeMail() != null) {
+        ops.add(add(id, em2.getHomeMail(), Email.TYPE_HOME));
+      } else if ( i != null && em2.getHomeMail() == null) {
+        ops.add(GoogleContact.delete(i));
+      } else if (i != null && em2.getHomeMail() != null && !em2.getHomeMail().equals(em1.getHomeMail())) { 
         ops.add(update(i, em2.getHomeMail(), Email.TYPE_HOME));
-      } else {
-        ops.add(GoogleContact.delete(i));
       }
+      
       i = ID.getIdByValue(em1.getID(), String.valueOf(Email.TYPE_MOBILE), null);
-      if (em2.getMobileMail() != null) {
-        ops.add(update(i, em2.getMobileMail(), Email.TYPE_MOBILE));
-      } else {
+      if (i == null && em2.getMobileMail() != null) {
+        ops.add(add(id, em2.getMobileMail(), Email.TYPE_HOME));
+      } else if ( i != null && em2.getMobileMail() == null) {
         ops.add(GoogleContact.delete(i));
+      } else if (i != null && em2.getMobileMail() != null && !em2.getMobileMail().equals(em1.getMobileMail())) { 
+        ops.add(update(i, em2.getMobileMail(), Email.TYPE_HOME));
       }
+     
       i = ID.getIdByValue(em1.getID(), String.valueOf(Email.TYPE_OTHER), null);
-      if (em2.getOtherMail() != null) {
-        ops.add(update(i, em2.getOtherMail(), Email.TYPE_OTHER));
-      } else {
+      if (i == null && em2.getOtherMail() != null) {
+        ops.add(add(id, em2.getOtherMail(), Email.TYPE_HOME));
+      } else if ( i != null && em2.getOtherMail() == null) {
         ops.add(GoogleContact.delete(i));
+      } else if (i != null && em2.getOtherMail() != null && !em2.getOtherMail().equals(em1.getOtherMail())) { 
+        ops.add(update(i, em2.getOtherMail(), Email.TYPE_HOME));
       }
+      
       i = ID.getIdByValue(em1.getID(), String.valueOf(Email.TYPE_WORK), null);
-      if (em2.getWorkMail() != null) {
-        ops.add(update(i, em2.getWorkMail(), Email.TYPE_WORK));
-      } else {
+      if (i == null && em2.getWorkMail() != null) {
+        ops.add(add(id, em2.getWorkMail(), Email.TYPE_HOME));
+      } else if ( i != null && em2.getWorkMail() == null) {
         ops.add(GoogleContact.delete(i));
+      } else if (i != null && em2.getWorkMail() != null && !em2.getWorkMail().equals(em1.getWorkMail())) { 
+        ops.add(update(i, em2.getWorkMail(), Email.TYPE_HOME));
       }
     }
     return ops.size() > 0 ? ops : null;

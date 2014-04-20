@@ -3,15 +3,16 @@ package cz.xsendl00.synccontact.utils;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.UUID;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.provider.ContactsContract.CommonDataKinds;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.GroupMembership;
 import android.provider.ContactsContract.RawContacts;
-import android.text.format.DateFormat;
 import android.util.Log;
 
 public class ContactRow {
@@ -176,9 +177,11 @@ public class ContactRow {
     this.timestamp = timestamp;
   }
   
+  @SuppressLint("SimpleDateFormat")
   public static String createTimestamp() {
     Calendar c = Calendar.getInstance();
     SimpleDateFormat df1 = new SimpleDateFormat("yyyyMMddHHmmss");
+    df1.setTimeZone(TimeZone.getTimeZone("GMT"));
     return df1.format(c.getTime()) +"Z";
   }
 

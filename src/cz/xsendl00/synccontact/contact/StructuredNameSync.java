@@ -1,9 +1,17 @@
 package cz.xsendl00.synccontact.contact;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import android.content.ContentProviderOperation;
 import android.content.ContentValues;
+import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import cz.xsendl00.synccontact.utils.Constants;
 
-public class StructuredName extends AbstractType implements ContactInterface {
+public class StructuredNameSync extends AbstractType implements ContactInterface {
 
   private String phoneticMiddleName;
   private String phoneticGivenName;
@@ -14,7 +22,7 @@ public class StructuredName extends AbstractType implements ContactInterface {
   private String givenName;
   private String namePrefix;
   private String nameSuffix;
-  
+
   public String getFamilyName() {
     return familyName;
   }
@@ -73,7 +81,7 @@ public class StructuredName extends AbstractType implements ContactInterface {
 
   @Override
   public String toString() {
-    return "StructuredName [phoneticMiddleName=" + phoneticMiddleName
+    return "StructuredNameSync [phoneticMiddleName=" + phoneticMiddleName
         + ", phoneticGivenName=" + phoneticGivenName + ", phoneticFamilyName="
         + phoneticFamilyName + ", familyName=" + familyName + ", middleName="
         + middleName + ", displayName=" + displayName + ", givenName="
@@ -94,7 +102,7 @@ public class StructuredName extends AbstractType implements ContactInterface {
     
   }
   
-  public static ContentValues compare(StructuredName obj1, StructuredName obj2) {
+  public static ContentValues compare(StructuredNameSync obj1, StructuredNameSync obj2) {
     ContentValues values = new ContentValues();
     if (obj1 == null && obj2 != null) { // update from LDAP
       if (obj2.getDisplayName() != null) {
@@ -202,5 +210,92 @@ public class StructuredName extends AbstractType implements ContactInterface {
       }
     }
     return values;
+  }
+
+
+  public static ContentProviderOperation add(String id, Map<String, String> values) {
+    ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newInsert(Data.CONTENT_URI);
+    operationBuilder.withValue(Data.RAW_CONTACT_ID, id).withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE);
+    Iterator<String> iter = values.keySet().iterator();
+    while(iter.hasNext()) {
+      String key = (String)iter.next();
+      String val = (String)values.get(key);
+      operationBuilder.withValue(key, val);
+    }
+    return operationBuilder.build();
+  }
+  
+  public static ContentProviderOperation update(String id, Map<String, String> values) {
+    ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(Data.CONTENT_URI);
+    operationBuilder.withSelection(Data._ID + "=?",
+        new String[] {id}).withValue(Data.MIMETYPE,
+        StructuredName.CONTENT_ITEM_TYPE);
+    
+    Iterator<String> iter = values.keySet().iterator();
+    while(iter.hasNext()) {
+      String key = (String)iter.next();
+      String val = (String)values.get(key);
+      operationBuilder.withValue(key, val);
+    }
+    return operationBuilder.build();
+  }
+  
+
+  public static ArrayList<ContentProviderOperation> operation(String id, StructuredNameSync em1, StructuredNameSync em2) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    if (em1 == null && em2 != null) { // create new from LDAP and insert to db
+      Map<String, String> value = op(em2);
+      
+      if (value.size() > 0) {
+        ops.add(add(id,value));
+      }
+    } else if (em1 == null && em2 == null) { // nothing
+      
+    } else if (em1 != null && em2 == null) { // clear or update data in db
+      if (em1.getDisplayName() != null || em1.getFamilyName() != null || em1.getGivenName() != null || em1.getMiddleName() != null
+          || em1.getNamePrefix() != null || em1.getNameSuffix() != null || em1.getPhoneticFamilyName() != null 
+          || em1.getPhoneticGivenName() != null || em1.getPhoneticMiddleName() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(StructuredName.CONTENT_ITEM_TYPE), null)));
+      }
+    } else if (em1 != null && em2 != null) { // merge
+      Map<String, String> value = op(em2);
+      
+      if (value.size() > 0) {
+        ops.add(update(ID.getIdByValue(em1.getID(), String.valueOf(StructuredName.CONTENT_ITEM_TYPE), null), value));
+      }
+    }
+    return ops.size() > 0 ? ops : null;
+  }
+  
+  private static Map<String, String> op(StructuredNameSync em2) {
+    Map<String, String> value = new HashMap<String, String>();
+    if (em2.getDisplayName() != null) {
+      value.put(StructuredName.DISPLAY_NAME, em2.getDisplayName());
+    }
+    if (em2.getFamilyName() != null) {
+      value.put(StructuredName.FAMILY_NAME, em2.getFamilyName());
+    }
+    if (em2.getGivenName() != null) {
+      value.put(StructuredName.GIVEN_NAME, em2.getGivenName());
+    }
+    if (em2.getMiddleName() != null) {
+      value.put(StructuredName.MIDDLE_NAME, em2.getMiddleName());
+    }
+    if (em2.getNamePrefix() != null) {
+      value.put(StructuredName.PREFIX, em2.getNamePrefix());
+    }
+    if (em2.getNameSuffix() != null) {
+      value.put(StructuredName.SUFFIX, em2.getNameSuffix());
+    }
+    if (em2.getPhoneticFamilyName() != null) {
+      value.put(StructuredName.PHONETIC_FAMILY_NAME, em2.getPhoneticFamilyName());
+    }
+    if (em2.getPhoneticGivenName() != null) {
+      value.put(StructuredName.PHONETIC_GIVEN_NAME, em2.getPhoneticGivenName());
+    }
+    if (em2.getPhoneticMiddleName() != null) {
+      value.put(StructuredName.PHONETIC_MIDDLE_NAME, em2.getPhoneticMiddleName());
+    }
+    return value;
   }
 }

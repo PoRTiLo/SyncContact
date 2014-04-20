@@ -4,7 +4,6 @@ package cz.xsendl00.synccontact.ldap;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -174,11 +173,16 @@ public class ServerUtilities {
           filter,
           Mapping.createAttributes());
       for (SearchResultEntry e : searchResult.getSearchEntries()) {
+        Log.i(TAG, e.getAttributeValue(Constants.UUID) + ", has att:" + e.hasAttribute(Constants.UUID));
         contactsServer.put(e.getAttributeValue(Constants.UUID), Mapping.mappingContactFromLDAP(e));
       }
     } catch (LDAPException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
+    } finally {
+      if (connection != null) {
+        connection.close();
+      }
     }
     return contactsServer;
   }
@@ -187,6 +191,7 @@ public class ServerUtilities {
     // get sync user
     HelperSQL db = new HelperSQL(context);
     List<ContactRow> contactsId = db.getSyncContacts();
+    Log.i(TAG, "contactsId: " + contactsId.size());
     // get contact with dirty flag
     Map<String, GoogleContact> contactsDirty = Mapping.fetchDirtyContacts(context, contactsId);
     Log.i(TAG, "fetchDirtyContacts: " + contactsDirty.size());
@@ -214,25 +219,86 @@ public class ServerUtilities {
     // update db syncContact.db
     
     // update db contact.db
-    AndroidDB.updateContactsDb(context, differenceLDAP);
+    //AndroidDB.updateContactsDb(context, differenceLDAP);
     // update server contact
-    
+    updateContactsLDAP(ldapServer, context, differenceLDAP);//differenceDirty
     // set new timestamp
     
     // set dirty flag to disable (0)
   }
   
+  private static void updateContactsLDAP(final ServerInstance ldapServer, final Context context, Map<String, GoogleContact> differenceDirty) {
+    for (Map.Entry<String, GoogleContact> entry : differenceDirty.entrySet()) {
+      if (checkExistsContactLDAP(ldapServer, context, entry.getKey())) {
+        // update
+        updateContactLDAP(ldapServer, context, entry.getValue());
+        Log.i(TAG, "update contact: " + entry.getKey());
+      } else {
+        // create new
+        Log.i(TAG, "create new contact: " + entry.getKey());
+      }
+    }
+  }
+  
+  private static void updateContactLDAP(final ServerInstance ldapServer, Context context, GoogleContact gc) {
+    LDAPConnection connection = null;
+    
+    try {
+      connection = ldapServer.getConnection(null, context);
+    } catch (LDAPException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
+    try {
+      connection.modify(Mapping.mappingRequest(gc, ldapServer.getAccountdData().getBaseDn()));
+    } catch (LDAPException e) {
+       // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    
+  }
+  
   public static <K, V> Map<K, V> intersection(final Map<K, V> map1, final Map<K, V> map2) {
+    Log.i(TAG, "intersection: " + map1.size() + " to " + map2.size());
     Map<K, V> map = new HashMap<K, V>();
     for (Map.Entry<K, V> entry : map1.entrySet()) {
       if(map2.get(entry.getKey()) != null) {
         map.put(entry.getKey(), entry.getValue());
       }
     }
+    Log.i(TAG, "intersection result: " + map.size());
     return map;
   }
   
+  public static boolean checkExistsContactLDAP(final ServerInstance ldapServer, final Context context, String uuid) {
+    LDAPConnection connection = null;
+    boolean  found = false;
+    try {
+      connection = ldapServer.getConnection(null, context);
+      String filter = "(&(objectClass=googleContact)(" + Constants.UUID+ "=" + uuid + "))";
+      SearchResult searchResult = connection.search(
+          "ou=users,dc=synccontact,dc=xsendl00,dc=cz", SearchScope.SUB, 
+          filter,
+          Constants.UUID);
+      for (SearchResultEntry e : searchResult.getSearchEntries()) {
+        if (e.hasAttribute(Constants.UUID)) {
+          found = true;
+          break;
+        }
+      }
+    } catch (LDAPException e) {
+      e.printStackTrace();
+    } finally {
+      if (connection != null) {
+        connection.close();
+      }
+    }
+    return found;
+    
+  }
+  
   public static <K, V> Map<K, V> difference(final Map<K, V> map1, final Map<K, V> map2) {
+    Log.i(TAG, "difference: " + map1.size() + " to " + map2.size());
     Map<K, V> map = new HashMap<K, V>();
     map.putAll(map1);
     for (Map.Entry<K, V> entry : map2.entrySet()) {
@@ -240,6 +306,13 @@ public class ServerUtilities {
         map.remove(entry.getKey());
       }
     }
+    /*
+    for (Map.Entry<K, V> entry : map.entrySet()) {
+      GoogleContact g = (GoogleContact) entry.getValue();
+      Log.i(TAG, "difference result: " + entry.getKey() + ":" + g.getStructuredName().getDisplayName());
+    }
+    
+    Log.i(TAG, "difference result: " + map.size());*/
     return map;
   }
   

@@ -17,7 +17,7 @@ public class WebsiteSync extends AbstractType implements ContactInterface {
   private String websiteWork;
   private String websiteFtp;
   private String websiteOther;
-  
+
   public String getWebsiteHomepage() {
     return websiteHomepage;
   }
