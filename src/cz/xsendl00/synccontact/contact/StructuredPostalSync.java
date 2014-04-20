@@ -1,6 +1,14 @@
 package cz.xsendl00.synccontact.contact;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import android.content.ContentProviderOperation;
 import android.content.ContentValues;
+import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import cz.xsendl00.synccontact.utils.Constants;
 
 /**
@@ -500,5 +508,149 @@ public class StructuredPostalSync extends AbstractType implements ContactInterfa
       }
     }
     return values;
+  }
+
+  public static ContentProviderOperation add(String id, Map<String, String> values, int type) {
+    ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newInsert(Data.CONTENT_URI);
+    operationBuilder.withValue(Data.RAW_CONTACT_ID, id)
+        .withValue(Data.MIMETYPE, StructuredPostal.CONTENT_ITEM_TYPE)
+        .withValue(StructuredPostal.TYPE, type);
+    
+    Iterator<String> iter = values.keySet().iterator();
+    while(iter.hasNext()) {
+      String key = (String)iter.next();
+      String val = (String)values.get(key);
+      operationBuilder.withValue(key, val);
+    }
+    return operationBuilder.build();
+  }
+  
+  public static ContentProviderOperation update(String id, Map<String, String> values) {
+    ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(Data.CONTENT_URI);
+    operationBuilder.withSelection(Data._ID + "=?",
+        new String[] {id}).withValue(Data.MIMETYPE,
+        StructuredPostal.CONTENT_ITEM_TYPE);
+    
+    Iterator<String> iter = values.keySet().iterator();
+    while(iter.hasNext()) {
+      String key = (String)iter.next();
+      String val = (String)values.get(key);
+      operationBuilder.withValue(key, val);
+    }
+    return operationBuilder.build();
+  }
+  
+
+  public static ArrayList<ContentProviderOperation> operation(String id, StructuredPostalSync em1, StructuredPostalSync em2) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    if (em1 == null && em2 != null) { // create new from LDAP and insert to db
+      Map<String, String> value = op(em2.getHomeStreet(), em2.getHomePOBox(), em2.getHomeCity(), 
+          em2.getHomeRegion(), em2.getHomePostalCode(), em2.getHomeCountry(), em2.getHomeFormattedAddress());
+      
+      if (value.size() > 0) {
+        ops.add(add(id,value, StructuredPostal.TYPE_HOME));
+      }
+      
+      value = op(em2.getWorkStreet(), em2.getWorkPOBox(), em2.getWorkCity(), em2.getWorkRegion(), 
+          em2.getWorkPostalCode(), em2.getWorkCountry(), em2.getWorkFormattedAddress());
+      
+      if (value.size() > 0) {
+        ops.add(add(id,value, StructuredPostal.TYPE_WORK));
+      }
+      
+      value = op(em2.getOtherStreet(), em2.getOtherPOBox(), em2.getOtherCity(), em2.getOtherRegion(), 
+          em2.getOtherPostalCode(), em2.getOtherCountry(), em2.getOtherFormattedAddress());
+      
+      if (value.size() > 0) {
+        ops.add(add(id,value, StructuredPostal.TYPE_OTHER));
+      }
+      
+    } else if (em1 == null && em2 == null) { // nothing
+      
+    } else if (em1 != null && em2 == null) { // clear or update data in db
+      if (em1.getHomeCity() != null || em1.getHomeCountry() != null || em1.getHomeFormattedAddress() != null || em1.getHomeNeighborhood() != null
+          || em1.getHomePOBox() != null || em1.getHomePostalCode() != null || em1.getHomeRegion() != null 
+          || em1.getHomeStreet() != null) {
+          
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(StructuredPostal.TYPE_HOME), null)));
+      }
+      
+      if (em1.getWorkCity() != null || em1.getWorkCountry() != null || em1.getWorkFormattedAddress() != null || em1.getWorkNeighborhood() != null
+          || em1.getWorkPOBox() != null || em1.getWorkPostalCode() != null || em1.getWorkRegion() != null 
+          || em1.getWorkStreet() != null) {
+          
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(StructuredPostal.TYPE_WORK), null)));
+      }
+      
+      if (em1.getOtherCity() != null || em1.getOtherCountry() != null || em1.getOtherFormattedAddress() != null || em1.getOtherNeighborhood() != null
+          || em1.getOtherPOBox() != null || em1.getOtherPostalCode() != null || em1.getOtherRegion() != null 
+          || em1.getOtherStreet() != null) {
+          
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(StructuredPostal.TYPE_OTHER), null)));
+      }
+    } else if (em1 != null && em2 != null) { // merge
+      Map<String, String> value2 = op(em2.getHomeStreet(), em2.getHomePOBox(), em2.getHomeCity(), 
+          em2.getHomeRegion(), em2.getHomePostalCode(), em2.getHomeCountry(), em2.getHomeFormattedAddress());
+      Map<String, String> value1 = op(em1.getHomeStreet(), em1.getHomePOBox(), em1.getHomeCity(), 
+          em1.getHomeRegion(), em1.getHomePostalCode(), em1.getHomeCountry(), em1.getHomeFormattedAddress());
+      if (value1 != null && (value1.size() > 0) && (value2 == null || !(value2.size() > 0))) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(StructuredPostal.TYPE_HOME), null)));
+      } else if ((value1 == null || !(value1.size() > 0)) && value2 != null && (value2.size() > 0)) {
+        ops.add(add(id,value2, StructuredPostal.TYPE_HOME));
+      } else if (value1 != null && (value1.size() > 0) && value2 != null && (value2.size() > 0)) {
+        ops.add(update(ID.getIdByValue(em1.getID(), String.valueOf(StructuredPostal.TYPE_HOME), null), value2));
+      }
+      
+      value2 = op(em2.getWorkStreet(), em2.getWorkPOBox(), em2.getWorkCity(), 
+          em2.getWorkRegion(), em2.getWorkPostalCode(), em2.getWorkCountry(), em2.getWorkFormattedAddress());
+      value1 = op(em1.getWorkStreet(), em1.getWorkPOBox(), em1.getWorkCity(), 
+          em1.getWorkRegion(), em1.getWorkPostalCode(), em1.getWorkCountry(), em1.getHomeFormattedAddress());
+      if (value1 != null && (value1.size() > 0) && (value2 == null || !(value2.size() > 0))) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(StructuredPostal.TYPE_WORK), null)));
+      } else if ((value1 == null || !(value1.size() > 0)) && value2 != null && (value2.size() > 0)) {
+        ops.add(add(id,value2, StructuredPostal.TYPE_WORK));
+      } else if (value1 != null && (value1.size() > 0) && value2 != null && (value2.size() > 0)) {
+        ops.add(update(ID.getIdByValue(em1.getID(), String.valueOf(StructuredPostal.TYPE_WORK), null), value2));
+      }
+      
+      value2 = op(em2.getOtherStreet(), em2.getOtherPOBox(), em2.getOtherCity(), 
+          em2.getOtherRegion(), em2.getOtherPostalCode(), em2.getOtherCountry(), em2.getOtherFormattedAddress());
+      value1 = op(em1.getOtherStreet(), em1.getOtherPOBox(), em1.getOtherCity(), 
+          em1.getOtherRegion(), em1.getOtherPostalCode(), em1.getOtherCountry(), em1.getHomeFormattedAddress());
+      if (value1 != null && (value1.size() > 0) && (value2 == null || !(value2.size() > 0))) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(StructuredPostal.TYPE_OTHER), null)));
+      } else if ((value1 == null || !(value1.size() > 0)) && value2 != null && (value2.size() > 0)) {
+        ops.add(add(id,value2, StructuredPostal.TYPE_OTHER));
+      } else if (value1 != null && (value1.size() > 0) && value2 != null && (value2.size() > 0)) {
+        ops.add(update(ID.getIdByValue(em1.getID(), String.valueOf(StructuredPostal.TYPE_OTHER), null), value2));
+      }
+    }
+    return ops.size() > 0 ? ops : null;
+  }
+  
+  private static Map<String, String> op(String street, String pOBox, String city, String region, String postalCode, String country, String formattedAddress) {
+    Map<String, String> value = new HashMap<String, String>();
+    if (street != null) {
+      value.put(StructuredPostal.STREET, street);
+    }
+    if (pOBox != null) {
+      value.put(StructuredPostal.POBOX, pOBox);
+    }
+    if (city != null) {
+      value.put(StructuredPostal.CITY, city);
+    }
+    if (region != null) {
+      value.put(StructuredPostal.REGION, region);
+    }
+    if (postalCode != null) {
+      value.put(StructuredPostal.POSTCODE, postalCode);
+    }
+    if (country != null) {
+      value.put(StructuredPostal.COUNTRY, country);
+    }
+    if (formattedAddress != null) {
+      value.put(StructuredPostal.FORMATTED_ADDRESS, formattedAddress);
+    }
+    return value;
   }
 }

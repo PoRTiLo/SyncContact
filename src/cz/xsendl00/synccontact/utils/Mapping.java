@@ -1474,7 +1474,7 @@ public class Mapping {
     } else if (str.equals(Email.CONTENT_ITEM_TYPE)) {
       contact.initEmail();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
-      //contact.getEmail().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
+      contact.getEmail().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Email.TYPE_HOME) {
         contact.getEmail().setHomeMail(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       } else if (type == Email.TYPE_WORK) {
