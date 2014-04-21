@@ -151,15 +151,10 @@ public class HelperSQL extends SQLiteOpenHelper {
   }
 
   // Updating single group
-  public int updateGroup(GroupRow group) {
+  public int updateGroupSync(GroupRow group) {
     SQLiteDatabase db = this.getWritableDatabase();
-    
     ContentValues values = new ContentValues();
-    values.put(GROUP_KEY_GROUP, group.getName());
     values.put(GROUP_KEY_SYNC, group.isSync());
-    values.put(GROUP_KEY_ID_GROUP, group.getId());
-    values.put(GROUP_KEY_SIZE, group.getSize());
-    //Log.i(TAG, "update:" + group.toString());
     int res = db.update(GROUP_TABLE_NAME, values, GROUP_KEY_ID + " = ?", new String[] { String.valueOf(group.getIdTable()) });
     db.close();
     return res;
@@ -338,8 +333,6 @@ public class HelperSQL extends SQLiteOpenHelper {
     }
   }
   
-
-  
   // Getting contacts Count
   public int getContactCount() {
     String countQuery = "SELECT  * FROM " + CONTACT_TABLE_NAME;
@@ -375,6 +368,32 @@ public class HelperSQL extends SQLiteOpenHelper {
     db.close();
     return res;
   }
+  // Updating single contact
+  public int updateContactSync(String id, boolean sync) {
+    SQLiteDatabase db = this.getWritableDatabase();
+    ContentValues values = new ContentValues();
+    values.put(CONTACT_KEY_SYNC, sync);
+    int res = db.update(CONTACT_TABLE_NAME, values, CONTACT_KEY_ID_CONTACT + " = ?", new String[] {id});
+    db.close();
+    return res;
+  }
+  
+  public void updateContacts(Map<String, GoogleContact> gcs, String timestamp) {
+    for (String entry : gcs.keySet()) {
+      updateContact(timestamp, false, entry);
+    }
+  }
+  
+  // Updating single contact
+  public int updateContact(String timestamp, Boolean sync, String uuid) {
+    SQLiteDatabase db = this.getWritableDatabase();
+    ContentValues values = new ContentValues();
+    values.put(CONTACT_KEY_SYNC, sync);
+    values.put(CONTACT_KEY_TIMESTAMP, timestamp);
+    int res = db.update(CONTACT_TABLE_NAME, values, CONTACT_KEY_UUID + " = ?", new String[] {uuid});
+    db.close();
+    return res;
+  }
   
   // Deleting single contact
   public void deleteContact(ContactRow contact) {
@@ -405,42 +424,20 @@ public class HelperSQL extends SQLiteOpenHelper {
         //Log.i(TAG, con.toString());
         con.setTimestamp(timestamp);
         con.setIdTable(addContact(con));
-        importContactToSyncAccount(Integer.parseInt(con.getId()));
+        AndroidDB.importContactToSyncAccount(context, Integer.parseInt(con.getId()));
       }
     }
   }
   
-  private void importContactToSyncAccount(Integer id) {
-    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
-    Log.i(TAG, id.toString());
-    ops.add(ContentProviderOperation.newUpdate(ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, id))
-       .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
-       .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE).build()
-     );
-     
-    try {
-      ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-      for (ContentProviderResult cn : con) {
-        Log.i(TAG, cn.toString());
-      }
-    } catch (RemoteException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (OperationApplicationException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-  }
+
 
   public String newerTimestamp() {
     String str = null;
     String selectQuery = "SELECT MAX(" + CONTACT_KEY_TIMESTAMP + ") FROM " + CONTACT_TABLE_NAME;
-    //Log.i(TAG, selectQuery);
     SQLiteDatabase db = this.getWritableDatabase();
     Cursor cursor = db.rawQuery(selectQuery, null);
     if (cursor.moveToNext()) {
       str = cursor.getString(0);
-      //Log.i(TAG, "max TIMESTAMP" + cursor.getString(0));
     }
     return str;
   }

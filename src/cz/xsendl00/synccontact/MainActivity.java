@@ -1,28 +1,16 @@
 package cz.xsendl00.synccontact;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.UUID;
 
 import com.xsendl00.synccontact.R;
 
 import cz.xsendl00.synccontact.authenticator.AccountData;
-import cz.xsendl00.synccontact.contact.EmailSync;
-import cz.xsendl00.synccontact.contact.GoogleContact;
-import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
 import cz.xsendl00.synccontact.utils.Constants;
-import cz.xsendl00.synccontact.utils.ContactRow;
-import cz.xsendl00.synccontact.utils.GroupRow;
-import cz.xsendl00.synccontact.utils.Mapping;
 
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.ContentProviderOperation;
-import android.content.Context;
 import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.content.SharedPreferences;
@@ -44,8 +32,8 @@ public class MainActivity extends Activity {
   private Button help;
   private Boolean setsyntContact;
   private final Handler handler = new Handler();
+  ProgressDialog progressDialog;
   
-  private LinkedHashMap<GroupRow, ArrayList<ContactRow>> groupList;
 
   private static final String TAG = "MainActivity";
   
@@ -108,15 +96,14 @@ public class MainActivity extends Activity {
   }
   
   public void startContactActivity(View view) {
-	  Intent intent = new Intent(this, ContactsListActivity.class);
-	  startActivity(intent);
+    Intent intent = new Intent(this, Pokus.class);
+    startActivity(intent);
   }
   
   public void startHelpActivity(View view) {
     Intent intent = new Intent(this, SelectContactListActivity.class);
     startActivity(intent);
   }
-  
   
   
   public void startMap(View view) {

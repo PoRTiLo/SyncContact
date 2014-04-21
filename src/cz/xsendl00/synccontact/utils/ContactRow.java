@@ -9,13 +9,15 @@ import java.util.UUID;
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.database.Cursor;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.provider.ContactsContract.CommonDataKinds;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.GroupMembership;
 import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
 
-public class ContactRow {
+public class ContactRow implements Parcelable {
   
   private static final String TAG = "ContactShow";
   
@@ -80,6 +82,19 @@ public class ContactRow {
     return "Id: "+id + ", name: " + name + ", sync: " + sync + ", groups: " + groups + ", idTable: " + idTable + 
         ", accouNamePrevious: " + accouNamePrevious + ", accouTypePrevious: " + accouTypePrevious + 
         ", timestamp: " + timestamp + "\n";
+  }
+  
+  public static ArrayList<String> fetchGroupMembersId(ContentResolver contentResolver, String groupId) {
+    ArrayList<String> groupMembers = new ArrayList<String>();
+    String where = CommonDataKinds.GroupMembership.GROUP_ROW_ID + "=" +groupId + " AND " + 
+        CommonDataKinds.GroupMembership.MIMETYPE + "='" + CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE + "'";
+    String[] projection = new String[]{GroupMembership.RAW_CONTACT_ID};
+    Cursor cursor = contentResolver.query(Data.CONTENT_URI, projection, where, null, null);
+    while (cursor.moveToNext()) {
+      groupMembers.add(cursor.getString(cursor.getColumnIndex(GroupMembership.RAW_CONTACT_ID)));
+    } 
+    cursor.close();
+    return groupMembers;
   }
   
   public static ArrayList<ContactRow> fetchGroupMembers(ContentResolver contentResolver, String groupId) {
@@ -199,5 +214,46 @@ public class ContactRow {
 
   public void setUuid(String uuid) {
     this.uuid = uuid;
+  }
+
+  @Override
+  public int describeContents() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
+  public void writeToParcel(Parcel dest, int flags) {
+    dest.writeString(uuid);
+    dest.writeString(this.accouNamePrevious);
+    dest.writeString(this.accouTypePrevious);
+    dest.writeString(this.id);
+    dest.writeString(this.name);
+    dest.writeString(this.timestamp);
+    dest.writeInt(this.idTable);
+    dest.writeValue(this.sync);
+    dest.writeStringArray(this.groups);
+  }
+  
+  public static final Parcelable.Creator<ContactRow> CREATOR = new Parcelable.Creator<ContactRow>() {
+    public ContactRow createFromParcel(Parcel in) {
+      return new ContactRow(in);
+    }
+
+    public ContactRow[] newArray(int size) {
+      return new ContactRow[size];
+    }
+  };
+
+  private ContactRow(Parcel in) {
+    this.id = in.readString();
+    this.name = in.readString();
+    this.sync = in.readInt() == 1;
+    in.readStringArray(groups);
+    this.idTable = in.readInt();
+    this.accouNamePrevious = in.readString();
+    this.accouTypePrevious = in.readString();
+    this.timestamp = in.readString();
+    this.uuid = in.readString();
   }
 }

@@ -219,12 +219,13 @@ public class ServerUtilities {
     // update db syncContact.db
     
     // update db contact.db
-    //AndroidDB.updateContactsDb(context, differenceLDAP);
+    AndroidDB.updateContactsDb(context, differenceLDAP);
     // update server contact
     updateContactsLDAP(ldapServer, context, differenceLDAP);//differenceDirty
     // set new timestamp
-    
+    timestamp = ContactRow.createTimestamp();
     // set dirty flag to disable (0)
+    db.updateContacts(differenceDirty, timestamp);
   }
   
   private static void updateContactsLDAP(final ServerInstance ldapServer, final Context context, Map<String, GoogleContact> differenceDirty) {

@@ -6,10 +6,12 @@ import java.util.Comparator;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.provider.ContactsContract;
 import android.util.Log;
 
-public class GroupRow {
+public class GroupRow implements Parcelable {
   private String name;
   private String id;
   private Integer idTable;
@@ -63,6 +65,11 @@ public class GroupRow {
     
   }
   
+  public String toStringSync() {
+    return "Id: "+id + ", sync: " + sync;
+    
+  }
+  
   // TODO: list init only once, but what will be happen if add new group?
   public static ArrayList<GroupRow> fetchGroups(ContentResolver contentResolver){
     if (groups == null) {
@@ -101,5 +108,38 @@ public class GroupRow {
 
   public void setIdTable(Integer idTable) {
     this.idTable = idTable;
+  }
+
+  @Override
+  public int describeContents() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
+  public void writeToParcel(Parcel dest, int flags) {
+    dest.writeString(this.id);
+    dest.writeString(this.name);
+    dest.writeInt(this.idTable);
+    dest.writeValue(this.sync);
+    dest.writeInt(this.size);
+  }
+  
+  public static final Parcelable.Creator<GroupRow> CREATOR = new Parcelable.Creator<GroupRow>() {
+    public GroupRow createFromParcel(Parcel in) {
+      return new GroupRow(in);
+    }
+
+    public GroupRow[] newArray(int size) {
+      return new GroupRow[size];
+    }
+  };
+
+  private GroupRow(Parcel in) {
+    this.id = in.readString();
+    this.name = in.readString();
+    this.sync = in.readInt() == 1;
+    this.idTable = in.readInt();
+    this.size = in.readInt();
   }
 }

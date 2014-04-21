@@ -7,23 +7,20 @@ import cz.xsendl00.synccontact.utils.GroupRow;
 
 import android.app.Activity;
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
 public class RowGroupAdapter extends BaseAdapter {
-
-  private static final String TAG = "RowADAPTER";
   
   private Context context;
   private ArrayList<GroupRow> data;
   ViewHolder holder;
   GroupFragment par;
+  ContactFragment parC;
   
   public RowGroupAdapter(Context context, ArrayList<GroupRow> data, GroupFragment par) {
     super();
