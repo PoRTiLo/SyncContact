@@ -13,7 +13,7 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
 
-import com.xsendl00.synccontact.R;
+import cz.xsendl00.synccontact.R;
 
 import cz.xsendl00.synccontact.utils.ContactRow;
 

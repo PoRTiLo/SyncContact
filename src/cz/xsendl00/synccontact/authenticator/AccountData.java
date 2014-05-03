@@ -7,6 +7,8 @@ import android.accounts.AccountManager;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 import cz.xsendl00.synccontact.utils.Constants;
 
@@ -140,5 +142,16 @@ public class AccountData {
     }
     Log.i("AccountData", accountData.toString());
     return accountData;
+  }
+  
+  public static Bundle toBundle(final AccountData ac) {
+    Bundle userData = new Bundle();
+    userData.putString(Constants.PAR_USERNAME, ac.getName());
+    userData.putString(Constants.PAR_PORT, ac.getPort() + "");
+    userData.putString(Constants.PAR_HOST, ac.getHost());
+    userData.putString(Constants.PAR_ENCRYPTION, ac.getEncryption() + "");
+    userData.putString(Constants.PAR_SEARCHFILTER, ac.getSearchFilter());
+    userData.putString(Constants.PAR_BASEDN, ac.getBaseDn());
+    return userData;
   }
 }

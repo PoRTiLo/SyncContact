@@ -1,12 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  style="@style/fragmnet_group">
+  style="@style/fragmnet_group"
+  android:id="@+id/fragment_group"
+  android:paddingBottom="@dimen/margin_40"
+  android:paddingLeft="@dimen/margin_8"
+  android:paddingRight="@dimen/margin_8" >
   
   <ListView
     android:id="@+id/list_group"
-    android:layout_width="fill_parent"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_weight="1.0"
     android:divider="#b5b5b5"
-    android:dividerHeight="0.3dp" />
+    android:dividerHeight="0.3dp"
+    android:paddingBottom="@dimen/margin_8" />
+  <Button
+    android:id="@+id/button1"
+    style="@style/CustomButton"
+    android:gravity="center"
+    android:onClick="mainActivity"
+    android:text="@string/info_button" >
+  </Button>
  
 </LinearLayout>

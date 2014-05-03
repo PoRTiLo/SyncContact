@@ -2,7 +2,7 @@ package cz.xsendl00.synccontact;
 
 import java.util.ArrayList;
 
-import com.xsendl00.synccontact.R;
+import cz.xsendl00.synccontact.R;
 
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.ContactRow;

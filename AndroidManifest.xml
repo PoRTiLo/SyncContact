@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.xsendl00.synccontact"
+  package="cz.xsendl00.synccontact"
   android:versionCode="1"
   android:versionName="1.0" >
 
@@ -48,6 +48,7 @@
     
     <activity
       android:name="cz.xsendl00.synccontact.AddServerActivity"
+      android:screenOrientation="portrait"
       android:label="@string/app_name" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
@@ -63,13 +64,22 @@
     </activity>
     
     <activity
-      android:name="cz.xsendl00.synccontact.Pokus"
+      android:name="cz.xsendl00.synccontact.WelcomeActivity"
+      android:screenOrientation="portrait"
       android:label="@string/app_name" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value="cz.xsendl00.synccontact.Pokus" />
+        android:value="cz.xsendl00.synccontact.WelcomeActivity" />
     </activity>
     
+    <activity
+      android:name="cz.xsendl00.synccontact.InfoActivity"
+      android:screenOrientation="portrait"
+      android:label="@string/app_name" >
+      <meta-data
+        android:name="android.support.PARENT_ACTIVITY"
+        android:value="cz.xsendl00.synccontact.InfoActivity" />
+    </activity>
     
     <activity android:theme="@android:style/Theme.Dialog" 
       android:name="cz.xsendl00.synccontact.CertShow"

@@ -1,12 +1,13 @@
 package cz.xsendl00.synccontact;
 
 
-import com.xsendl00.synccontact.R;
+import cz.xsendl00.synccontact.R;
 
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
 import cz.xsendl00.synccontact.utils.Constants;
+import cz.xsendl00.synccontact.utils.Utils;
 
 
 import android.app.Activity;
@@ -41,27 +42,51 @@ public class MainActivity extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
+
     loadPreferences();
+    
+  }
+  
+  protected void onStart() {
+    super.onStart();
+    
+  }
+  
+  protected void onResume() {
+    super.onResume();
+    conf();
   }
   
   @Override
   public void onWindowFocusChanged(boolean hasFocus) {
-      super.onWindowFocusChanged(hasFocus);
-      if (hasFocus == true) {
-        RelativeLayout f = (RelativeLayout) findViewById(R.id.main_activity);
-        conf(f);
-      }
+    super.onWindowFocusChanged(hasFocus);
+    Log.i(TAG, "onfocus:" + Utils.getTime());
+    if (hasFocus == true) {
+      conf();
+    }
   }
+
+  
   
   private void loadPreferences() {
     Log.i(TAG, "Load preferens");
-    SharedPreferences settings = getSharedPreferences(Constants.PREFS_NAME, 0);
-    setsyntContact = settings.getBoolean(Constants.SET_SYNC_CONTACT, false);
+    SharedPreferences settings = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
+    boolean startFirst = settings.getBoolean(Constants.PREFS_START_FIRST, true);
+    Log.i(TAG, "Load preferens: startFirst = " + startFirst);
+    if (startFirst) {
+      // load first route
+      Intent intent = new Intent(this, WelcomeActivity.class);
+      startActivity(intent);
+      this.finish();
+    }
+    
+    
     Log.i(TAG, "Load preferens: Set sync contact = " + setsyntContact);
   }
   
   
-  private void conf(RelativeLayout f) {
+  private void conf() {
+    RelativeLayout f = (RelativeLayout) findViewById(R.id.main_activity);
     int x = (int) f.getRight()/2;
     int y = (int) (f.getBottom())/5;
     map = (Button) findViewById(R.id.button_map);
@@ -96,11 +121,15 @@ public class MainActivity extends Activity {
   }
   
   public void startContactActivity(View view) {
-    Intent intent = new Intent(this, Pokus.class);
+    Intent intent = new Intent(this, SelectContactListActivity.class);
     startActivity(intent);
   }
   
   public void startHelpActivity(View view) {
+    
+  }
+  
+  public void startSyncActivity(View view) {
     Intent intent = new Intent(this, SelectContactListActivity.class);
     startActivity(intent);
   }

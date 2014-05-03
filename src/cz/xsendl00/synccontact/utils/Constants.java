@@ -5,7 +5,9 @@ public class Constants {
   
   /* Name of setting file */
   public static final String PREFS_NAME = "SyncContactSetting";
-  public static final String SET_SYNC_CONTACT = "SetSyncContact";
+  public static final String PREFS_SET_SYNC_CONTACT = "SetSyncContact";
+  public static final String PREFS_SHOW_INFO = "ShowInfo";
+  public static final String PREFS_START_FIRST = "StartFirst";
   
   public static final String ACCOUNT_TYPE = "cz.xsendl00.synccontact";
   public static final String ACCOUNT_NAME = "syncContact@synccontact.xsendl00.cz";

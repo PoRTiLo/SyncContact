@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="match_parent"
-  android:layout_height="match_parent"
-  android:orientation="vertical" >
-  
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/margin_8"
+    android:paddingRight="@dimen/margin_8"
+    android:paddingTop="@dimen/margin_8" >
 
-  <LinearLayout
-    android:layout_width="fill_parent"
-    android:layout_height="0dip"
-    android:layout_weight="1"
-    android:orientation="vertical" >
-    
     <ScrollView
-      android:id="@+id/scrollView1"
-      android:layout_width="match_parent"
-      android:layout_height="match_parent" >
+        android:id="@+id/scrollView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/margin_8"
+        android:paddingRight="@dimen/margin_8"
+        android:paddingTop="@dimen/margin_8" >
 
       <LinearLayout
         android:layout_width="match_parent"
@@ -22,34 +21,28 @@
         android:orientation="vertical" >
         
         <TextView
-          android:id="@+id/textView1"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:gravity="center"
-          android:paddingBottom="@dimen/activity_horizontal_margin"
-          android:paddingTop="@dimen/activity_horizontal_margin"
-          android:text="@string/add_account_main"
-          android:textAppearance="?android:attr/textAppearanceLarge" />
-
-        <View
-          android:layout_width="fill_parent"
-          android:layout_height="1dip"
-          android:background="#ffffffff" />
+            android:id="@+id/textView1"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:gravity="center"
+            android:paddingBottom="@dimen/margin_20"
+            android:paddingTop="@dimen/margin_20"
+            android:text="@string/add_account_main"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
         
         <EditText
-          android:id="@+id/add_account_host_value"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:ems="10"
-          android:hint="@string/add_account_host"
-          android:inputType="textPersonName"
-          android:paddingTop="@dimen/margin_20" />
+            android:id="@+id/add_account_host_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="@string/add_account_host"
+            android:inputType="textPersonName" />
         
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingTop="@dimen/margin_20" >
+            android:paddingTop="@dimen/margin_8" >
         
           <TextView
             android:id="@+id/textView3"
@@ -75,25 +68,18 @@
 
       </LinearLayout>
     </ScrollView>
-  </LinearLayout>
-    
-  <LinearLayout
+<RelativeLayout
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal" >
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/margin_40" >
 
-    <ImageButton
-      android:background="@drawable/loadimagebutton"  
-      android:layout_width="wrap_content" 
-      android:layout_height="wrap_content" 
-      android:contentDescription="@string/add_account_back"/>
-    
-    <ImageButton
-      android:background="@drawable/loadimagebutton"  
-      android:layout_width="wrap_content" 
-      android:layout_height="wrap_content" 
-      android:onClick="getLDAPServerDetails"
-      android:contentDescription="@string/add_account_next"/>
-  </LinearLayout>
-
+    <Button
+      android:id="@+id/button1"
+      style="@style/CustomButton"
+      android:layout_alignParentBottom="true"
+      android:gravity="center"
+      android:onClick="createConnection"
+      android:text="@string/add_account" >
+    </Button>
+  </RelativeLayout>
 </LinearLayout>

@@ -30,8 +30,6 @@ public class SyncContactAdapter extends AbstractThreadedSyncAdapter {
 	private final AccountManager accountManager;
 	private final Context context;
 
-	private Date lastUpdated;
-
 	public SyncContactAdapter(Context context, boolean autoInitialize) {
 		super(context, autoInitialize);
 		this.context = context;
@@ -42,14 +40,13 @@ public class SyncContactAdapter extends AbstractThreadedSyncAdapter {
 	public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
 
 		Log.d(TAG, "Start the sync.");
-		List<GoogleContact> users = new ArrayList<GoogleContact>();
 		try {
 		  
 			// use the account manager to request the credentials
 		  AccountData accountData = new AccountData();
-		  accountData.setPassword(accountManager.blockingGetAuthToken(account, Constants.AUTHTOKEN_TYPE, true /* notifyAuthFailure */));
-			
-			accountData.setHost(accountManager.getUserData(account, Constants.PAR_HOST));
+		  //String authToken = accountManager.blockingGetAuthToken(account,Constants.AUTHTOKEN_TYPE, true);
+			accountData.setPassword(accountManager.blockingGetAuthToken(account,Constants.AUTHTOKEN_TYPE, true));
+      accountData.setHost(accountManager.getUserData(account, Constants.PAR_HOST));
 			accountData.setName(accountManager.getUserData(account, Constants.PAR_USERNAME));
 			accountData.setPort(Integer.parseInt(accountManager.getUserData(account, Constants.PAR_PORT)));
 			accountData.setEncryption(Integer.parseInt(accountManager.getUserData(account, Constants.PAR_ENCRYPTION)));
@@ -68,8 +65,6 @@ public class SyncContactAdapter extends AbstractThreadedSyncAdapter {
 			//	return;
 			//}
 
-			// update the last synced date.
-			lastUpdated = new Date();
 			// update platform contacts.
 			Log.d(TAG, "Calling contactManager's sync contacts");
 		

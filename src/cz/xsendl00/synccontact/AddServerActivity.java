@@ -1,6 +1,6 @@
 package cz.xsendl00.synccontact;
 
-import com.xsendl00.synccontact.R;
+import cz.xsendl00.synccontact.R;
 
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.client.Address;
@@ -102,7 +102,7 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
   }
   
   private void createPortText() {
-    int padding = getResources().getDimensionPixelOffset(R.dimen.margin_20);
+    int padding = getResources().getDimensionPixelOffset(R.dimen.margin_8);
     
     listH = new LinearLayout(this);
     listH.setOrientation(LinearLayout.HORIZONTAL);
@@ -182,7 +182,7 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
    * Call this by click on next in Add activity. This function try connect to server and get base info from them.
    * @param view
    */
-  public void getLDAPServerDetails(View view) {
+  public void createConnection(View view) {
     if(accountData.isNewAccount()) {
       accountData.setName(nameEditText.getText().toString());
     }
@@ -235,11 +235,6 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     if (result) {
       if (baseDNs != null) {
         accountData.setBaseDNs(baseDNs);
-        //ArrayAdapter<CharSequence> adapter = new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, baseDNs);
-        //adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-       // mBaseDNSpinner.setAdapter(adapter);
-        
-        // open new activity, set mapping ...
         // now save account
         saveAccount();
       }
@@ -256,15 +251,12 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     
     // if new account
     if (accountData.isNewAccount()) {
-      GoogleContact gcMapping = new GoogleContact();
-      gcMapping.init();
-      //Bundle userData = Mapping.mapingTo(gcMapping, accountData);
-      
+      Bundle userData = AccountData.toBundle(accountData);
       // create new account for contact in table accounts
       
       
       //Log.i(TAG, userData.toString());
-      //accountManager.addAccountExplicitly(account, accountData.getPassword(), userData);
+      accountManager.addAccountExplicitly(account, accountData.getPassword(), userData);
       //accountManager.
 
       // Set contacts sync for this account.
@@ -284,6 +276,9 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     }
     setAccountAuthenticatorResult(intent.getExtras());
     setResult(RESULT_OK, intent);
-    finish();
+    
+    Intent intent1 = new Intent(this, InfoActivity.class);
+    startActivity(intent1);
+    //finish();
   }
 }

@@ -2,13 +2,14 @@ package cz.xsendl00.synccontact;
 
 import java.util.ArrayList;
 
-import com.xsendl00.synccontact.R;
+import cz.xsendl00.synccontact.R;
 
 import cz.xsendl00.synccontact.GroupFragment.OnHeadlineSelectedListener;
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
+import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
 import cz.xsendl00.synccontact.utils.Utils;
@@ -18,6 +19,8 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -29,6 +32,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 
 public class SelectContactListActivity extends Activity implements OnTaskCompleted, OnHeadlineSelectedListener {
   
@@ -229,5 +233,16 @@ public class SelectContactListActivity extends Activity implements OnTaskComplet
   public void onArticleSelected(Pair p ) {
     //this.pair = p;
     //pair.getContactList().get(1).setSync(true);
+  }
+  
+  public void mainActivity(View view) {
+    Editor editor = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit();
+    editor.putBoolean(Constants.PREFS_START_FIRST, false);
+    editor.commit();
+    
+    Intent intent = new Intent(this, MainActivity.class);
+    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
+    startActivity(intent);
+    
   }
 }

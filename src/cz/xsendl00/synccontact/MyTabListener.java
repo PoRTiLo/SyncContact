@@ -1,6 +1,6 @@
 package cz.xsendl00.synccontact;
 
-import com.xsendl00.synccontact.R;
+import cz.xsendl00.synccontact.R;
 
 import android.app.ActionBar.Tab;
 import android.app.ActionBar;

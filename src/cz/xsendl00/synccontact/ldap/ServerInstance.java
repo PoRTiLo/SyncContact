@@ -4,8 +4,6 @@ import java.io.Serializable;
 
 import javax.net.SocketFactory;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
@@ -38,6 +36,10 @@ public class ServerInstance implements Serializable {
     this.accountData = new AccountData(accountData);
     this.accountData.setName(((accountData.getName() == null) || (accountData.getName().length() == 0) ? null : accountData.getName()));
     this.accountData.setPassword(((accountData.getPassword() == null) || (accountData.getPassword().length() == 0) ? null : accountData.getPassword()));
+    
+    this.accountData.setBaseDn(accountData.getBaseDn());
+    this.accountData.setPort(accountData.getPort());
+    this.accountData.setEncryption(accountData.getEncryption());
   }
   
   public AccountData getAccountdData() {
