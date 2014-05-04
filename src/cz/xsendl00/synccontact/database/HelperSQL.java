@@ -424,12 +424,10 @@ public class HelperSQL extends SQLiteOpenHelper {
         //Log.i(TAG, con.toString());
         con.setTimestamp(timestamp);
         con.setIdTable(addContact(con));
-        AndroidDB.importContactToSyncAccount(context, Integer.parseInt(con.getId()));
+        //AndroidDB.importContactToSyncAccount(context, Integer.parseInt(con.getId()));
       }
     }
   }
-  
-
 
   public String newerTimestamp() {
     String str = null;

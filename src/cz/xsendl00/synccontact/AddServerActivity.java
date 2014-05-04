@@ -67,17 +67,18 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     super.onCreate(bundle);
     accountManager = AccountManager.get(this);
     setContentView(R.layout.activity_add_account);
-    
+    getActionBar().setDisplayHomeAsUpEnabled(true);
     init();
   }
 
   private void init() {
     fillValueFromIntent();
-    
+
     createLoginText();
     createPortText();
     setControls();
     setEncryptionSpinner();
+    // TODO:delete after complete
     hostEditText.setText(HOST);
     nameEditText.setText(DN);
     passEditText.setText(PASS);
@@ -85,17 +86,13 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
   }
   
   private void createLoginText() {
-    //int padding = getResources().getDimensionPixelOffset(R.dimen.margin_20);
-    
     nameEditText = new EditText(getApplicationContext());
     nameEditText.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-    //nameEditText.setPadding(0, padding, 0, 0);
     nameEditText.setHint(getResources().getString(R.string.add_account_name));
     nameEditText.setGravity(Gravity.CENTER_VERTICAL);
     
     passEditText = new EditText(getApplicationContext());
     passEditText.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-    //passEditText.setPadding(0, padding, 0, 0);
     passEditText.setHint(getResources().getString(R.string.add_account_password));
     passEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
     passEditText.setGravity(Gravity.CENTER_VERTICAL);
@@ -108,8 +105,7 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     listH.setOrientation(LinearLayout.HORIZONTAL);
     listH.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
     listH.setPadding(0, padding, 0, 0);
-    
-    
+
     portTextView = new TextView(getApplicationContext());
     portTextView.setText(getResources().getString(R.string.add_account_port));
     portTextView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
@@ -159,12 +155,18 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
   }
   
   private void setControls() {
+    Log.i(TAG, "setControls : "+ accountData.toString());
     encryptionSpinner = (Spinner) findViewById(R.id.add_account_encryption_value);
     hostEditText = (EditText) findViewById(R.id.add_account_host_value);
     hostEditText.setText(accountData.getHost());
     portEditText.setText(Integer.toString(accountData.getPort()));
     nameEditText.setText(accountData.getName());
     passEditText.setText(accountData.getPassword());
+    
+    if (!accountData.isNewAccount()) {
+      TextView info = (TextView) findViewById(R.id.add_info);
+      info.setText(this.getResources().getString(R.string.edit_account_main));
+    }
   }
   
   private void fillValueFromIntent() {
@@ -175,7 +177,8 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     this.accountData.setName(intent.getStringExtra(Constants.PAR_USERNAME));
     this.accountData.setPassword(intent.getStringExtra(Constants.PAR_PASSWORD));
     this.accountData.setEncryption(intent.getIntExtra(Constants.PAR_ENCRYPTION, 0));
-    this.accountData.setNewAccount(this.accountData.getName() == null);
+    this.accountData.setNewAccount(intent.getBooleanExtra(Constants.PAR_IS_ADDING_NEW_ACCOUNT, true));
+    //this.accountData.setNewAccount(this.accountData.getName() == null);
   }
   
   /**
@@ -183,9 +186,9 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
    * @param view
    */
   public void createConnection(View view) {
-    if(accountData.isNewAccount()) {
-      accountData.setName(nameEditText.getText().toString());
-    }
+    //if(accountData.isNewAccount()) {
+    accountData.setName(nameEditText.getText().toString());
+    //}
     try {
       accountData.setPort(Integer.parseInt(portEditText.getText().toString()));
     } catch (NumberFormatException nfe) {
@@ -253,17 +256,18 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     if (accountData.isNewAccount()) {
       Bundle userData = AccountData.toBundle(accountData);
       // create new account for contact in table accounts
-      
-      
-      //Log.i(TAG, userData.toString());
       accountManager.addAccountExplicitly(account, accountData.getPassword(), userData);
-      //accountManager.
-
       // Set contacts sync for this account.
       ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
       ContactManager.makeGroupVisible(account.name, getContentResolver());
     } else {
       accountManager.setPassword(account, accountData.getPassword());
+      accountManager.setUserData(account, Constants.PAR_USERNAME, accountData.getName());
+      accountManager.setUserData(account, Constants.PAR_PORT, accountData.getPort() + "");
+      accountManager.setUserData(account, Constants.PAR_HOST, accountData.getHost());
+      accountManager.setUserData(account, Constants.PAR_ENCRYPTION, accountData.getEncryption() + "");
+      accountManager.setUserData(account, Constants.PAR_SEARCHFILTER, accountData.getSearchFilter());
+      accountManager.setUserData(account, Constants.PAR_BASEDN, accountData.getBaseDn());
     }
     //ServerUtilities.updateContacts(new ServerInstance(accountData), accountData, handler, AddServerActivity.this);
     
@@ -277,8 +281,12 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     setAccountAuthenticatorResult(intent.getExtras());
     setResult(RESULT_OK, intent);
     
-    Intent intent1 = new Intent(this, InfoActivity.class);
-    startActivity(intent1);
+    if (accountData.isNewAccount()) {
+      Intent intent1 = new Intent(this, InfoActivity.class);
+      startActivity(intent1);
+    } else {
+      finish();
+    }
     //finish();
   }
 }

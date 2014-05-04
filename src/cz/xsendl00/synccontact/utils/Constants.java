@@ -27,6 +27,11 @@ public class Constants {
    */
   public static final String CERT_NAME = "/LDAP_CERT";
   
+  /** Activity text **/
+  public static final String AC_LOADING = "Loading ...";
+  public static final String AC_LOADING_TEXT_DB = "Loading data from database.";
+  public static final String AC_DOWNLOADING = "Downloading ...";
+  public static final String AC_DOWNLOADING_DATA_SERVER = "Downloading data from server";
   /**
    * LDAP port to server.
    */

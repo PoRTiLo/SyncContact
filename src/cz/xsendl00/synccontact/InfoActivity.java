@@ -11,10 +11,12 @@ public class InfoActivity extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_info);
+    getActionBar().setDisplayHomeAsUpEnabled(true);
   }
 
   public void selectActivity(View view) {
     Intent intent = new Intent(this, SelectContactListActivity.class);
+    intent.putExtra("FIRST", true);
     startActivity(intent);
   }
 }

@@ -1,7 +1,6 @@
 package cz.xsendl00.synccontact;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 
 import cz.xsendl00.synccontact.R;
 
@@ -11,8 +10,6 @@ import cz.xsendl00.synccontact.utils.GroupRow;
 import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
-//import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,14 +27,16 @@ public class GroupFragment extends Fragment implements android.widget.CompoundBu
   private RowGroupAdapter adapter;
   //private ArrayList<GroupRow> groupsList;
   private Pair pair;
+  private boolean first = false;
 
   OnHeadlineSelectedListener mCallback;
   
   // newInstance constructor for creating fragment with arguments
-  public static GroupFragment newInstance(Pair p) {
+  public static GroupFragment newInstance(Pair p, boolean first) {
     GroupFragment groupFragment = new GroupFragment();
     Bundle args = new Bundle();
     args.putParcelable("pair", p);
+    args.putBoolean("FIRST", first);
     groupFragment.setArguments(args);
     return groupFragment;
   }
@@ -46,6 +45,7 @@ public class GroupFragment extends Fragment implements android.widget.CompoundBu
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     pair = getArguments().getParcelable("pair");
+    first = getArguments().getBoolean("FIRST");
     //groupsList = pair.getGroupsList();
     //groupMemberList = pair.getGroupMemberList();
   }
@@ -75,7 +75,13 @@ public class GroupFragment extends Fragment implements android.widget.CompoundBu
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     super.onCreateView(inflater, container, savedInstanceState);
-    View rootView = inflater.inflate(R.layout.fragment_group, container, false);
+    View rootView = null;
+    if (first) {
+      rootView = inflater.inflate(R.layout.fragment_group, container, false);
+    } else {
+      rootView = inflater.inflate(R.layout.fragment_group_simply, container, false);
+    }
+    
     return rootView;
   }
   

@@ -116,32 +116,35 @@ public class AccountData {
   }
   
   public static AccountData getAccountData(Context context) {
+  
     AccountData accountData = new AccountData();
     AccountManager manager = AccountManager.get(context);
     Account[] accounts = manager.getAccountsByType(Constants.ACCOUNT_TYPE);
     // TODO : mel by byt jen jeden, ale rasdsi poresit
     for (Account account : accounts) {
-     // try {
-        accountData.setPassword("synccontact");//manager.blockingGetAuthToken(account, Constants.AUTHTOKEN_TYPE, true));
-        accountData.setHost(manager.getUserData(account, Constants.PAR_HOST));
-        accountData.setName(manager.getUserData(account, Constants.PAR_USERNAME));
-        accountData.setSearchFilter(manager.getUserData(account, Constants.PAR_SEARCHFILTER));
-        accountData.setBaseDn(manager.getUserData(account, Constants.PAR_BASEDN));
-        accountData.setPort(Integer.parseInt(manager.getUserData(account, Constants.PAR_PORT)));
-        accountData.setEncryption(Integer.parseInt(manager.getUserData(account, Constants.PAR_ENCRYPTION)));
-      //} catch (OperationCanceledException e) {
-        // TODO Auto-generated catch block
-     //   e.printStackTrace();
-     // } catch (AuthenticatorException e) {
-        // TODO Auto-generated catch block
-     //   e.printStackTrace();
-     // } catch (IOException e) {
-        // TODO Auto-generated catch block
-      //  e.printStackTrace();
-     // }
+        try {
+          accountData.setPassword(manager.blockingGetAuthToken(account,Constants.AUTHTOKEN_TYPE, true));
+          accountData.setHost(manager.getUserData(account, Constants.PAR_HOST));
+          accountData.setName(manager.getUserData(account, Constants.PAR_USERNAME));
+          accountData.setSearchFilter(manager.getUserData(account, Constants.PAR_SEARCHFILTER));
+          accountData.setBaseDn(manager.getUserData(account, Constants.PAR_BASEDN));
+          accountData.setPort(Integer.parseInt(manager.getUserData(account, Constants.PAR_PORT)));
+          accountData.setEncryption(Integer.parseInt(manager.getUserData(account, Constants.PAR_ENCRYPTION)));
+          break;
+        } catch (OperationCanceledException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch (AuthenticatorException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+       
     }
-    Log.i("AccountData", accountData.toString());
     return accountData;
+
   }
   
   public static Bundle toBundle(final AccountData ac) {

@@ -44,7 +44,6 @@ public class SyncContactAdapter extends AbstractThreadedSyncAdapter {
 		  
 			// use the account manager to request the credentials
 		  AccountData accountData = new AccountData();
-		  //String authToken = accountManager.blockingGetAuthToken(account,Constants.AUTHTOKEN_TYPE, true);
 			accountData.setPassword(accountManager.blockingGetAuthToken(account,Constants.AUTHTOKEN_TYPE, true));
       accountData.setHost(accountManager.getUserData(account, Constants.PAR_HOST));
 			accountData.setName(accountManager.getUserData(account, Constants.PAR_USERNAME));

@@ -25,13 +25,15 @@ public class ContactFragment extends Fragment implements
 
   private ListView listRow;
   private RowContactAdapter adapter;
+  private boolean first = false;
 
   // newInstance constructor for creating fragment with arguments
-  public static ContactFragment newInstance(Pair p) {
+  public static ContactFragment newInstance(Pair p, boolean first) {
     Log.i("ContactFragment", "newInstance");
     ContactFragment contactFragment = new ContactFragment();
     Bundle args = new Bundle();
     args.putParcelable("pair", p);
+    args.putBoolean("FIRST", first);
     contactFragment.setArguments(args);
     return contactFragment;
   }
@@ -40,12 +42,18 @@ public class ContactFragment extends Fragment implements
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     Pair p = getArguments().getParcelable("pair");
+    first = getArguments().getBoolean("FIRST");
     contactList = p.getContactList();
   }
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    View rootView = inflater.inflate(R.layout.fragment_contact, container, false);
+    View rootView = null;
+    if (first) {
+      rootView = inflater.inflate(R.layout.fragment_contact, container, false);
+    } else {
+      rootView = inflater.inflate(R.layout.fragment_contact_simply, container, false);
+    }
     return rootView;
   }
 
@@ -61,15 +69,7 @@ public class ContactFragment extends Fragment implements
       listRow.setOnItemClickListener(new OnItemClickListener() {
         public void onItemClick(AdapterView<?> parent, View view, int position,
             long id) {
-          // /Log.i(TAG, "ciclick on position: "+position);
-          // Log.i(TAG, contactList.get(position).getName());
-          // Log.i(TAG,
-          // (groupMemberList.get(groupsList.get(position)).toString()));
-          // TODO: show list of contact
-          // Intent i = new Intent(getApplicationContext(),
-          // ShowSightsDetail.class);
-          // i.putExtra("sight_id", sight_id);
-          // startActivity(i);
+          // TODO: show info -> edit contact
         }
       });
     }

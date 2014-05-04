@@ -1,6 +1,7 @@
 package cz.xsendl00.synccontact;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -25,6 +26,12 @@ public class Pair implements Parcelable {
   }
   public void setGroupsList(ArrayList<GroupRow> groupsList) {
     this.groupsList = groupsList;
+  }
+  
+  public void setGroupsList(List<GroupRow> groupsList) {
+    if (groupsList != null) {
+      this.groupsList.addAll(groupsList);
+    }
   }
   
   public int describeContents() {
@@ -60,5 +67,11 @@ public class Pair implements Parcelable {
   }
   public void setContactList(ArrayList<ContactRow> contactList) {
     this.contactList = contactList;
+  }
+  
+  public void setContactList(List<ContactRow> contactList) {
+    if (contactList != null) {
+      this.contactList.addAll(contactList);
+    }
   }
 }

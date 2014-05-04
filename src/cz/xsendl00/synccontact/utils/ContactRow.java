@@ -1,8 +1,10 @@
 package cz.xsendl00.synccontact.utils;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -198,6 +200,19 @@ public class ContactRow implements Parcelable {
     SimpleDateFormat df1 = new SimpleDateFormat("yyyyMMddHHmmss");
     df1.setTimeZone(TimeZone.getTimeZone("GMT"));
     return df1.format(c.getTime()) +"Z";
+  }
+  
+  @SuppressLint("SimpleDateFormat")
+  public static String timestamptoDate(String str) {
+    SimpleDateFormat df1 = new SimpleDateFormat("yyyyMMddHHmmss");
+    String out = null;
+    try {
+      out = df1.parse(str).toString();
+    } catch (ParseException e) {
+      Log.e(TAG, "Can not formated timestamp from db to readable string :" + out);
+      out = "No synchronization.";
+    }
+    return out;
   }
 
   public static String generateUUID() {

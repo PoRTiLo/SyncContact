@@ -16,11 +16,11 @@
         android:orientation="vertical" >
 
         <Button
-            android:id="@+id/button1"
+            android:id="@+id/button2"
             style="@style/CustomButton"
             android:gravity="center"
-            android:onClick="addServerActivity"
-            android:text="@string/welcome_add_server" >
+            android:onClick="removeActivity"
+            android:text="@string/server_remove" >
         </Button>
     </LinearLayout>
 
@@ -45,25 +45,18 @@
                 android:gravity="center"
                 android:paddingBottom="@dimen/margin_20"
                 android:paddingTop="@dimen/margin_20"
-                android:text="@string/welcome_welcome"
+                android:text="@string/remove_info"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
-
-            <TextView
-                android:id="@+id/textView2"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:gravity="center"
-                android:paddingBottom="@dimen/margin_12"
-                android:text="@string/welcome_info"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <TextView
                 android:id="@+id/textView3"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:gravity="center"
-                android:text="@string/welcome_first"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
+                android:text="@string/remove_text"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@color/red" />
+
         </LinearLayout>
     </ScrollView>
 

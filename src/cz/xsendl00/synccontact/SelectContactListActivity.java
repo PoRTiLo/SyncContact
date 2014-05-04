@@ -12,22 +12,16 @@ import cz.xsendl00.synccontact.ldap.ServerUtilities;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
-import cz.xsendl00.synccontact.utils.Utils;
 import android.app.ActionBar;
-import android.app.ActionBar.Tab;
 import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-//import android.support.v4.view.ViewPager;
-//import android.support.v4.app.FragmentActivity;
-//import android.support.v4.app.FragmentManager;
-//import android.support.v4.view.ViewPager;
+import android.support.v4.app.NavUtils;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -41,22 +35,30 @@ public class SelectContactListActivity extends Activity implements OnTaskComplet
   private final Handler handler = new Handler();
   private ProgressDialog progressDialog;
   private Pair pair;
+  private boolean first = false;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_select_contact);
-    progressDialog = ProgressDialog.show(SelectContactListActivity.this,
-        "Loading...", "Loading data from database.", true);
-    
+    getActionBar().setDisplayHomeAsUpEnabled(true);
+    Intent intent = getIntent();
+    first = intent.getBooleanExtra("FIRST", false);    
+    progressDialog = ProgressDialog.show(SelectContactListActivity.this, Constants.AC_LOADING, Constants.AC_LOADING_TEXT_DB, true);
   }
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
 
-    MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.activity_main_actions, menu);
-    new LoadTask(SelectContactListActivity.this).execute();
+    if (first) {
+      // TODO; pro prvni zmeninut menu
+      getMenuInflater().inflate(R.menu.activity_main_actions, menu);
+      new LoadTask(SelectContactListActivity.this).execute();
+    } else {
+      getMenuInflater().inflate(R.menu.activity_main_actions, menu);
+      new LoadTaskSimply(SelectContactListActivity.this).execute();
+    }
+    
     return super.onCreateOptionsMenu(menu);
   }
 
@@ -67,8 +69,8 @@ public class SelectContactListActivity extends Activity implements OnTaskComplet
     actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
     // Adding Tabs
-    actionBar.addTab(actionBar.newTab().setText("GROUP").setTabListener(new MyTabListener(GroupFragment.newInstance(pair))));
-    actionBar.addTab(actionBar.newTab().setText("CONTACT").setTabListener(new MyTabListener(ContactFragment.newInstance(pair))));
+    actionBar.addTab(actionBar.newTab().setText("GROUP").setTabListener(new MyTabListener(GroupFragment.newInstance(pair, first))));
+    actionBar.addTab(actionBar.newTab().setText("CONTACT").setTabListener(new MyTabListener(ContactFragment.newInstance(pair, first))));
 
   }
 
@@ -94,6 +96,24 @@ public class SelectContactListActivity extends Activity implements OnTaskComplet
       return true;
     case R.id.action_check_updates:
       // check for updates action
+      return true;
+    case android.R.id.home:
+      //TODO
+      Log.i(TAG, "jsem tuuuuuuuuuuuuuuuuuuuuu");
+      /*Intent upIntent = NavUtils.getParentActivityIntent(this);
+      if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
+          // This activity is NOT part of this app's task, so create a new task
+          // when navigating up, with a synthesized back stack.
+          TaskStackBuilder.create(this)
+                  // Add all of this activity's parents to the back stack
+                  .addNextIntentWithParentStack(upIntent)
+                  // Navigate up to the closest parent
+                  .startActivities();
+      } else {
+          // This activity is part of this app's task, so simply
+          // navigate up to the logical parent activity.
+          NavUtils.navigateUpTo(this, upIntent);
+      }*/
       return true;
     default:
       return super.onOptionsItemSelected(item);
@@ -229,6 +249,38 @@ public class SelectContactListActivity extends Activity implements OnTaskComplet
     }
   }
 
+  private class LoadTaskSimply extends AsyncTask<Void, Void, Pair> {
+    private Activity activity;
+
+    public LoadTaskSimply(Activity activity) {
+      this.activity = activity;
+    }
+
+    @Override
+    protected Pair doInBackground(Void... params) {
+
+      Pair p = new Pair();
+      HelperSQL db = new HelperSQL(SelectContactListActivity.this);
+      // load group
+      p.setGroupsList(db.getAllGroups());
+      // load user
+      p.setContactList(db.getAllContacts());
+      
+      return p;
+    }
+
+    protected void onPostExecute(Pair p) {
+      if (SelectContactListActivity.this.progressDialog != null) {
+        SelectContactListActivity.this.progressDialog.dismiss();
+      }
+      ((SelectContactListActivity) activity).onTaskCompleted(p);
+    }
+
+    protected void onPreExecute() {
+      super.onPreExecute();
+    }
+  }
+  
   @Override
   public void onArticleSelected(Pair p ) {
     //this.pair = p;

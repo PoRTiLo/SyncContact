@@ -1,85 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:paddingLeft="@dimen/margin_8"
-    android:paddingRight="@dimen/margin_8"
-    android:paddingTop="@dimen/margin_8" >
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_marginBottom="@dimen/margin_40"
+    android:layout_marginLeft="@dimen/margin_8"
+    android:layout_marginRight="@dimen/margin_8" >
+
+    <LinearLayout
+        android:id="@+id/buttons"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="@dimen/margin_12"
+        android:gravity="center"
+        android:orientation="vertical" >
+
+        <Button
+            android:id="@+id/button1"
+            style="@style/CustomButton"
+            android:gravity="center"
+            android:onClick="createConnection"
+            android:text="@string/add_account" >
+        </Button>
+    </LinearLayout>
 
     <ScrollView
-        android:id="@+id/scrollView1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingLeft="@dimen/margin_8"
-        android:paddingRight="@dimen/margin_8"
-        android:paddingTop="@dimen/margin_8" >
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_above="@id/buttons" >
 
-      <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical" >
-        
-        <TextView
-            android:id="@+id/textView1"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:gravity="center"
-            android:paddingBottom="@dimen/margin_20"
-            android:paddingTop="@dimen/margin_20"
-            android:text="@string/add_account_main"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
-        
-        <EditText
-            android:id="@+id/add_account_host_value"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:hint="@string/add_account_host"
-            android:inputType="textPersonName" />
-        
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/margin_8"
             android:paddingTop="@dimen/margin_8" >
-        
-          <TextView
-            android:id="@+id/textView3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/add_account_encryption" />
 
-          <Spinner
-            android:id="@+id/add_account_encryption_value"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            <TextView
+                android:id="@+id/add_info"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="center"
+                android:paddingBottom="@dimen/margin_20"
+                android:paddingTop="@dimen/margin_20"
+                android:text="@string/add_account_main"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <EditText
+                android:id="@+id/add_account_host_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="@string/add_account_host"
+                android:inputType="textPersonName" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingTop="@dimen/margin_8" >
+
+                <TextView
+                    android:id="@+id/textView3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/add_account_encryption" />
+
+                <Spinner
+                    android:id="@+id/add_account_encryption_value"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/add_account_list_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
+            </LinearLayout>
         </LinearLayout>
-        
-
- 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/add_account_list_value"
-            android:orientation="vertical" >
-        </LinearLayout>
-
-      </LinearLayout>
     </ScrollView>
-<RelativeLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingBottom="@dimen/margin_40" >
 
-    <Button
-      android:id="@+id/button1"
-      style="@style/CustomButton"
-      android:layout_alignParentBottom="true"
-      android:gravity="center"
-      android:onClick="createConnection"
-      android:text="@string/add_account" >
-    </Button>
-  </RelativeLayout>
-</LinearLayout>
+</RelativeLayout>

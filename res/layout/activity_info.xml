@@ -1,70 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="match_parent"
-  android:layout_height="match_parent"
-  android:orientation="vertical"
-  android:paddingLeft="@dimen/margin_8"
-  android:paddingRight="@dimen/margin_8"
-  android:paddingTop="@dimen/margin_8" >
-
-  <ScrollView
-    android:id="@+id/scrollView1"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content" >
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_marginBottom="@dimen/margin_40"
+    android:layout_marginLeft="@dimen/margin_8"
+    android:layout_marginRight="@dimen/margin_8" >
 
     <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:orientation="vertical"
-      android:paddingBottom="@dimen/margin_8"
-      android:paddingLeft="@dimen/margin_8"
-      android:paddingRight="@dimen/margin_8"
-      android:paddingTop="@dimen/margin_8" >
-
-      <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/buttons"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="@dimen/margin_12"
         android:gravity="center"
-        android:paddingBottom="@dimen/margin_20"
-        android:paddingTop="@dimen/margin_20"
-        android:text="@string/info_server_added"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:orientation="vertical" >
 
-      <TextView
-        android:id="@+id/textView2"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:gravity="center"
-        android:paddingBottom="@dimen/margin_12"
-        android:text="@string/info_text"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-
-      <TextView
-          android:id="@+id/textView3"
-          android:layout_width="fill_parent"
-          android:layout_height="fill_parent"
-          android:gravity="center"
-          android:text="@string/info_warning"
-          android:textAppearance="?android:attr/textAppearanceMedium"
-          android:textColor="@color/red" />
-
+        <Button
+            android:id="@+id/button1"
+            style="@style/CustomButton"
+            android:gravity="center"
+            android:onClick="selectActivity"
+            android:text="@string/info_button" >
+        </Button>
     </LinearLayout>
-  </ScrollView>
 
-  <RelativeLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingBottom="@dimen/margin_40" >
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_above="@id/buttons" >
 
-    <Button
-      android:id="@+id/button1"
-      style="@style/CustomButton"
-      android:layout_alignParentBottom="true"
-      android:gravity="center"
-      android:onClick="selectActivity"
-      android:text="@string/info_button" >
-    </Button>
-  </RelativeLayout>
+        <!-- Scrollable content here -->
 
-</LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/margin_8"
+            android:paddingTop="@dimen/margin_8" >
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="center"
+                android:paddingBottom="@dimen/margin_20"
+                android:paddingTop="@dimen/margin_20"
+                android:text="@string/info_server_added"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="center"
+                android:paddingBottom="@dimen/margin_12"
+                android:text="@string/info_text"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="center"
+                android:text="@string/info_warning"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@color/red" />
+        </LinearLayout>
+    </ScrollView>
+
+</RelativeLayout>

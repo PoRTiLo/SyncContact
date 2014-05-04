@@ -60,7 +60,6 @@ public class MainActivity extends Activity {
   @Override
   public void onWindowFocusChanged(boolean hasFocus) {
     super.onWindowFocusChanged(hasFocus);
-    Log.i(TAG, "onfocus:" + Utils.getTime());
     if (hasFocus == true) {
       conf();
     }
@@ -116,8 +115,15 @@ public class MainActivity extends Activity {
    * @param view
    */
   public void startServerActivity(View view) {
-    Intent intent = new Intent(this, AddServerActivity.class);
-    startActivity(intent);
+    SharedPreferences settings = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE);
+    boolean startFirst = settings.getBoolean(Constants.PREFS_START_FIRST, true);
+    if (startFirst) {
+      Intent intent = new Intent(this, WelcomeActivity.class);
+      startActivity(intent);
+    } else {
+      Intent intent = new Intent(this, ServerActivity.class);
+      startActivity(intent);
+    }
   }
   
   public void startContactActivity(View view) {
@@ -126,11 +132,12 @@ public class MainActivity extends Activity {
   }
   
   public void startHelpActivity(View view) {
-    
+    Intent intent = new Intent(this, HelpActivity.class);
+    startActivity(intent);
   }
   
   public void startSyncActivity(View view) {
-    Intent intent = new Intent(this, SelectContactListActivity.class);
+    Intent intent = new Intent(this, SynchronizationActivity.class);
     startActivity(intent);
   }
   
