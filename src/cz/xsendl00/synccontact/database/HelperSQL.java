@@ -28,7 +28,7 @@ import android.util.Log;
 public class HelperSQL extends SQLiteOpenHelper {
 
   private static final String TAG = "HelperSQL";
-  
+
   private static final String DATABASE_NAME = "SyncContact";
   private static final int DATABASE_VERSION = 1;
   private static final String GROUP_TABLE_NAME = "groupGoogle";
@@ -38,15 +38,21 @@ public class HelperSQL extends SQLiteOpenHelper {
   private static final String GROUP_KEY_GROUP = "groupName";
   private static final String GROUP_KEY_SIZE = "groupSize";
   private static final String GROUP_KEY_SYNC = "sync";
-  private static final String CREATE_GROUP_TABLE = "CREATE TABLE IF NOT EXISTS " + GROUP_TABLE_NAME + 
-      " (" + GROUP_KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-      GROUP_KEY_GROUP + " TEXT, " +
-      GROUP_KEY_SIZE + " INTEGER, " +
-      GROUP_KEY_SYNC + " INTEGER," +
-      GROUP_KEY_ID_GROUP + " TEXT " +");";
-  
+  private static final String CREATE_GROUP_TABLE = "CREATE TABLE IF NOT EXISTS "
+      + GROUP_TABLE_NAME
+      + " ("
+      + GROUP_KEY_ID
+      + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+      + GROUP_KEY_GROUP
+      + " TEXT, "
+      + GROUP_KEY_SIZE
+      + " INTEGER, "
+      + GROUP_KEY_SYNC
+      + " INTEGER,"
+      + GROUP_KEY_ID_GROUP + " TEXT " + ");";
+
   private static final String CONTACT_TABLE_NAME = "contactGoogle";
-  
+
   private static final String CONTACT_KEY_ID = "id";
   private static final String CONTACT_KEY_ID_CONTACT = "contact_id";
   private static final String CONTACT_KEY_NAME = "contactName";
@@ -55,25 +61,35 @@ public class HelperSQL extends SQLiteOpenHelper {
   private static final String CONTACT_KEY_ACCOUNT_TYPE = "account_type_previous";
   private static final String CONTACT_KEY_TIMESTAMP = "timestamp";
   private static final String CONTACT_KEY_UUID = "uuid";
-  
-  private static final String CREATE_CONTACT_TABLE = "CREATE TABLE IF NOT EXISTS " + CONTACT_TABLE_NAME + 
-      " (" + CONTACT_KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-      CONTACT_KEY_NAME + " TEXT, " +
-      CONTACT_KEY_SYNC + " INTEGER, " +
-      CONTACT_KEY_ACCOUNT_NAME + " TEXT, " +
-      CONTACT_KEY_ACCOUNT_TYPE + " TEXT, " +
-      CONTACT_KEY_TIMESTAMP + " TEXT, " +
-      CONTACT_KEY_UUID + " TEXT, " +
-      CONTACT_KEY_ID_CONTACT + " TEXT " +");";
-  
+
+  private static final String CREATE_CONTACT_TABLE = "CREATE TABLE IF NOT EXISTS "
+      + CONTACT_TABLE_NAME
+      + " ("
+      + CONTACT_KEY_ID
+      + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+      + CONTACT_KEY_NAME
+      + " TEXT, "
+      + CONTACT_KEY_SYNC
+      + " INTEGER, "
+      + CONTACT_KEY_ACCOUNT_NAME
+      + " TEXT, "
+      + CONTACT_KEY_ACCOUNT_TYPE
+      + " TEXT, "
+      + CONTACT_KEY_TIMESTAMP
+      + " TEXT, "
+      + CONTACT_KEY_UUID
+      + " TEXT, "
+      + CONTACT_KEY_ID_CONTACT
+      + " TEXT " + ");";
+
   private Context context;
-  
+
   public HelperSQL(Context context) {
-      super(context, DATABASE_NAME, null, DATABASE_VERSION);
-      this.context = context;
+    super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    this.context = context;
   }
 
-  /* Create table*/
+  /* Create table */
   @Override
   public void onCreate(SQLiteDatabase db) {
     db.execSQL(CREATE_GROUP_TABLE);
@@ -88,36 +104,42 @@ public class HelperSQL extends SQLiteOpenHelper {
     // Create tables again
     onCreate(db);
   }
-  
-  //Adding new group
+
+  // Adding new group
   public void addGroup(GroupRow group) {
     SQLiteDatabase db = this.getWritableDatabase();
-    
+
     ContentValues values = new ContentValues();
     values.put(GROUP_KEY_GROUP, group.getName());
     values.put(GROUP_KEY_SYNC, group.isSync());
     values.put(GROUP_KEY_ID_GROUP, group.getId());
     values.put(GROUP_KEY_SIZE, group.getSize());
- 
+
     // Inserting Row
     db.insert(GROUP_TABLE_NAME, null, values);
     db.close(); // Closing database connection
   }
 
-  //Getting single group
+  // Getting single group
   public GroupRow getGroup(int id) {
     SQLiteDatabase db = this.getReadableDatabase();
-    
+
     Cursor cursor = db.query(GROUP_TABLE_NAME, new String[] { GROUP_KEY_ID,
-        GROUP_KEY_GROUP, GROUP_KEY_SIZE, GROUP_KEY_SYNC, GROUP_KEY_ID_GROUP }, GROUP_KEY_ID + "=?",
-            new String[] { String.valueOf(id) }, null, null, null, null);
+        GROUP_KEY_GROUP, GROUP_KEY_SIZE, GROUP_KEY_SYNC, GROUP_KEY_ID_GROUP },
+        GROUP_KEY_ID + "=?", new String[] { String.valueOf(id) }, null, null,
+        null, null);
+    GroupRow group = null;
     if (cursor != null) {
-        cursor.moveToFirst();
+      cursor.moveToFirst();
+      group = new GroupRow(cursor.getString(1), cursor.getString(4),
+          cursor.getInt(2), cursor.getInt(3) > 0, cursor.getInt(0));
+      cursor.close();
     }
-    return new GroupRow(cursor.getString(1), cursor.getString(4), cursor.getInt(2), cursor.getInt(3)>0, cursor.getInt(0));
+    db.close();
+    return group;
   }
 
-  //Getting All Groups
+  // Getting All Groups
   public List<GroupRow> getAllGroups() {
     List<GroupRow> groupList = new ArrayList<GroupRow>();
     String selectQuery = "SELECT  * FROM " + GROUP_TABLE_NAME;
@@ -129,11 +151,12 @@ public class HelperSQL extends SQLiteOpenHelper {
         group.setIdTable(cursor.getInt(0));
         group.setName(cursor.getString(1));
         group.setSize(cursor.getInt(2));
-        group.setSync(cursor.getInt(3)>0);
+        group.setSync(cursor.getInt(3) > 0);
         group.setId(cursor.getString(4));
         // Adding group to list
         groupList.add(group);
       } while (cursor.moveToNext());
+      cursor.close();
     }
     db.close();
     return groupList;
@@ -144,10 +167,14 @@ public class HelperSQL extends SQLiteOpenHelper {
     String countQuery = "SELECT  * FROM " + GROUP_TABLE_NAME;
     SQLiteDatabase db = this.getReadableDatabase();
     Cursor cursor = db.rawQuery(countQuery, null);
+    int count = 0;
+    if (cursor.moveToFirst()) {
+      count = cursor.getCount();
+    }
     cursor.close();
 
     db.close();
-    return cursor.getCount();
+    return count;
   }
 
   // Updating single group
@@ -155,64 +182,47 @@ public class HelperSQL extends SQLiteOpenHelper {
     SQLiteDatabase db = this.getWritableDatabase();
     ContentValues values = new ContentValues();
     values.put(GROUP_KEY_SYNC, group.isSync());
-    int res = db.update(GROUP_TABLE_NAME, values, GROUP_KEY_ID + " = ?", new String[] { String.valueOf(group.getIdTable()) });
+    int res = db.update(GROUP_TABLE_NAME, values, GROUP_KEY_ID + " = ?",
+        new String[] { String.valueOf(group.getIdTable()) });
     db.close();
     return res;
   }
-/*
-  public static ContentProviderOperation updateRawContactStatus() {
-    ArrayList<ContentProviderOperation> ops = 
-        new ArrayList<ContentProviderOperation>();
-     ops.add(
-    ContentProviderOperation.newUpdate(ContentUris.withAppendedId(rawContactUri, rawContactId))
-          .withValue(RawContacts.ACCOUNT_NAME, status)
-          .withValue(RawContacts.ACCOUNT_TYPE, status).build()
-          );
-     
-     try {
-       getContentResolver().
-          applyBatch(ContactsContract.AUTHORITY, ops);
-    } catch (RemoteException e) {
-       // do s.th.
-    } catch (OperationApplicationException e) {
-       // do s.th.
-    }
-    
-  } 
-  */
+
   // Deleting single group
   public void deleteGroup(GroupRow group) {
     SQLiteDatabase db = this.getWritableDatabase();
-    db.delete(GROUP_TABLE_NAME, GROUP_KEY_ID + " = ?", new String[] { String.valueOf(group.getIdTable()) });
+    db.delete(GROUP_TABLE_NAME, GROUP_KEY_ID + " = ?",
+        new String[] { String.valueOf(group.getIdTable()) });
     db.close();
   }
-  
-  // Insert data from db 
+
+  // Insert data from db
   public void fillGroups(ArrayList<GroupRow> groups) {
     List<GroupRow> grTable = getAllGroups();
     for (GroupRow gr : groups) {
       boolean found = false;
       for (GroupRow grT : grTable) {
-        //Log.i(TAG, gr.getId() +":"+ grT.getId());
+        // Log.i(TAG, gr.getId() +":"+ grT.getId());
         if (gr.getId().equals(grT.getId())) {
           gr.setSync(grT.isSync());
           gr.setIdTable(grT.getIdTable());
           found = true;
-          //Log.i(TAG, "before: " + gr.toString() + ", after:" + grT.toString());
+          // Log.i(TAG, "before: " + gr.toString() + ", after:" +
+          // grT.toString());
           break;
         }
       }
-      if ( !found ) {
-       //Log.i(TAG, "add to db: " + gr.toString());
+      if (!found) {
+        // Log.i(TAG, "add to db: " + gr.toString());
         addGroup(gr);
       }
     }
   }
-  
+
   // Adding new contact
   public int addContact(ContactRow contact) {
     SQLiteDatabase db = this.getWritableDatabase();
-    
+
     ContentValues values = new ContentValues();
     values.put(CONTACT_KEY_NAME, contact.getName());
     values.put(CONTACT_KEY_SYNC, contact.isSync());
@@ -221,27 +231,35 @@ public class HelperSQL extends SQLiteOpenHelper {
     values.put(CONTACT_KEY_ACCOUNT_TYPE, contact.getAccouTypePrevious());
     values.put(CONTACT_KEY_TIMESTAMP, contact.getTimestamp());
     values.put(CONTACT_KEY_UUID, contact.getUuid());
- 
+
     // Inserting Row
-    int id = (int)db.insert(CONTACT_TABLE_NAME, null, values);
+    int id = (int) db.insert(CONTACT_TABLE_NAME, null, values);
     db.close(); // Closing database connection
-    return id; 
+    return id;
   }
-  
+
   // Getting single contact
   public ContactRow getContact(int id) {
     SQLiteDatabase db = this.getReadableDatabase();
-    
-    Cursor cursor = db.query(CONTACT_TABLE_NAME, new String[] { CONTACT_KEY_ID, CONTACT_KEY_NAME, CONTACT_KEY_SYNC, CONTACT_KEY_ID_CONTACT, 
-        CONTACT_KEY_ACCOUNT_NAME, CONTACT_KEY_ACCOUNT_TYPE, CONTACT_KEY_TIMESTAMP , CONTACT_KEY_UUID}, CONTACT_KEY_ID + "=?",
-            new String[] { String.valueOf(id) }, null, null, null, null);
+
+    Cursor cursor = db.query(CONTACT_TABLE_NAME, new String[] { CONTACT_KEY_ID,
+        CONTACT_KEY_NAME, CONTACT_KEY_SYNC, CONTACT_KEY_ID_CONTACT,
+        CONTACT_KEY_ACCOUNT_NAME, CONTACT_KEY_ACCOUNT_TYPE,
+        CONTACT_KEY_TIMESTAMP, CONTACT_KEY_UUID }, CONTACT_KEY_ID + "=?",
+        new String[] { String.valueOf(id) }, null, null, null, null);
+    ContactRow contact = null;
     if (cursor != null) {
-        cursor.moveToFirst();
+      cursor.moveToFirst();
+      contact = new ContactRow(cursor.getString(7), cursor.getString(1),
+          cursor.getInt(2) > 0, cursor.getInt(0), cursor.getString(3),
+          cursor.getString(4), cursor.getString(5), cursor.getString(6));
+      cursor.close();
     }
-    return new ContactRow(cursor.getString(7), cursor.getString(1), cursor.getInt(2)>0, cursor.getInt(0), cursor.getString(3), 
-        cursor.getString(4), cursor.getString(5), cursor.getString(6));
+
+    db.close();
+    return contact;
   }
-  
+
   // Getting All Contacts
   public List<ContactRow> getAllContacts() {
     List<ContactRow> contactList = new ArrayList<ContactRow>();
@@ -251,18 +269,22 @@ public class HelperSQL extends SQLiteOpenHelper {
     if (cursor.moveToFirst()) {
       do {
         // Adding contact to list
-        contactList.add(new ContactRow(cursor.getString(7), cursor.getString(1), cursor.getInt(2)>0, cursor.getInt(0), cursor.getString(3), 
-            cursor.getString(4), cursor.getString(5), cursor.getString(5)));
+        contactList.add(new ContactRow(cursor.getString(7),
+            cursor.getString(1), cursor.getInt(2) > 0, cursor.getInt(0), cursor
+                .getString(3), cursor.getString(4), cursor.getString(5), cursor
+                .getString(5)));
       } while (cursor.moveToNext());
+      cursor.close();
     }
     db.close();
     return contactList;
   }
-  
-  // Getting sync contact id 
+
+  // Getting sync contact id
   public List<String> getSyncContactsId() {
     List<String> contactsId = new ArrayList<String>();
-    String selectQuery = "SELECT " + CONTACT_KEY_ID_CONTACT + " FROM " + CONTACT_TABLE_NAME + " WHERE " + CONTACT_KEY_SYNC + " =1";
+    String selectQuery = "SELECT " + CONTACT_KEY_ID_CONTACT + " FROM "
+        + CONTACT_TABLE_NAME + " WHERE " + CONTACT_KEY_SYNC + " =1";
     SQLiteDatabase db = this.getWritableDatabase();
     Cursor cursor = db.rawQuery(selectQuery, null);
     if (cursor.moveToFirst()) {
@@ -270,32 +292,36 @@ public class HelperSQL extends SQLiteOpenHelper {
         // Adding contact to list
         contactsId.add(cursor.getString(0));
       } while (cursor.moveToNext());
+      cursor.close();
     }
     db.close();
     return contactsId;
   }
-  
-  // Getting sync contact id 
+
+  // Getting sync contact id
   public String getContactId(String uuid) {
     Log.i(TAG, " getContactId");
     String contactsId = null;
-    String selectQuery = "SELECT " + CONTACT_KEY_ID_CONTACT + " FROM " + CONTACT_TABLE_NAME + " WHERE " + CONTACT_KEY_UUID + " ='" + uuid + "'";
+    String selectQuery = "SELECT " + CONTACT_KEY_ID_CONTACT + " FROM "
+        + CONTACT_TABLE_NAME + " WHERE " + CONTACT_KEY_UUID + " ='" + uuid
+        + "'";
     Log.i(TAG, selectQuery);
     SQLiteDatabase db = this.getWritableDatabase();
     Cursor cursor = db.rawQuery(selectQuery, null);
     if (cursor.moveToFirst()) {
       contactsId = cursor.getString(0);
+      cursor.close();
     }
     db.close();
     return contactsId;
   }
-  
-  
-  
-  // Getting sync contact id 
+
+  // Getting sync contact id
   public List<ContactRow> getSyncContacts() {
     List<ContactRow> contacts = new ArrayList<ContactRow>();
-    String selectQuery = "SELECT " + CONTACT_KEY_ID_CONTACT +","+ CONTACT_KEY_UUID + " FROM " + CONTACT_TABLE_NAME + " WHERE " + CONTACT_KEY_SYNC + " =1";
+    String selectQuery = "SELECT " + CONTACT_KEY_ID_CONTACT + ","
+        + CONTACT_KEY_UUID + " FROM " + CONTACT_TABLE_NAME + " WHERE "
+        + CONTACT_KEY_SYNC + " =1";
     SQLiteDatabase db = this.getWritableDatabase();
     Cursor cursor = db.rawQuery(selectQuery, null);
     if (cursor.moveToFirst()) {
@@ -305,104 +331,115 @@ public class HelperSQL extends SQLiteOpenHelper {
         con.setId(cursor.getString(0));
         con.setUuid(cursor.getString(1));
         contacts.add(con);
-        Log.i(TAG, "get Sync contac: "+con.toString());
+        Log.i(TAG, "get Sync contac: " + con.toString());
       } while (cursor.moveToNext());
+      cursor.close();
     }
-    db.close();
+    
     return contacts;
   }
-  
+
   public void updateContactDb(Map<String, GoogleContact> map) {
+    SQLiteDatabase db = this.getWritableDatabase();
     for (Map.Entry<String, GoogleContact> entry : map.entrySet()) {
-      String selectQuery = "SELECT " + CONTACT_KEY_ID_CONTACT + " FROM " + CONTACT_TABLE_NAME + " WHERE " + CONTACT_KEY_UUID + " ="+entry.getKey();
-      SQLiteDatabase db = this.getWritableDatabase();
+      String selectQuery = "SELECT " + CONTACT_KEY_ID_CONTACT + " FROM "
+          + CONTACT_TABLE_NAME + " WHERE " + CONTACT_KEY_UUID + " ="
+          + entry.getKey();
       Cursor cursor = db.rawQuery(selectQuery, null);
       if (cursor.moveToFirst()) {
         // get contact from db and all data
-        GoogleContact contact = Mapping.mappingContactFromDB(context.getContentResolver(), cursor.getString(0));
+        GoogleContact contact = Mapping.mappingContactFromDB(
+            context.getContentResolver(), cursor.getString(0));
         // compare
         ContentValues values = new ContentValues();
         values.putAll(GoogleContact.compare(contact, entry.getValue()));
         ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 
-       
-  // getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-   //ops.add(object)
+        // getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+        // ops.add(object)
       }
       cursor.close();
     }
+    db.close();
   }
-  
+
   // Getting contacts Count
   public int getContactCount() {
     String countQuery = "SELECT  * FROM " + CONTACT_TABLE_NAME;
     SQLiteDatabase db = this.getReadableDatabase();
     Cursor cursor = db.rawQuery(countQuery, null);
+    int count = cursor.getCount();
     cursor.close();
-
-    return cursor.getCount();
+    db.close();
+    return count;
   }
-  
+
   // Updating single contact
   public int updateContact(ContactRow contact) {
     SQLiteDatabase db = this.getWritableDatabase();
-    
+
     ContentValues values = new ContentValues();
     values.put(CONTACT_KEY_NAME, contact.getName());
     values.put(CONTACT_KEY_SYNC, contact.isSync());
     values.put(CONTACT_KEY_ID_CONTACT, contact.getId());
     values.put(CONTACT_KEY_TIMESTAMP, contact.getTimestamp());
-    //values.put(CONTACT_KEY_ACCOUNT, contact.getIdAccountPrevious());
-    //Log.i(TAG, "update:" + contact.toString());
-    int res = db.update(CONTACT_TABLE_NAME, values, CONTACT_KEY_ID + " = ?", new String[] { String.valueOf(contact.getIdTable()) });
+    // values.put(CONTACT_KEY_ACCOUNT, contact.getIdAccountPrevious());
+    // Log.i(TAG, "update:" + contact.toString());
+    int res = db.update(CONTACT_TABLE_NAME, values, CONTACT_KEY_ID + " = ?",
+        new String[] { String.valueOf(contact.getIdTable()) });
     db.close();
     return res;
   }
-  
+
   // Updating single contact
   public int updateContactSync(ContactRow contact) {
     SQLiteDatabase db = this.getWritableDatabase();
     ContentValues values = new ContentValues();
     values.put(CONTACT_KEY_SYNC, contact.isSync());
-    int res = db.update(CONTACT_TABLE_NAME, values, CONTACT_KEY_ID + " = ?", new String[] { String.valueOf(contact.getIdTable()) });
+    int res = db.update(CONTACT_TABLE_NAME, values, CONTACT_KEY_ID + " = ?",
+        new String[] { String.valueOf(contact.getIdTable()) });
     db.close();
     return res;
   }
+
   // Updating single contact
   public int updateContactSync(String id, boolean sync) {
     SQLiteDatabase db = this.getWritableDatabase();
     ContentValues values = new ContentValues();
     values.put(CONTACT_KEY_SYNC, sync);
-    int res = db.update(CONTACT_TABLE_NAME, values, CONTACT_KEY_ID_CONTACT + " = ?", new String[] {id});
+    int res = db.update(CONTACT_TABLE_NAME, values, CONTACT_KEY_ID_CONTACT
+        + " = ?", new String[] { id });
     db.close();
     return res;
   }
-  
+
   public void updateContacts(Map<String, GoogleContact> gcs, String timestamp) {
     for (String entry : gcs.keySet()) {
       updateContact(timestamp, false, entry);
     }
   }
-  
+
   // Updating single contact
   public int updateContact(String timestamp, Boolean sync, String uuid) {
     SQLiteDatabase db = this.getWritableDatabase();
     ContentValues values = new ContentValues();
     values.put(CONTACT_KEY_SYNC, sync);
     values.put(CONTACT_KEY_TIMESTAMP, timestamp);
-    int res = db.update(CONTACT_TABLE_NAME, values, CONTACT_KEY_UUID + " = ?", new String[] {uuid});
+    int res = db.update(CONTACT_TABLE_NAME, values, CONTACT_KEY_UUID + " = ?",
+        new String[] { uuid });
     db.close();
     return res;
   }
-  
+
   // Deleting single contact
   public void deleteContact(ContactRow contact) {
     SQLiteDatabase db = this.getWritableDatabase();
-    db.delete(CONTACT_TABLE_NAME, CONTACT_KEY_ID + " = ?", new String[] { String.valueOf(contact.getIdTable()) });
+    db.delete(CONTACT_TABLE_NAME, CONTACT_KEY_ID + " = ?",
+        new String[] { String.valueOf(contact.getIdTable()) });
     db.close();
   }
-  
-  // Insert data from db 
+
+  // Insert data from db
   public void fillContacts(ArrayList<ContactRow> contacts) {
     List<ContactRow> conTable = getAllContacts();
     String timestamp = ContactRow.createTimestamp();
@@ -421,22 +458,26 @@ public class HelperSQL extends SQLiteOpenHelper {
         }
       }
       if (!found) {
-        //Log.i(TAG, con.toString());
+        // Log.i(TAG, con.toString());
         con.setTimestamp(timestamp);
         con.setIdTable(addContact(con));
-        //AndroidDB.importContactToSyncAccount(context, Integer.parseInt(con.getId()));
+        // AndroidDB.importContactToSyncAccount(context,
+        // Integer.parseInt(con.getId()));
       }
     }
   }
 
   public String newerTimestamp() {
     String str = null;
-    String selectQuery = "SELECT MAX(" + CONTACT_KEY_TIMESTAMP + ") FROM " + CONTACT_TABLE_NAME;
+    String selectQuery = "SELECT MAX(" + CONTACT_KEY_TIMESTAMP + ") FROM "
+        + CONTACT_TABLE_NAME;
     SQLiteDatabase db = this.getWritableDatabase();
     Cursor cursor = db.rawQuery(selectQuery, null);
     if (cursor.moveToNext()) {
       str = cursor.getString(0);
+      cursor.close();
     }
+    db.close();
     return str;
   }
 }
