@@ -20,16 +20,14 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.NavUtils;
-import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
-public class SelectContactListActivity extends Activity implements OnTaskCompleted, OnHeadlineSelectedListener {
-  
+public class SelectContactListActivity extends Activity implements
+    OnTaskCompleted, OnHeadlineSelectedListener {
+
   private static final String TAG = "SelectContactListActivity";
 
   private final Handler handler = new Handler();
@@ -43,8 +41,9 @@ public class SelectContactListActivity extends Activity implements OnTaskComplet
     setContentView(R.layout.activity_select_contact);
     getActionBar().setDisplayHomeAsUpEnabled(true);
     Intent intent = getIntent();
-    first = intent.getBooleanExtra("FIRST", false);    
-    progressDialog = ProgressDialog.show(SelectContactListActivity.this, Constants.AC_LOADING, Constants.AC_LOADING_TEXT_DB, true);
+    first = intent.getBooleanExtra("FIRST", false);
+    progressDialog = ProgressDialog.show(SelectContactListActivity.this,
+        Constants.AC_LOADING, Constants.AC_LOADING_TEXT_DB, true);
   }
 
   @Override
@@ -52,14 +51,14 @@ public class SelectContactListActivity extends Activity implements OnTaskComplet
 
     if (first) {
       // TODO; pro prvni zmeninut menu
-      getMenuInflater().inflate(R.menu.activity_main_actions, menu);
+      getMenuInflater().inflate(R.menu.contacts_menu, menu);
       new LoadTask(SelectContactListActivity.this).execute();
     } else {
-      getMenuInflater().inflate(R.menu.activity_main_actions, menu);
+      getMenuInflater().inflate(R.menu.contacts_menu, menu);
       new LoadTaskSimply(SelectContactListActivity.this).execute();
     }
-    
-    return super.onCreateOptionsMenu(menu);
+
+    return true;// super.onCreateOptionsMenu(menu);
   }
 
   public void onTaskCompleted(Pair p) {
@@ -69,8 +68,16 @@ public class SelectContactListActivity extends Activity implements OnTaskComplet
     actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
     // Adding Tabs
-    actionBar.addTab(actionBar.newTab().setText("GROUP").setTabListener(new MyTabListener(GroupFragment.newInstance(pair, first))));
-    actionBar.addTab(actionBar.newTab().setText("CONTACT").setTabListener(new MyTabListener(ContactFragment.newInstance(pair, first))));
+    actionBar.addTab(actionBar
+        .newTab()
+        .setText("GROUP")
+        .setTabListener(
+            new MyTabListener(GroupFragment.newInstance(pair, first))));
+    actionBar.addTab(actionBar
+        .newTab()
+        .setText("CONTACT")
+        .setTabListener(
+            new MyTabListener(ContactFragment.newInstance(pair, first))));
 
   }
 
@@ -79,51 +86,44 @@ public class SelectContactListActivity extends Activity implements OnTaskComplet
    * */
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    // Take appropriate action for each action item click
+    Intent intent = null;
     switch (item.getItemId()) {
-    case R.id.action_search:
-      sync();
-      return true;
-    case R.id.action_location_found:
-      // location found
-      LocationFound();
-      return true;
-    case R.id.action_refresh:
-      // refresh
-      return true;
-    case R.id.action_help:
-      help();
-      return true;
-    case R.id.action_check_updates:
-      // check for updates action
-      return true;
-    case android.R.id.home:
-      //TODO
-      Log.i(TAG, "jsem tuuuuuuuuuuuuuuuuuuuuu");
-      /*Intent upIntent = NavUtils.getParentActivityIntent(this);
-      if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
-          // This activity is NOT part of this app's task, so create a new task
-          // when navigating up, with a synthesized back stack.
-          TaskStackBuilder.create(this)
-                  // Add all of this activity's parents to the back stack
-                  .addNextIntentWithParentStack(upIntent)
-                  // Navigate up to the closest parent
-                  .startActivities();
-      } else {
-          // This activity is part of this app's task, so simply
-          // navigate up to the logical parent activity.
-          NavUtils.navigateUpTo(this, upIntent);
-      }*/
-      return true;
-    default:
-      return super.onOptionsItemSelected(item);
+      case R.id.action_refresh:
+        //progressDialog = ProgressDialog.show(SelectContactListActivity.this,
+        //    Constants.AC_LOADING, Constants.AC_LOADING_TEXT_DB, true);
+        //new LoadTask(SelectContactListActivity.this).execute();
+        break;
+      case R.id.action_add_group:
+        break;
+      case R.id.action_help:
+        intent = new Intent(this, HelpActivity.class);
+        startActivity(intent);
+        break;
+      case R.id.action_settings:
+        intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+        break;
+      case android.R.id.home:
+        // TODO
+        Log.i(TAG, "jsem tuuuuuuuuuuuuuuuuuuuuu");
+        /*
+         * Intent upIntent = NavUtils.getParentActivityIntent(this); if
+         * (NavUtils.shouldUpRecreateTask(this, upIntent)) { // This activity is
+         * NOT part of this app's task, so create a new task // when navigating
+         * up, with a synthesized back stack. TaskStackBuilder.create(this) // Add
+         * all of this activity's parents to the back stack
+         * .addNextIntentWithParentStack(upIntent) // Navigate up to the closest
+         * parent .startActivities(); } else { // This activity is part of this
+         * app's task, so simply // navigate up to the logical parent activity.
+         * NavUtils.navigateUpTo(this, upIntent); }
+         */
+        return true;
+      default:
+        return super.onOptionsItemSelected(item);
     }
+    return true;
   }
 
-  private void help() {
-    ChangeAccountTask rt = new ChangeAccountTask();
-    rt.execute();
-  }
 
   // sync all contact
   // upload all contact to server
@@ -205,12 +205,6 @@ public class SelectContactListActivity extends Activity implements OnTaskComplet
     }
   }
 
-
-  // show anly sync contact
-  private void LocationFound() {
-
-  }
-
   private class LoadTask extends AsyncTask<Void, Void, Pair> {
     private Activity activity;
 
@@ -222,16 +216,23 @@ public class SelectContactListActivity extends Activity implements OnTaskComplet
     protected Pair doInBackground(Void... params) {
 
       Pair p = new Pair();
-      p.getGroupsList().addAll(GroupRow.fetchGroups(SelectContactListActivity.this.getContentResolver()));
+      p.getGroupsList().addAll(
+          GroupRow.fetchGroups(SelectContactListActivity.this
+              .getContentResolver()));
       for (GroupRow group : p.getGroupsList()) {
         ArrayList<ContactRow> groupMembers = new ArrayList<ContactRow>();
-        groupMembers.addAll(ContactRow.fetchGroupMembers(SelectContactListActivity.this.getContentResolver(), group.getId()));
+        groupMembers
+            .addAll(ContactRow.fetchGroupMembers(
+                SelectContactListActivity.this.getContentResolver(),
+                group.getId()));
         group.setSize(groupMembers.size());
-       // p.getGroupMemberList().put(group, groupMembers);
+        // p.getGroupMemberList().put(group, groupMembers);
       }
       HelperSQL db = new HelperSQL(SelectContactListActivity.this);
       db.fillGroups(p.getGroupsList());
-      p.getContactList().addAll(ContactRow.fetchAllContact(SelectContactListActivity.this.getContentResolver()));
+      p.getContactList().addAll(
+          ContactRow.fetchAllContact(SelectContactListActivity.this
+              .getContentResolver()));
       db.fillContacts(p.getContactList());
       return p;
     }
@@ -280,21 +281,23 @@ public class SelectContactListActivity extends Activity implements OnTaskComplet
       super.onPreExecute();
     }
   }
-  
+
   @Override
-  public void onArticleSelected(Pair p ) {
-    //this.pair = p;
-    //pair.getContactList().get(1).setSync(true);
+  public void onArticleSelected(Pair p) {
+    // this.pair = p;
+    // pair.getContactList().get(1).setSync(true);
   }
-  
+
   public void mainActivity(View view) {
-    Editor editor = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit();
+    Editor editor = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
+        .edit();
     editor.putBoolean(Constants.PREFS_START_FIRST, false);
     editor.commit();
-    
+
     Intent intent = new Intent(this, MainActivity.class);
-    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
+    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
+        | Intent.FLAG_ACTIVITY_NEW_TASK);
     startActivity(intent);
-    
+
   }
 }

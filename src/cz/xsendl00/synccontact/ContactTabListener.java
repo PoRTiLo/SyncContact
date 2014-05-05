@@ -1,4 +1,4 @@
-package cz.xsendl00.synccontact;
+/*package cz.xsendl00.synccontact;
 
 import android.app.ActionBar.Tab;
 import android.app.ActionBar.TabListener;
@@ -13,11 +13,7 @@ public class ContactTabListener<T extends Fragment> implements TabListener {
   private final String mTag;
   private final Class<T> mClass;
 
-  /** Constructor used each time a new tab is created.
-    * @param activity  The host Activity, used to instantiate the fragment
-    * @param tag  The identifier tag for the fragment
-    * @param clz  The fragment's Class, used to instantiate the fragment
-    */
+
   public ContactTabListener(Activity activity, String tag, Class<T> clz) {
     mActivity = activity;
     mTag = tag;
@@ -47,3 +43,4 @@ public class ContactTabListener<T extends Fragment> implements TabListener {
   @Override
   public void onTabReselected(Tab tab, FragmentTransaction ft) {}
 }
+*/

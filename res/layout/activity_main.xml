@@ -14,7 +14,7 @@
     android:id="@+id/button_map"
     android:text="@string/main_contact"
     android:onClick="startContactActivity"
-    android:drawableTop="@drawable/map1"
+    android:drawableTop="@drawable/map"
     android:layout_width="160dip" 
     android:layout_height="210dip">
   </Button>

@@ -1,4 +1,4 @@
-package cz.xsendl00.synccontact;
+/*package cz.xsendl00.synccontact;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -24,13 +24,14 @@ public class TabsPagerAdapter extends FragmentPagerAdapter {
     }
   }
   
-  /*
+
   public int getItemPosition(Object object) {
     return POSITION_NONE;
   }
-*/
+
   @Override
   public int getCount() {
     return 2;
   }
 }
+*/

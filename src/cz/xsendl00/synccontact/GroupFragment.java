@@ -46,8 +46,6 @@ public class GroupFragment extends Fragment implements android.widget.CompoundBu
     super.onCreate(savedInstanceState);
     pair = getArguments().getParcelable("pair");
     first = getArguments().getBoolean("FIRST");
-    //groupsList = pair.getGroupsList();
-    //groupMemberList = pair.getGroupMemberList();
   }
 
   // Container Activity must implement this interface
