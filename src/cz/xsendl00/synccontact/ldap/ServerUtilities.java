@@ -23,6 +23,7 @@ import com.unboundid.ldap.sdk.SearchResultEntry;
 import com.unboundid.ldap.sdk.SearchScope;
 import com.unboundid.ldif.LDIFException;
 import cz.xsendl00.synccontact.AddServerActivity;
+import cz.xsendl00.synccontact.ServerActivity;
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.database.AndroidDB;
@@ -62,13 +63,17 @@ public class ServerUtilities {
 	 * @param context
 	 * @param message
 	 */
-  private static void sendResult(final String[] baseDNs, final Boolean result, final Handler handler, final Context context, final String message) {
+  private static void sendResult(final String[] baseDNs, final Boolean result, final Handler handler, final Context context, final String message, final boolean test) {
     if (handler == null || context == null) {
       return;
     }
     handler.post(new Runnable() {
       public void run() {
-        ((AddServerActivity) context).onAuthenticationResult(baseDNs, result, message);
+        if (test) {
+          ((ServerActivity) context).onAuthenticationResult(baseDNs, result, message);
+        } else {
+          ((AddServerActivity) context).onAuthenticationResult(baseDNs, result, message);
+        }
       }
     });
 }
@@ -365,10 +370,10 @@ public class ServerUtilities {
 	}
 
 
-  public static Thread attemptAuth(final ServerInstance ldapServer, final Handler handler, final Context context) {
+  public static Thread attemptAuth(final ServerInstance ldapServer, final Handler handler, final Context context, final boolean test) {
     final Runnable runnable = new Runnable() {
       public void run() {
-        authenticate(ldapServer, handler, context);
+        authenticate(ldapServer, handler, context, test);
       }
     };
     // run on background thread.
@@ -376,7 +381,7 @@ public class ServerUtilities {
   }
 
 
-  public static boolean authenticate(ServerInstance ldapServer, Handler handler, final Context context) {
+  public static boolean authenticate(ServerInstance ldapServer, Handler handler, final Context context, final boolean test) {
     LDAPConnection connection = null;
     try {
       connection = ldapServer.getConnection(handler, context);
@@ -386,12 +391,12 @@ public class ServerUtilities {
         if (s != null) {
           baseDNs = s.getNamingContextDNs();
         }
-        sendResult(baseDNs, true, handler, context, null);
+        sendResult(baseDNs, true, handler, context, null, test);
         return true;
       }
     } catch (LDAPException e) {
       Log.e(TAG, "Error authenticating", e);
-      sendResult(null, false, handler, context, e.getMessage());
+      sendResult(null, false, handler, context, e.getMessage(), test);
       return false;
     } finally {
       if (connection != null) {

@@ -42,7 +42,8 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
   private static final String TAG = "AddServerActivity";
 
   public static final String HOST = "192.168.0.102";
-  public static final String DN = "cn=admin,dc=synccontact,dc=xsendl00,dc=cz";
+  public static final String DN = "dc=synccontact,dc=xsendl00,dc=cz";
+  public static final String USER = "cn=admin,dc=synccontact,dc=xsendl00,dc=cz";
   public static final String PASS = "synccontact";
   
   private final Handler handler = new Handler();
@@ -58,6 +59,7 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
   private EditText nameEditText;
   private EditText passEditText;
   private EditText hostEditText;
+  private EditText dnEditText;
   
   private String authToken;
   private String authTokenType;
@@ -80,7 +82,8 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     setEncryptionSpinner();
     // TODO:delete after complete
     hostEditText.setText(HOST);
-    nameEditText.setText(DN);
+    dnEditText.setText(DN);
+    nameEditText.setText(USER);
     passEditText.setText(PASS);
     
   }
@@ -158,6 +161,7 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     Log.i(TAG, "setControls : "+ accountData.toString());
     encryptionSpinner = (Spinner) findViewById(R.id.add_account_encryption_value);
     hostEditText = (EditText) findViewById(R.id.add_account_host_value);
+    dnEditText = (EditText) findViewById(R.id.add_account_dn_value);
     hostEditText.setText(accountData.getHost());
     portEditText.setText(Integer.toString(accountData.getPort()));
     nameEditText.setText(accountData.getName());
@@ -174,6 +178,7 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     this.accountData = new AccountData();
     this.accountData.setPort(intent.getIntExtra((Constants.PAR_PORT), 389));
     this.accountData.setHost(intent.getStringExtra(Constants.PAR_HOST));
+    this.accountData.setBaseDn(intent.getStringExtra(Constants.PAR_BASEDN));
     this.accountData.setName(intent.getStringExtra(Constants.PAR_USERNAME));
     this.accountData.setPassword(intent.getStringExtra(Constants.PAR_PASSWORD));
     this.accountData.setEncryption(intent.getIntExtra(Constants.PAR_ENCRYPTION, 0));
@@ -195,12 +200,14 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
       accountData.setPort(Integer.parseInt(Constants.STARTTLS));
     }
     accountData.setHost(hostEditText.getText().toString());
+    accountData.setBaseDn(dnEditText.getText().toString());
     accountData.setPassword(passEditText.getText().toString());
+    accountData.setEncryption(encryptionSpinner.getSelectedItemPosition());
     
     // show progressBar
     showProgressBar(view);
     
-    authThread = ServerUtilities.attemptAuth(new ServerInstance(accountData), handler, AddServerActivity.this);
+    authThread = ServerUtilities.attemptAuth(new ServerInstance(accountData), handler, AddServerActivity.this, false);
   }
   
   private void showProgressBar(View view) {

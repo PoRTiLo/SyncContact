@@ -7,19 +7,19 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-public class HelpActivity extends Activity {
-
+public class SettingsActivity extends Activity {
+  
   @Override
-  public void onCreate(Bundle bundle) {
-    super.onCreate(bundle);
-    setContentView(R.layout.activity_help);
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_settings);
     getActionBar().setDisplayHomeAsUpEnabled(true);
   }
   
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.help_menu, menu);
+    inflater.inflate(R.menu.settings_menu, menu);
     return true;
   }
   
@@ -27,15 +27,15 @@ public class HelpActivity extends Activity {
   public boolean onOptionsItemSelected(MenuItem item) {
     Intent intent = null;
     switch (item.getItemId()) {
-      case R.id.action_settings:
-        intent = new Intent(this, SettingsActivity.class);
-        startActivity(intent);
-        break;
-      case android.R.id.home:
-        finish();
-        break;
-      default:
-        break;
+    case R.id.action_help:
+      intent = new Intent(this, HelpActivity.class);
+      startActivity(intent);
+      break;
+    case android.R.id.home:
+      finish();
+      break;
+    default:
+      break;
     }
 
     return true;

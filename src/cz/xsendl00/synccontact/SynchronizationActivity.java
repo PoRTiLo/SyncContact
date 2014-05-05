@@ -8,11 +8,15 @@ import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
@@ -81,4 +85,34 @@ public class SynchronizationActivity extends Activity {
       progressDialog = ProgressDialog.show(SynchronizationActivity.this, Constants.AC_DOWNLOADING, Constants.AC_DOWNLOADING_DATA_SERVER, true);
     }
   }
+  
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.sync_menu, menu);
+    return true;
+  }
+  
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    Intent intent = null;
+    switch (item.getItemId()) {
+      case R.id.action_help:
+        intent = new Intent(this, HelpActivity.class);
+        startActivity(intent);
+        break;
+      case R.id.action_settings:
+        intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+        break;
+      case android.R.id.home:
+        finish();
+        break;
+      default:
+        break;
+    }
+
+    return true;
+  }
+ 
 }

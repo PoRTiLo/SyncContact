@@ -1,71 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-  <string name="app_name">SyncContact</string>
-  <string name="app_name_help">Help</string>
-  <string name="app_name_sync">Synchronization</string>
-  <string name="app_name_contact">Contacts</string>
-  <string name="app_name_server">Server</string>
-  <string name="app_name_remove">Remove</string>
-  <string name="app_name_edit">Edit</string>
-  <string name="app_name_info">Info</string>
-  
-  
-  <string name="action_settings">Settings</string>
-  <string name="title_section1">Section 1</string>
-  <string name="title_section2">Section 2</string>
-  <string name="title_section3">Section 3</string>
+    <string name="app_name">SyncContact</string>
+    <string name="app_name_help">Help</string>
+    <string name="app_name_sync">Synchronization</string>
+    <string name="app_name_contact">Contacts</string>
+    <string name="app_name_server">Server</string>
+    <string name="app_name_remove">Remove</string>
+    <string name="app_name_edit">Edit</string>
+    <string name="app_name_info">Info</string>
+    <string name="app_name_settings">Settings</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_section1">Section 1</string>
+    <string name="title_section2">Section 2</string>
+    <string name="title_section3">Section 3</string>
 
-  <!-- MainActivity -->
-  <string name="main_contact">Contact list</string>
-  <string name="main_sync">Synchronization</string>
-  <string name="main_help">Help</string>
-  <string name="main_server">Server</string>
-  
-  <!-- SyncAuthenticatorActivity -->
-  
-  <string name="add_account_main">Create new connection to LDAP Server</string>
-  <string name="edit_account_main">Edit connection of LDAP Server</string>
-  
-  <string name="add_account_host">Host</string>
-  <string name="add_account_encryption">Encryption</string>
-  <string name="add_account_port">Port</string>
-  <string name="add_account_dn">Bind DN</string>
-  <string name="add_account_name">Bind DN</string>
-  <string name="add_account_password">Bind Password</string>
-  
-  <string name="add_account">Save connection</string>
-  <string name="add_account_back">Back</string>
-  
-  <!-- WelcomeActivity -->
-  <string name="welcome_welcome">Welcome</string>
-  <string name="welcome_info">Now you start app SyncContact, this application is for synchronization your contact.</string>
-  <string name="welcome_first">At the first, you must add new server</string>
-  <string name="welcome_add_server">Add server</string>
-  
-   <!-- SynchronizationActivity -->
-  <string name="sync_info">You can synchornization manualy</string>
-  <string name="sync_last">Last synchorization:</string>
-  <string name="sync_time">14.5.2014 15:50:30</string>
-  <string name="sync_button">Synchornization</string>
-  
-     <!-- RemoveActivity -->
-  <string name="remove_info">Read closely</string>
-  <string name="remove_text">When removed this server, will be removed account from your mobile. For using this application, you must create new server\'s connection</string>
-  
-   <!-- ServerActivity -->
-  <string name="server_info">Server connection</string>
-  <string name="server_dn">Distinguished name:</string>
-  <string name="server_address">Address:</string>
-  <string name="server_port">Port:</string>
-  <string name="server_security">Secutity:</string>
-  <string name="server_edit">Edit server</string>
-  <string name="server_remove">Remove server</string>
-  
-   <!-- InfoActivity -->
-   <string name="info_server_added">Server added successfully</string>
-   <string name="info_ok">OK</string>
-   <string name="info_button">Select contacts</string>
-   <string name="info_text">Now you must select contact or group, which should be synchonized.</string>
-   <string name="info_warning">Warning: Contact which will be selected must be moved to new account. It will be done automatic. Any application can not work with this contact.</string>
+    <!-- MainActivity -->
+    <string name="main_contact">Contact list</string>
+    <string name="main_sync">Synchronization</string>
+    <string name="main_help">Help</string>
+    <string name="main_server">Server</string>
+
+    <!-- SyncAuthenticatorActivity -->
+
+    <string name="add_account_main">Create new connection to LDAP Server</string>
+    <string name="edit_account_main">Edit connection of LDAP Server</string>
+    <string name="add_account_host">Host</string>
+    <string name="add_account_encryption">Encryption</string>
+    <string name="add_account_port">Port</string>
+    <string name="add_account_dn">Bind DN</string>
+    <string name="add_account_name">Bind DN</string>
+    <string name="add_account_password">Bind Password</string>
+    <string name="add_account">Save connection</string>
+    <string name="add_account_back">Back</string>
+
+    <!-- WelcomeActivity -->
+    <string name="welcome_welcome">Welcome</string>
+    <string name="welcome_info">Now you start app SyncContact, this application is for synchronization your contact.</string>
+    <string name="welcome_first">At the first, you must add new server</string>
+    <string name="welcome_add_server">Add server</string>
+
+    <!-- SynchronizationActivity -->
+    <string name="sync_info">You can synchornization manualy</string>
+    <string name="sync_last">Last synchorization:</string>
+    <string name="sync_time">14.5.2014 15:50:30</string>
+    <string name="sync_button">Synchornization</string>
+
+    <!-- RemoveActivity -->
+    <string name="remove_info">Read closely</string>
+    <string name="remove_text">When removed this server, will be removed account from your mobile. For using this application, you must create new server\'s connection</string>
+
+    <!-- ServerActivity -->
+    <string name="server_info">Server connection</string>
+    <string name="server_dn">Distinguished name:</string>
+    <string name="server_address">Address:</string>
+    <string name="server_port">Port:</string>
+    <string name="server_security">Secutity:</string>
+    <string name="server_edit">Edit server</string>
+    <string name="server_remove">Remove server</string>
+
+    <!-- InfoActivity -->
+    <string name="info_server_added">Server added successfully</string>
+    <string name="info_ok">OK</string>
+    <string name="info_button">Select contacts</string>
+    <string name="info_text">Now you must select contact or group, which should be synchonized.</string>
+    <string name="info_warning">Warning: Contact which will be selected must be moved to new account. It will be done automatic. Any application can not work with this contact.</string>
+
+    <!-- Menu -->
+    <string name="menu_sync">Synchronization</string>
+    <string name="menu_help">Help</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_test_connections">Test connections</string>
+
 </resources>

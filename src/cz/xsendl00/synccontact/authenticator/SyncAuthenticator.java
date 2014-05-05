@@ -74,7 +74,7 @@ public class SyncAuthenticator extends AbstractAccountAuthenticator {
     ad.setPort(Integer.parseInt(am.getUserData(account, Constants.PAR_PORT)));
     ad.setEncryption(Integer.parseInt(am.getUserData(account, Constants.PAR_ENCRYPTION)));
     if (ad.getPassword() != null) {
-      if (ServerUtilities.authenticate(new ServerInstance(ad), null, mContext)) {
+      if (ServerUtilities.authenticate(new ServerInstance(ad), null, mContext, false)) {
         final Bundle result = new Bundle();
         result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
         result.putString(AccountManager.KEY_ACCOUNT_TYPE, account.type);
