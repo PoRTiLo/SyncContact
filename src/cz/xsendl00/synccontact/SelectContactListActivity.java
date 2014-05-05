@@ -64,6 +64,7 @@ public class SelectContactListActivity extends Activity implements
   public void onTaskCompleted(Pair p) {
     pair = p;
     ActionBar actionBar = getActionBar();
+    actionBar.removeAllTabs();
     actionBar.setHomeButtonEnabled(false);
     actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
@@ -89,9 +90,9 @@ public class SelectContactListActivity extends Activity implements
     Intent intent = null;
     switch (item.getItemId()) {
       case R.id.action_refresh:
-        //progressDialog = ProgressDialog.show(SelectContactListActivity.this,
-        //    Constants.AC_LOADING, Constants.AC_LOADING_TEXT_DB, true);
-        //new LoadTask(SelectContactListActivity.this).execute();
+        progressDialog = ProgressDialog.show(SelectContactListActivity.this,
+            Constants.AC_LOADING, Constants.AC_LOADING_TEXT_DB, true);
+        new LoadTask(SelectContactListActivity.this).execute();
         break;
       case R.id.action_add_group:
         break;

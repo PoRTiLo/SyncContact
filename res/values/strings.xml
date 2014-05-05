@@ -22,7 +22,6 @@
     <string name="main_server">Server</string>
 
     <!-- SyncAuthenticatorActivity -->
-
     <string name="add_account_main">Create new connection to LDAP Server</string>
     <string name="edit_account_main">Edit connection of LDAP Server</string>
     <string name="add_account_host">Host</string>
@@ -65,7 +64,10 @@
     <string name="info_button">Select contacts</string>
     <string name="info_text">Now you must select contact or group, which should be synchonized.</string>
     <string name="info_warning">Warning: Contact which will be selected must be moved to new account. It will be done automatic. Any application can not work with this contact.</string>
-
+    
+    <!-- GroupFragmnet -->
+    <string name="group_toast">Group is empty.</string>
+    
     <!-- Menu -->
     <string name="menu_sync">Synchronization</string>
     <string name="menu_help">Help</string>

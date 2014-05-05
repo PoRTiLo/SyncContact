@@ -76,14 +76,19 @@ public class ContactFragment extends Fragment implements
   }
 
   @Override
-  public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-    int pos = (Integer) buttonView.getTag();
+  public void onCheckedChanged(CompoundButton buttonView, final boolean isChecked) {
+    final int pos = (Integer) buttonView.getTag();
     if (pos != ListView.INVALID_POSITION) {
       ContactRow p = contactList.get(pos);
+      final ContactRow p1 = p;
       if (p.isSync() != isChecked) {
-        HelperSQL db = new HelperSQL(getActivity());
         p.setSync(isChecked);
-        db.updateContactSync(p);
+        new Thread(new Runnable() {
+          public void run() {
+            HelperSQL db = new HelperSQL(getActivity());
+            db.updateContactSync(p1);
+          }
+        }).start();
       }
     }
   }

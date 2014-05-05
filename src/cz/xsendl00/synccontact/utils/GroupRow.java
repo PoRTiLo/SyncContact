@@ -12,6 +12,7 @@ import android.provider.ContactsContract;
 import android.util.Log;
 
 public class GroupRow implements Parcelable {
+  
   private String name;
   private String id;
   private Integer idTable;
@@ -20,7 +21,7 @@ public class GroupRow implements Parcelable {
   private static ArrayList<GroupRow> groups = null;
   
   public GroupRow() {
-    this(null, null, null, false, null);
+    this(null, null);
   }
   
   public GroupRow(String name, String id) {
@@ -33,6 +34,12 @@ public class GroupRow implements Parcelable {
     this.setSize(size);
     this.sync = sync;
     this.setIdTable(idTable);
+  }
+
+  @Override
+  public String toString() {
+    return "GroupRow [name=" + name + ", id=" + id
+        + ", idTable=" + idTable + ", size=" + size + ", sync=" + sync + "]";
   }
 
   public String getName() {
@@ -58,12 +65,7 @@ public class GroupRow implements Parcelable {
   public void setId(String id) {
     this.id = id;
   }
-  
-  @Override
-  public String toString() {
-    return "Id: "+id + ", name: " + name + ", size: " + size + ", sync: " + sync + ", tableId:" + idTable;
-    
-  }
+
   
   public String toStringSync() {
     return "Id: "+id + ", sync: " + sync;

@@ -67,6 +67,16 @@
     </activity>
     
     <activity
+      android:name="cz.xsendl00.synccontact.ContactsActivity"
+      android:screenOrientation="portrait"
+      android:parentActivityName="cz.xsendl00.synccontact.SelectContactListActivity"
+      android:label="@string/app_name_server" >
+      <meta-data
+        android:name="android.support.PARENT_ACTIVITY"
+        android:value="cz.xsendl00.synccontact.SelectContactListActivity" />
+    </activity>
+    
+    <activity
       android:name="cz.xsendl00.synccontact.RemoveServerActivity"
       android:screenOrientation="portrait"
       android:parentActivityName="cz.xsendl00.synccontact.ServerActivity"
