@@ -17,15 +17,13 @@ import cz.xsendl00.synccontact.R;
 
 import cz.xsendl00.synccontact.utils.ContactRow;
 
-
 public class RowContactAdapter extends BaseAdapter implements Filterable {
-
-  private static final String TAG = "RowADAPTER";
   
   private Context context;
   private ArrayList<ContactRow> data;
   ViewHolder holder;
   ContactFragment par;
+  GroupFragment parG;
   
   public RowContactAdapter(Context context, ArrayList<ContactRow> data, ContactFragment par) {
     super();

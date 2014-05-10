@@ -44,6 +44,14 @@ public class SelectContactListActivity extends Activity implements
     first = intent.getBooleanExtra("FIRST", false);
     progressDialog = ProgressDialog.show(SelectContactListActivity.this,
         Constants.AC_LOADING, Constants.AC_LOADING_TEXT_DB, true);
+    if (first) {
+      // TODO; pro prvni zmeninut menu
+     
+      new LoadTask(SelectContactListActivity.this).execute();
+    } else {
+     
+      new LoadTaskSimply(SelectContactListActivity.this).execute();
+    }
   }
 
   @Override
@@ -52,13 +60,13 @@ public class SelectContactListActivity extends Activity implements
     if (first) {
       // TODO; pro prvni zmeninut menu
       getMenuInflater().inflate(R.menu.contacts_menu, menu);
-      new LoadTask(SelectContactListActivity.this).execute();
+     // new LoadTask(SelectContactListActivity.this).execute();
     } else {
       getMenuInflater().inflate(R.menu.contacts_menu, menu);
-      new LoadTaskSimply(SelectContactListActivity.this).execute();
+      //new LoadTaskSimply(SelectContactListActivity.this).execute();
     }
 
-    return true;// super.onCreateOptionsMenu(menu);
+    return super.onCreateOptionsMenu(menu);
   }
 
   public void onTaskCompleted(Pair p) {
@@ -81,50 +89,11 @@ public class SelectContactListActivity extends Activity implements
             new MyTabListener(ContactFragment.newInstance(pair, first))));
 
   }
-
-  /**
-   * On selecting action bar icons
-   * */
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    Intent intent = null;
-    switch (item.getItemId()) {
-      case R.id.action_refresh:
-        progressDialog = ProgressDialog.show(SelectContactListActivity.this,
-            Constants.AC_LOADING, Constants.AC_LOADING_TEXT_DB, true);
-        new LoadTask(SelectContactListActivity.this).execute();
-        break;
-      case R.id.action_add_group:
-        break;
-      case R.id.action_help:
-        intent = new Intent(this, HelpActivity.class);
-        startActivity(intent);
-        break;
-      case R.id.action_settings:
-        intent = new Intent(this, SettingsActivity.class);
-        startActivity(intent);
-        break;
-      case android.R.id.home:
-        // TODO
-        Log.i(TAG, "jsem tuuuuuuuuuuuuuuuuuuuuu");
-        /*
-         * Intent upIntent = NavUtils.getParentActivityIntent(this); if
-         * (NavUtils.shouldUpRecreateTask(this, upIntent)) { // This activity is
-         * NOT part of this app's task, so create a new task // when navigating
-         * up, with a synthesized back stack. TaskStackBuilder.create(this) // Add
-         * all of this activity's parents to the back stack
-         * .addNextIntentWithParentStack(upIntent) // Navigate up to the closest
-         * parent .startActivities(); } else { // This activity is part of this
-         * app's task, so simply // navigate up to the logical parent activity.
-         * NavUtils.navigateUpTo(this, upIntent); }
-         */
-        return true;
-      default:
-        return super.onOptionsItemSelected(item);
-    }
-    return true;
+  public void onBackPressed() {
+    super.onBackPressed();
+    
   }
-
+  
 
   // sync all contact
   // upload all contact to server
@@ -206,6 +175,13 @@ public class SelectContactListActivity extends Activity implements
     }
   }
 
+  public void update() {
+    progressDialog = ProgressDialog.show(SelectContactListActivity.this,
+        Constants.AC_LOADING, Constants.AC_LOADING_TEXT_DB, true);
+
+    new  LoadTask(SelectContactListActivity.this).execute();
+  }
+  
   private class LoadTask extends AsyncTask<Void, Void, Pair> {
     private Activity activity;
 

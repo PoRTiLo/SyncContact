@@ -74,6 +74,7 @@
     <string name="menu_settings">Settings</string>
     <string name="menu_test_connections">Test connections</string>
     <string name="menu_refresh">Refresh contacts</string>
+    <string name="menu_select">Select all</string>
     <string name="menu_add_group">Add group</string>
 
 </resources>
