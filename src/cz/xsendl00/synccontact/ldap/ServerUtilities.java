@@ -17,6 +17,8 @@ import android.util.Log;
 import com.unboundid.ldap.sdk.AddRequest;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
+import com.unboundid.ldap.sdk.LDAPResult;
+import com.unboundid.ldap.sdk.ModifyRequest;
 import com.unboundid.ldap.sdk.RootDSE;
 import com.unboundid.ldap.sdk.SearchResult;
 import com.unboundid.ldap.sdk.SearchResultEntry;
@@ -131,6 +133,24 @@ public class ServerUtilities {
       }
     
   }
+  
+  public static void addContactToServer(final ServerInstance ldapServer, final Context context, GoogleContact gc) {
+    LDAPConnection connection = null;
+    
+    try {
+      connection = ldapServer.getConnection(null, context);
+    } catch (LDAPException e1) {
+      e1.printStackTrace();
+    }
+    try {
+      AddRequest addRequest = Mapping.mappingAddRequest(gc, ldapServer.getAccountdData().getBaseDn());
+      if (addRequest != null) {
+        connection.add(addRequest);
+      }
+    } catch (LDAPException e) {
+      e.printStackTrace();
+    }
+  }
 
   public static void updateContacts(final ServerInstance ldapServer, final AccountData accountData, Handler handler, final Context context) {
     
@@ -182,7 +202,6 @@ public class ServerUtilities {
         contactsServer.put(e.getAttributeValue(Constants.UUID), Mapping.mappingContactFromLDAP(e));
       }
     } catch (LDAPException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     } finally {
       if (connection != null) {
@@ -202,6 +221,7 @@ public class ServerUtilities {
         Log.i(TAG, "update contact: " + entry.getKey());
       } else {
         // create new
+        addContactToServer(ldapServer, context, entry.getValue());
         Log.i(TAG, "create new contact: " + entry.getKey());
       }
     }
@@ -213,13 +233,15 @@ public class ServerUtilities {
     try {
       connection = ldapServer.getConnection(null, context);
     } catch (LDAPException e1) {
-      // TODO Auto-generated catch block
       e1.printStackTrace();
     }
     try {
-      connection.modify(Mapping.mappingRequest(gc, ldapServer.getAccountdData().getBaseDn()));
+      ModifyRequest modifyRequest = Mapping.mappingRequest(gc, ldapServer.getAccountdData().getBaseDn());
+      if (modifyRequest != null) {
+        LDAPResult result = connection.modify(modifyRequest);
+        //result.getDiagnosticMessage()
+      }
     } catch (LDAPException e) {
-       // TODO Auto-generated catch block
       e.printStackTrace();
     }
     

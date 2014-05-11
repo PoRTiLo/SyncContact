@@ -155,9 +155,15 @@ public class ContactFragment extends Fragment implements
       contactRow.setSync(result);
     }
     adapter.notifyDataSetChanged();
-    for (GroupRow groupRow : pair.getGroupsList()) {
-      groupRow.setSync(result);
-    }
+    new Thread(new Runnable() {
+      public void run() {
+        for (GroupRow groupRow : pair.getGroupsList()) {
+          groupRow.setSync(result);
+          HelperSQL db = new HelperSQL(getActivity());
+          db.updateGroupSync(groupRow);
+        }
+      }
+    }).start();
   }
   
   private void updateDB(final ArrayList<ContactRow> contacts, final boolean result) {
@@ -176,7 +182,6 @@ public class ContactFragment extends Fragment implements
       ContactRow p = pair.getContactList().get(pos);
       if (p.isSync() != isChecked) {
         p.setSync(isChecked);
-        Log.i("COntactfragment", "change");
         ArrayList<ContactRow> contacts = new ArrayList<ContactRow>();
         contacts.add(p);
         updateDB(contacts, isChecked);

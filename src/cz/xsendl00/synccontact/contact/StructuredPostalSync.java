@@ -18,6 +18,25 @@ import cz.xsendl00.synccontact.utils.Constants;
  */
 public class StructuredPostalSync extends AbstractType implements ContactInterface {
 
+  @Override
+  public String toString() {
+    return "StructuredPostalSync [homeStreet=" + homeStreet + ", homePOBox="
+        + homePOBox + ", homeCity=" + homeCity + ", homeRegion=" + homeRegion
+        + ", homePostalCode=" + homePostalCode + ", homeCountry=" + homeCountry
+        + ", workStreet=" + workStreet + ", workPOBox=" + workPOBox
+        + ", workCity=" + workCity + ", workRegion=" + workRegion
+        + ", workPostalCode=" + workPostalCode + ", workCountry=" + workCountry
+        + ", workFormattedAddress=" + workFormattedAddress
+        + ", homeFormattedAddress=" + homeFormattedAddress
+        + ", workNeighborhood=" + workNeighborhood + ", homeNeighborhood="
+        + homeNeighborhood + ", otherNeighborhood=" + otherNeighborhood
+        + ", otherStreet=" + otherStreet + ", otherCity=" + otherCity
+        + ", otherPOBox=" + otherPOBox + ", otherRegion=" + otherRegion
+        + ", otherPostalCode=" + otherPostalCode + ", otherCountry="
+        + otherCountry + ", otherFormattedAddress=" + otherFormattedAddress
+        + "]";
+  }
+
   private String homeStreet;
   private String homePOBox;
   private String homeCity;
@@ -188,25 +207,6 @@ public class StructuredPostalSync extends AbstractType implements ContactInterfa
     this.otherFormattedAddress = otherFormattedAddress;
   }
 
-  
-  @Override
-  public String toString() {
-    return "StructuredPostalSync [homeStreet=" + homeStreet + ", homePOBox="
-        + homePOBox + ", homeCity=" + homeCity + ", homeRegion=" + homeRegion
-        + ", homePostalCode=" + homePostalCode + ", homeCountry=" + homeCountry
-        + ", workStreet=" + workStreet + ", workPOBox=" + workPOBox
-        + ", workCity=" + workCity + ", workRegion=" + workRegion
-        + ", workPostalCode=" + workPostalCode + ", workCountry=" + workCountry
-        + ", workFormattedAddress=" + workFormattedAddress
-        + ", homeFormattedAddress=" + homeFormattedAddress
-        + ", workNeighborhood=" + workNeighborhood + ", homeNeighborhood="
-        + homeNeighborhood + ", otherNeighborhood=" + otherNeighborhood
-        + ", otherStreet=" + otherStreet + ", otherCity=" + otherCity
-        + ", otherPOBox=" + otherPOBox + ", otherRegion=" + otherRegion
-        + ", otherPostalCode=" + otherPostalCode + ", otherCountry="
-        + otherCountry + ", otherFormattedAddress=" + otherFormattedAddress
-        + "]";
-  }
   @Override
   public void defaultValue() {
     homeStreet = Constants.HOME_STREET;

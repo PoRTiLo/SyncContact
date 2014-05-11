@@ -49,7 +49,7 @@ public class AndroidDB {
       Log.i(TAG, "create sql heleper ");
       String id = s.getContactId(entry.getKey());
       Log.i(TAG, "uuid:: " + entry.getKey() + " mapping to:" + id);
-      GoogleContact gc = new Mapping().mappingContactFromDB(context.getContentResolver(), id);
+      GoogleContact gc = new Mapping().mappingContactFromDB(context.getContentResolver(), id, entry.getKey());
       Log.i(TAG, "z db se vzal: " + entry.getValue().getStructuredName().getDisplayName());
       op.addAll(GoogleContact.createOperationUpdate(gc, entry.getValue()));
     }
@@ -90,16 +90,15 @@ public class AndroidDB {
   public static void importContactsToSyncAccount(Context context, List<ContactRow> contactRows) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     for (ContactRow contactRow : contactRows) {
-      Log.i(TAG, contactRow.getId());
       ops.add(ContentProviderOperation.newUpdate(ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, Integer.valueOf(contactRow.getId())))
          .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
          .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE)
          .build()
        );
     }
-     
     try {
       ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+      Log.i(TAG, "importContactsToSyncAccount done: " + con.length);
       //for (ContentProviderResult cn : con) {
       //  Log.i(TAG, cn.toString());
      // }

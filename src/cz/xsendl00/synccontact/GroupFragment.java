@@ -254,7 +254,6 @@ public class GroupFragment extends Fragment implements
         for (GroupRow groupRow : groups) {
           final String id = groupRow.getId();
           db.updateGroupSync(groupRow);
-          Log.i(TAG, "updated " + groupRow.toString());
           if (getActivity() != null) {
             final Set<String> list = new ContactRow().fetchGroupMembersId(contentResolver, id);
             if (list != null) {

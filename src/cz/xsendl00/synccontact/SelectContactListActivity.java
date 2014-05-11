@@ -13,6 +13,7 @@ import cz.xsendl00.synccontact.ldap.Synchronization;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
+import cz.xsendl00.synccontact.utils.Utils;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -62,7 +63,7 @@ public class SelectContactListActivity extends Activity implements
 
     if (first) {
       // TODO; pro prvni zmeninut menu
-      getMenuInflater().inflate(R.menu.contacts_menu, menu);
+      getMenuInflater().inflate(R.menu.contacts_menu_simply, menu);
      // new LoadTask(SelectContactListActivity.this).execute();
     } else {
       getMenuInflater().inflate(R.menu.contacts_menu, menu);
@@ -170,32 +171,24 @@ public class SelectContactListActivity extends Activity implements
 
     @Override
     protected Pair doInBackground(Void... params) {
-
       Pair p = new Pair();
-      
-      Log.i(TAG, "getGroupsList");
-      p.getGroupsList().clear();
       p.getGroupsList().addAll(GroupRow.fetchGroups(SelectContactListActivity.this.getContentResolver()));
+      Log.i(TAG, "getGroupsList time: " + Utils.getTime());
       Log.i(TAG, "getGroupsList size:" + p.getGroupsList().size());
       for (GroupRow group : p.getGroupsList()) {
-        ArrayList<ContactRow> groupMembers = new ArrayList<ContactRow>();
-        groupMembers.addAll(ContactRow.fetchGroupMembers(SelectContactListActivity.this.getContentResolver(), group.getId()));
-        group.setSize(groupMembers.size());
+        group.setSize(ContactRow.fetchGroupMembersCount(SelectContactListActivity.this.getContentResolver(), group.getId()));
         Log.i(TAG, "id:" + group.getId() + "group size:" + group.getSize());
         // p.getGroupMemberList().put(group, groupMembers);
       }
+      Log.i(TAG, "getGroupsList set size time: " + Utils.getTime());
       HelperSQL db = new HelperSQL(SelectContactListActivity.this);
-      Log.i(TAG, "fillGroups");
       db.fillGroups(p.getGroupsList());
-      
-      Log.i(TAG, "getContactList");
-      p.getContactList().addAll(
-          ContactRow.fetchAllContact(SelectContactListActivity.this
-              .getContentResolver()));
+      Log.i(TAG, "getGroupsList fill time: " + Utils.getTime());
+      p.getContactList().addAll(ContactRow.fetchAllContact(SelectContactListActivity.this.getContentResolver()));
+      Log.i(TAG, "getContactList time: " + Utils.getTime());
       Log.i(TAG, "getContactList size:" + p.getContactList().size());
-      Log.i(TAG, "fillContacts");
       db.fillContacts(p.getContactList());
-      Log.i(TAG, "fillContacts END");
+      Log.i(TAG, "getContactList  fillContacts time: " + Utils.getTime());
       return p;
     }
 
@@ -275,7 +268,7 @@ public class SelectContactListActivity extends Activity implements
     protected Boolean doInBackground(Void...params) {
       try {
         Synchronization synchronization = new Synchronization();
-        synchronization.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
+        synchronization.synchronizeFirst(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
       } catch (RemoteException e) {
         // TODO Auto-generated catch block
         e.printStackTrace();

@@ -39,6 +39,7 @@ import cz.xsendl00.synccontact.contact.ID;
 import cz.xsendl00.synccontact.contact.IdentitySync;
 import cz.xsendl00.synccontact.contact.ImSync;
 import cz.xsendl00.synccontact.contact.NicknameSync;
+import cz.xsendl00.synccontact.contact.NoteSync;
 import cz.xsendl00.synccontact.contact.OrganizationSync;
 import cz.xsendl00.synccontact.contact.PhoneSync;
 import cz.xsendl00.synccontact.contact.RelationSync;
@@ -89,7 +90,10 @@ public class Mapping {
           RawContacts._ID + "=? AND " + RawContacts.DIRTY + "=?",
           new String[]{contactRow.getId(), "1"}, null);
         while (cursor.moveToNext()) {
-          dirtyContacts.put(contactRow.getUuid(), mappingContactFromDB(context.getContentResolver(), cursor.getString(cursor.getColumnIndex(RawContacts._ID))));
+          dirtyContacts.put(contactRow.getUuid(), mappingContactFromDB(context.getContentResolver(), cursor.getString(cursor.getColumnIndex(RawContacts._ID)), contactRow.getUuid()));
+        }
+        if( cursor != null && !cursor.isClosed() ) {
+          cursor.close();
         }
       }
     } catch(Exception ex) { 
@@ -264,10 +268,6 @@ public class Mapping {
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
     
     attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GOOGLE));
-    //attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_INET));
-    //attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_ORG));
-    //attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_PERSON));
-    //attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_TOP));
     attributes.add(new Attribute("uuid", rdn));
     
     
@@ -282,37 +282,639 @@ public class Mapping {
     return addRequest;
   }
   
-  public static ModifyRequest mappingRequest(GoogleContact gc, String baseDn) {
+  
+  public static AddRequest mappingAddRequest(GoogleContact gc, String baseDn) {
+  
+    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
     
-    List<Modification> mod;
+    attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GOOGLE));
+    attributes.add(new Attribute("uuid",  gc.getUuid()));
     
-    mod = fill(gc);
-    if (mod != null && mod.size() > 0) {
-      Log.i(TAG,"uuid=" + gc.getUuid().toString());
-      Log.i(TAG,",ou=users," + baseDn );
-      return new ModifyRequest("uuid=" + gc.getUuid().toString() + ",ou=users," + baseDn, mod);
+    ArrayList<Attribute> attributesTemp = fillAttribute(gc);
+    if (attributesTemp != null && !attributesTemp.isEmpty()) {
+      attributes.addAll(attributesTemp);
+    }
+    if (attributes != null && attributes.size() > 2) {
+      AddRequest addRequest = new AddRequest("uuid=" + gc.getUuid().toString() + ",ou=users," + baseDn, attributes);
+      //Log.i(TAG, "AddRequest : " + addRequest.toLDIFString());
+      return addRequest;
     } else {
       return null;
     }
-    
-    
   }
   
+  public static ModifyRequest mappingRequest(GoogleContact gc, String baseDn) {
+    List<Modification> mod;
+    mod = fill(gc);
+    if (mod != null && mod.size() > 0) {
+      ModifyRequest modifyRequest = new ModifyRequest("uuid=" + gc.getUuid().toString() + ",ou=users," + baseDn, mod);
+      //Log.i(TAG, "ModifyRequest : " + modifyRequest.toLDIFString());
+      return modifyRequest;
+    } else {
+      return null;
+    }
+  }
+  
+  private static ArrayList<Attribute> fillAttribute(GoogleContact gc) {
+
+    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+
+    //Log.i(TAG, "fillAttribute : " + gc.toString());
+    
+    EmailSync e = gc.getEmail();
+    if (e != null) {
+      if (e.getHomeMail() != null) {
+        attributes.add(new Attribute(Constants.HOME_MAIL, e.getHomeMail()));
+      }
+      if (e.getMobileMail() != null) {
+        attributes.add(new Attribute(Constants.MOBILE_MAIL, e.getMobileMail()));
+      }
+      if (e.getOtherMail() != null) {
+        attributes.add(new Attribute(Constants.OTHER_MAIL, e.getOtherMail()));
+      }
+      if (e.getWorkMail() != null) {
+        attributes.add(new Attribute(Constants.WORK_MAIL, e.getWorkMail()));
+      }
+    }
+
+    EventSync ev = gc.getEvent();
+    if (ev != null) {
+      if (ev.getEventAnniversary() != null) {
+        attributes.add(new Attribute(Constants.EVENT_ANNIVERSARY, ev
+            .getEventAnniversary()));
+      }
+      if (ev.getEventBirthday() != null) {
+        attributes.add(new Attribute(Constants.EVENT_BIRTHDAY, ev
+            .getEventBirthday()));
+      }
+      if (ev.getEventOther() != null) {
+        attributes
+            .add(new Attribute(Constants.EVENT_OTHER, ev.getEventOther()));
+      }
+    }
+
+    IdentitySync id = gc.getIdentity();
+    if (id != null) {
+      if (id.getIdentityNamespace() != null) {
+        attributes.add(new Attribute(Constants.IDENTITY_NAMESPACE, id
+            .getIdentityNamespace()));
+      }
+      if (id.getIdentityText() != null) {
+        attributes.add(new Attribute(Constants.IDENTITY_TEXT, id
+            .getIdentityText()));
+      }
+    }
+
+    ImSync im = gc.getImSync();
+    if (im != null) {
+      if (im.getImHomeAim() != null) {
+        attributes.add(new Attribute(Constants.IM_HOME_AIM, im.getImHomeAim()));
+      }
+      if (im.getImHomeGoogleTalk() != null) {
+        attributes.add(new Attribute(Constants.IM_HOME_GOOGLE_TALK, im
+            .getImHomeGoogleTalk()));
+      }
+      if (im.getImHomeIcq() != null) {
+        attributes.add(new Attribute(Constants.IM_HOME_ICQ, im.getImHomeIcq()));
+      }
+      if (im.getImHomeJabber() != null) {
+        attributes.add(new Attribute(Constants.IM_HOME_JABBER, im
+            .getImHomeJabber()));
+      }
+      if (im.getImHomeMsn() != null) {
+        attributes.add(new Attribute(Constants.IM_HOME_MSN, im.getImHomeMsn()));
+      }
+      if (im.getImHomeNetmeeting() != null) {
+        attributes.add(new Attribute(Constants.IM_HOME_NETMEETING, im
+            .getImHomeNetmeeting()));
+      }
+      if (im.getImHomeQq() != null) {
+        attributes.add(new Attribute(Constants.IM_HOME_QQ, im.getImHomeQq()));
+      }
+      if (im.getImHomeSkype() != null) {
+        attributes.add(new Attribute(Constants.IM_HOME_SKYPE, im
+            .getImHomeSkype()));
+      }
+      if (im.getImHomeYahoo() != null) {
+        attributes.add(new Attribute(Constants.IM_HOME_YAHOO, im
+            .getImHomeYahoo()));
+      }
+
+      if (im.getImWorkAim() != null) {
+        attributes.add(new Attribute(Constants.IM_WORK_AIM, im.getImWorkAim()));
+      }
+      if (im.getImWorkGoogleTalk() != null) {
+        attributes.add(new Attribute(Constants.IM_WORK_GOOGLE_TALK, im
+            .getImWorkGoogleTalk()));
+      }
+      if (im.getImWorkIcq() != null) {
+        attributes.add(new Attribute(Constants.IM_WORK_ICQ, im.getImWorkIcq()));
+      }
+      if (im.getImWorkJabber() != null) {
+        attributes.add(new Attribute(Constants.IM_WORK_JABBER, im
+            .getImWorkJabber()));
+      }
+      if (im.getImWorkMsn() != null) {
+        attributes.add(new Attribute(Constants.IM_WORK_MSN, im.getImWorkMsn()));
+      }
+      if (im.getImWorkNetmeeting() != null) {
+        attributes.add(new Attribute(Constants.IM_WORK_NETMEETING, im
+            .getImWorkNetmeeting()));
+      }
+      if (im.getImWorkQq() != null) {
+        attributes.add(new Attribute(Constants.IM_WORK_QQ, im.getImWorkQq()));
+      }
+      if (im.getImWorkSkype() != null) {
+        attributes.add(new Attribute(Constants.IM_WORK_SKYPE, im
+            .getImWorkSkype()));
+      }
+      if (im.getImWorkYahoo() != null) {
+        attributes.add(new Attribute(Constants.IM_WORK_YAHOO, im
+            .getImWorkYahoo()));
+      }
+
+      if (im.getImOtherAim() != null) {
+        attributes
+            .add(new Attribute(Constants.IM_OTHER_AIM, im.getImOtherAim()));
+      }
+      if (im.getImOtherGoogleTalk() != null) {
+        attributes.add(new Attribute(Constants.IM_OTHER_GOOGLE_TALK, im
+            .getImOtherGoogleTalk()));
+      }
+      if (im.getImOtherIcq() != null) {
+        attributes
+            .add(new Attribute(Constants.IM_OTHER_ICQ, im.getImOtherIcq()));
+      }
+      if (im.getImOtherJabber() != null) {
+        attributes.add(new Attribute(Constants.IM_OTHER_JABBER, im
+            .getImOtherJabber()));
+      }
+      if (im.getImOtherMsn() != null) {
+        attributes
+            .add(new Attribute(Constants.IM_OTHER_MSN, im.getImOtherMsn()));
+      }
+      if (im.getImOtherNetmeeting() != null) {
+        attributes.add(new Attribute(Constants.IM_OTHER_NETMEETING, im
+            .getImOtherNetmeeting()));
+      }
+      if (im.getImOtherQq() != null) {
+        attributes.add(new Attribute(Constants.IM_OTHER_QQ, im.getImOtherQq()));
+      }
+      if (im.getImOtherSkype() != null) {
+        attributes.add(new Attribute(Constants.IM_OTHER_SKYPE, im
+            .getImOtherSkype()));
+      }
+      if (im.getImOtherYahoo() != null) {
+        attributes.add(new Attribute(Constants.IM_OTHER_YAHOO, im
+            .getImOtherYahoo()));
+      }
+    }
+
+    NicknameSync ni = gc.getNickname();
+    if (ni != null) {
+      if (ni.getNicknameDefault() != null) {
+        attributes.add(new Attribute(Constants.NICKNAME_DEFAULT, ni
+            .getNicknameDefault()));
+      }
+      if (ni.getNicknameInitials() != null) {
+        attributes.add(new Attribute(Constants.NICKNAME_INITIALS, ni
+            .getNicknameInitials()));
+      }
+      if (ni.getNicknameMaiden() != null) {
+        attributes.add(new Attribute(Constants.NICKNAME_MAIDEN, ni
+            .getNicknameMaiden()));
+      }
+      if (ni.getNicknameOther() != null) {
+        attributes.add(new Attribute(Constants.NICKNAME_OTHER, ni
+            .getNicknameOther()));
+      }
+      if (ni.getNicknameShort() != null) {
+        attributes.add(new Attribute(Constants.NICKNAME_SHORT, ni
+            .getNicknameShort()));
+      }
+    }
+
+    NoteSync noteSync = gc.getNote();
+    if (noteSync != null) {
+      if (noteSync.getNotes() != null) {
+        attributes.add(new Attribute(Constants.NOTES, noteSync.getNotes()));
+      }
+    }
+
+    OrganizationSync or = gc.getOrganization();
+    if (or != null) {
+      if (or.getOrganizationOtherCompany() != null) {
+        attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_COMPANY, or
+            .getOrganizationOtherCompany()));
+      }
+      if (or.getOrganizationOtherDepartment() != null) {
+        attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_DEPARTMENT,
+            or.getOrganizationOtherDepartment()));
+      }
+      if (or.getOrganizationOtherJobDescription() != null) {
+        attributes.add(new Attribute(
+            Constants.ORGANIZATION_OTHER_JOB_DESCRIPTION, or
+                .getOrganizationOtherJobDescription()));
+      }
+      if (or.getOrganizationOtherOfficeLocation() != null) {
+        attributes.add(new Attribute(
+            Constants.ORGANIZATION_OTHER_OFFICE_LOCATION, or
+                .getOrganizationOtherOfficeLocation()));
+      }
+      if (or.getOrganizationOtherPhoneticName() != null) {
+        attributes.add(new Attribute(
+            Constants.ORGANIZATION_OTHER_PHONETIC_NAME, or
+                .getOrganizationOtherPhoneticName()));
+      }
+      if (or.getOrganizationOtherPhoneticNameStyle() != null) {
+        attributes.add(new Attribute(
+            Constants.ORGANIZATION_OTHER_PHONETIC_NAME_STYLE, or
+                .getOrganizationOtherPhoneticNameStyle()));
+      }
+      if (or.getOrganizationOtherSymbol() != null) {
+        attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_SYMBOL, or
+            .getOrganizationOtherSymbol()));
+      }
+      if (or.getOrganizationOtherTitle() != null) {
+        attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_TITLE, or
+            .getOrganizationOtherTitle()));
+      }
+
+      if (or.getOrganizationWorkCompany() != null) {
+        attributes.add(new Attribute(Constants.ORGANIZATION_WORK_COMPANY, or
+            .getOrganizationWorkCompany()));
+      }
+      if (or.getOrganizationWorkDepartment() != null) {
+        attributes.add(new Attribute(Constants.ORGANIZATION_WORK_DEPARTMENT, or
+            .getOrganizationWorkDepartment()));
+      }
+      if (or.getOrganizationWorkJobDescription() != null) {
+        attributes.add(new Attribute(
+            Constants.ORGANIZATION_WORK_JOB_DESCRIPTION, or
+                .getOrganizationWorkJobDescription()));
+      }
+      if (or.getOrganizationWorkOfficeLocation() != null) {
+        attributes.add(new Attribute(
+            Constants.ORGANIZATION_WORK_OFFICE_LOCATION, or
+                .getOrganizationWorkOfficeLocation()));
+      }
+      if (or.getOrganizationWorkPhoneticName() != null) {
+        attributes.add(new Attribute(Constants.ORGANIZATION_WORK_PHONETIC_NAME,
+            or.getOrganizationWorkPhoneticName()));
+      }
+      if (or.getOrganizationWorkPhoneticNameStyle() != null) {
+        attributes.add(new Attribute(
+            Constants.ORGANIZATION_WORK_PHONETIC_NAME_STYLE, or
+                .getOrganizationWorkPhoneticNameStyle()));
+      }
+      if (or.getOrganizationWorkSymbol() != null) {
+        attributes.add(new Attribute(Constants.ORGANIZATION_WORK_SYMBOL, or
+            .getOrganizationWorkSymbol()));
+      }
+      if (or.getOrganizationWorkTitle() != null) {
+        attributes.add(new Attribute(Constants.ORGANIZATION_WORK_TITLE, or
+            .getOrganizationWorkTitle()));
+      }
+    }
+
+    PhoneSync ph = gc.getPhone();
+    if (ph != null) {
+      if (ph.getPhoneAssistant() != null) {
+        attributes.add(new Attribute(Constants.PHONE_ASSISTANT, ph
+            .getPhoneAssistant()));
+      }
+      if (ph.getPhoneCallback() != null) {
+        attributes.add(new Attribute(Constants.PHONE_CALLBACK, ph
+            .getPhoneCallback()));
+      }
+      if (ph.getPhoneCar() != null) {
+        attributes.add(new Attribute(Constants.PHONE_CAR, ph.getPhoneCar()));
+      }
+      if (ph.getPhoneCompany() != null) {
+        attributes.add(new Attribute(Constants.PHONE_COMPANY, ph
+            .getPhoneCompany()));
+      }
+      if (ph.getPhoneFaxHome() != null) {
+        attributes.add(new Attribute(Constants.PHONE_FAX_HOME, ph
+            .getPhoneFaxHome()));
+      }
+      if (ph.getPhoneFaxWork() != null) {
+        attributes.add(new Attribute(Constants.PHONE_FAX_WORK, ph
+            .getPhoneFaxWork()));
+      }
+      if (ph.getPhoneHome() != null) {
+        attributes.add(new Attribute(Constants.PHONE_HOME, ph.getPhoneHome()));
+      }
+      if (ph.getPhoneISDN() != null) {
+        attributes.add(new Attribute(Constants.PHONE_ISDN, ph.getPhoneISDN()));
+      }
+      if (ph.getPhoneMain() != null) {
+        attributes.add(new Attribute(Constants.PHONE_MAIN, ph.getPhoneMain()));
+      }
+      if (ph.getPhoneMMS() != null) {
+        attributes.add(new Attribute(Constants.PHONE_MMS, ph.getPhoneMMS()));
+      }
+      if (ph.getPhoneMobile() != null) {
+        attributes.add(new Attribute(Constants.PHONE_MOBILE, ph
+            .getPhoneMobile()));
+      }
+      if (ph.getPhoneOther() != null) {
+        attributes
+            .add(new Attribute(Constants.PHONE_OTHER, ph.getPhoneOther()));
+      }
+      if (ph.getPhoneOtherFax() != null) {
+        attributes.add(new Attribute(Constants.PHONE_OTHER_FAX, ph
+            .getPhoneOtherFax()));
+      }
+      if (ph.getPhonePager() != null) {
+        attributes
+            .add(new Attribute(Constants.PHONE_PAGER, ph.getPhonePager()));
+      }
+      if (ph.getPhoneRadio() != null) {
+        attributes
+            .add(new Attribute(Constants.PHONE_RADIO, ph.getPhoneRadio()));
+      }
+      if (ph.getPhoneTelex() != null) {
+        attributes
+            .add(new Attribute(Constants.PHONE_TELEX, ph.getPhoneTelex()));
+      }
+      if (ph.getPhoneTTYTDD() != null) {
+        attributes.add(new Attribute(Constants.PHONE_TTY_TDD, ph
+            .getPhoneTTYTDD()));
+      }
+      if (ph.getPhoneWork() != null) {
+        attributes.add(new Attribute(Constants.PHONE_WORK, ph.getPhoneWork()));
+      }
+      if (ph.getPhoneWorkMobile() != null) {
+        attributes.add(new Attribute(Constants.PHONE_WORK_MOBILE, ph
+            .getPhoneWorkMobile()));
+      }
+      if (ph.getPhoneWorkPager() != null) {
+        attributes.add(new Attribute(Constants.PHONE_WORK_PAGER, ph
+            .getPhoneWorkPager()));
+      }
+    }
+
+    RelationSync re = gc.getRelation();
+    if (re != null) {
+      if (re.getRelationAssistant() != null) {
+        attributes.add(new Attribute(Constants.RELATION_ASSISTANT, re
+            .getRelationAssistant()));
+      }
+      if (re.getRelationBrother() != null) {
+        attributes.add(new Attribute(Constants.RELATION_BROTHER, re
+            .getRelationBrother()));
+      }
+      if (re.getRelationChild() != null) {
+        attributes.add(new Attribute(Constants.RELATION_CHILD, re
+            .getRelationChild()));
+      }
+      if (re.getRelationDomesticPartner() != null) {
+        attributes.add(new Attribute(Constants.RELATION_DOMESTIC_PARTNER, re
+            .getRelationDomesticPartner()));
+      }
+      if (re.getRelationFather() != null) {
+        attributes.add(new Attribute(Constants.RELATION_FATHER, re
+            .getRelationFather()));
+      }
+      if (re.getRelationFriend() != null) {
+        attributes.add(new Attribute(Constants.RELATION_FRIEND, re
+            .getRelationFriend()));
+      }
+      if (re.getRelationManager() != null) {
+        attributes.add(new Attribute(Constants.RELATION_MANAGER, re
+            .getRelationManager()));
+      }
+      if (re.getRelationMother() != null) {
+        attributes.add(new Attribute(Constants.RELATION_MOTHER, re
+            .getRelationMother()));
+      }
+      if (re.getRelationParent() != null) {
+        attributes.add(new Attribute(Constants.RELATION_PARENT, re
+            .getRelationParent()));
+      }
+      if (re.getRelationPartner() != null) {
+        attributes.add(new Attribute(Constants.RELATION_PARTNER, re
+            .getRelationPartner()));
+      }
+      if (re.getRelationRefferedBy() != null) {
+        attributes.add(new Attribute(Constants.RELATION_REFFERED_BY, re
+            .getRelationRefferedBy()));
+      }
+      if (re.getRelationRelative() != null) {
+        attributes.add(new Attribute(Constants.RELATION_RELATIVE, re
+            .getRelationRelative()));
+      }
+      if (re.getRelationSister() != null) {
+        attributes.add(new Attribute(Constants.RELATION_SISTER, re
+            .getRelationSister()));
+      }
+      if (re.getRelationSpouse() != null) {
+        attributes.add(new Attribute(Constants.RELATION_SPOUSE, re
+            .getRelationSpouse()));
+      }
+    }
+
+    SipAddressSync si = gc.getSipAddress();
+    if (si != null) {
+      if (si.getHomeSip() != null) {
+        attributes.add(new Attribute(Constants.HOME_SIP, si.getHomeSip()));
+      }
+      if (si.getOtherSip() != null) {
+        attributes.add(new Attribute(Constants.OTHER_SIP, si.getOtherSip()));
+      }
+      if (si.getWorkSip() != null) {
+        attributes.add(new Attribute(Constants.WORK_SIP, si.getWorkSip()));
+      }
+    }
+
+    StructuredNameSync sn = gc.getStructuredName();
+    if (sn != null) {
+      if (sn.getDisplayName() != null) {
+        attributes.add(new Attribute(Constants.DISPLAY_NAME, sn
+            .getDisplayName()));
+      }
+      if (sn.getFamilyName() != null) {
+        attributes
+            .add(new Attribute(Constants.FAMILY_NAME, sn.getFamilyName()));
+      }
+      if (sn.getGivenName() != null) {
+        attributes.add(new Attribute(Constants.GIVEN_NAME, sn.getGivenName()));
+      }
+      if (sn.getMiddleName() != null) {
+        attributes
+            .add(new Attribute(Constants.MIDDLE_NAME, sn.getMiddleName()));
+      }
+      if (sn.getNamePrefix() != null) {
+        attributes
+            .add(new Attribute(Constants.NAME_PREFIX, sn.getNamePrefix()));
+      }
+      if (sn.getNameSuffix() != null) {
+        attributes
+            .add(new Attribute(Constants.NAME_SUFFIX, sn.getNameSuffix()));
+      }
+      if (sn.getPhoneticFamilyName() != null) {
+        attributes.add(new Attribute(Constants.PHONETIC_FAMILY_NAME, sn
+            .getPhoneticFamilyName()));
+      }
+      if (sn.getPhoneticGivenName() != null) {
+        attributes.add(new Attribute(Constants.PHONETIC_GIVEN_NAME, sn
+            .getPhoneticGivenName()));
+      }
+      if (sn.getPhoneticMiddleName() != null) {
+        attributes.add(new Attribute(Constants.PHONETIC_MIDDLE_NAME, sn
+            .getPhoneticFamilyName()));
+      }
+    }
+
+    StructuredPostalSync sp = gc.getStructuredPostal();
+    if (sp != null) {
+      if (sp.getHomeCity() != null) {
+        attributes.add(new Attribute(Constants.HOME_CITY, sp.getHomeCity()));
+      }
+      if (sp.getHomeCountry() != null) {
+        attributes.add(new Attribute(Constants.HOME_COUNTRY, sp
+            .getHomeCountry()));
+      }
+      if (sp.getHomeFormattedAddress() != null) {
+        attributes.add(new Attribute(Constants.HOME_FORMATTED_ADDRESS, sp
+            .getHomeFormattedAddress()));
+      }
+      if (sp.getHomeNeighborhood() != null) {
+        attributes.add(new Attribute(Constants.HOME_NEIGHBORHOOD, sp
+            .getHomeNeighborhood()));
+      }
+      if (sp.getHomePOBox() != null) {
+        attributes.add(new Attribute(Constants.HOME_POBOX, sp.getHomePOBox()));
+      }
+      if (sp.getHomePostalCode() != null) {
+        attributes.add(new Attribute(Constants.HOME_POSTAL_CODE, sp
+            .getHomePostalCode()));
+      }
+      if (sp.getHomeRegion() != null) {
+        attributes
+            .add(new Attribute(Constants.HOME_REGION, sp.getHomeRegion()));
+      }
+      if (sp.getHomeStreet() != null) {
+        attributes
+            .add(new Attribute(Constants.HOME_STREET, sp.getHomeStreet()));
+      }
+      if (sp.getWorkCity() != null) {
+        attributes.add(new Attribute(Constants.WORK_CITY, sp.getWorkCity()));
+      }
+      if (sp.getWorkCountry() != null) {
+        attributes.add(new Attribute(Constants.WORK_COUNTRY, sp
+            .getWorkCountry()));
+      }
+      if (sp.getWorkFormattedAddress() != null) {
+        attributes.add(new Attribute(Constants.WORK_FORMATTED_ADDRESS, sp
+            .getWorkFormattedAddress()));
+      }
+      if (sp.getWorkNeighborhood() != null) {
+        attributes.add(new Attribute(Constants.WORK_NEIGHBORHOOD, sp
+            .getWorkNeighborhood()));
+      }
+      if (sp.getWorkPOBox() != null) {
+        attributes.add(new Attribute(Constants.WORK_POBOX, sp.getWorkPOBox()));
+      }
+      if (sp.getWorkPostalCode() != null) {
+        attributes.add(new Attribute(Constants.WORK_POSTAL_CODE, sp
+            .getWorkPostalCode()));
+      }
+      if (sp.getWorkRegion() != null) {
+        attributes
+            .add(new Attribute(Constants.WORK_REGION, sp.getWorkRegion()));
+      }
+      if (sp.getWorkStreet() != null) {
+        attributes
+            .add(new Attribute(Constants.WORK_STREET, sp.getWorkStreet()));
+      }
+      if (sp.getOtherCity() != null) {
+        attributes.add(new Attribute(Constants.OTHER_CITY, sp.getOtherCity()));
+      }
+      if (sp.getOtherCountry() != null) {
+        attributes.add(new Attribute(Constants.OTHER_COUNTRY, sp
+            .getOtherCountry()));
+      }
+      if (sp.getOtherFormattedAddress() != null) {
+        attributes.add(new Attribute(Constants.OTHER_FORMATTED_ADDRESS, sp
+            .getOtherFormattedAddress()));
+      }
+      if (sp.getOtherNeighborhood() != null) {
+        attributes.add(new Attribute(Constants.OTHER_NEIGHBORHOOD, sp
+            .getOtherNeighborhood()));
+      }
+      if (sp.getOtherPOBox() != null) {
+        attributes
+            .add(new Attribute(Constants.OTHER_POBOX, sp.getOtherPOBox()));
+      }
+      if (sp.getOtherPostalCode() != null) {
+        attributes.add(new Attribute(Constants.OTHER_POSTAL_CODE, sp
+            .getOtherPostalCode()));
+      }
+      if (sp.getOtherRegion() != null) {
+        attributes.add(new Attribute(Constants.OTHER_REGION, sp
+            .getOtherRegion()));
+      }
+      if (sp.getOtherStreet() != null) {
+        attributes.add(new Attribute(Constants.OTHER_STREET, sp
+            .getOtherStreet()));
+      }
+    }
+
+    WebsiteSync we = gc.getWebsite();
+    if (we != null) {
+      if (we.getWebsiteBlog() != null) {
+        attributes.add(new Attribute(Constants.WEBSITE_BLOG, we
+            .getWebsiteBlog()));
+      }
+      if (we.getWebsiteFtp() != null) {
+        attributes
+            .add(new Attribute(Constants.WEBSITE_FTP, we.getWebsiteFtp()));
+      }
+      if (we.getWebsiteHome() != null) {
+        attributes.add(new Attribute(Constants.WEBSITE_HOME, we
+            .getWebsiteHome()));
+      }
+      if (we.getWebsiteHomepage() != null) {
+        attributes.add(new Attribute(Constants.WEBSITE_HOMEPAGE, we
+            .getWebsiteHomepage()));
+      }
+      if (we.getWebsiteOther() != null) {
+        attributes.add(new Attribute(Constants.WEBSITE_OTHER, we
+            .getWebsiteOther()));
+      }
+      if (we.getWebsiteProfile() != null) {
+        attributes.add(new Attribute(Constants.WEBSITE_PROFILE, we
+            .getWebsiteProfile()));
+      }
+      if (we.getWebsiteWork() != null) {
+        attributes.add(new Attribute(Constants.WEBSITE_WORK, we
+            .getWebsiteWork()));
+      }
+    }
+    return attributes;
+  }
   /**
    * 
    * @param contentResolver
    * @param id
+   * @param uuid 
    * @return 
    */
-  public GoogleContact mappingContactFromDB(ContentResolver contentResolver, String id) {
+  public GoogleContact mappingContactFromDB(ContentResolver contentResolver, String id, String uuid) {
     Cursor cursor = null;
     GoogleContact contact = null;
     try {
       cursor = new ContactDetail().fetchAllDataOfContact(contentResolver, id);
       contact = new GoogleContact();
       contact.setId(id);
+      contact.setUuid(uuid);
       while (cursor.moveToNext()) {
         fillContact(cursor, contact);
+      }
+      if (cursor != null && !cursor.isClosed()) {
+        cursor.close();
       }
     } catch(Exception ex) { 
       ex.printStackTrace();
@@ -954,31 +1556,31 @@ public class Mapping {
    String str = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
    
    if (str.equals(StructuredName.CONTENT_ITEM_TYPE)) {
-     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1)) && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
        attributes.add(new Attribute(Constants.DISPLAY_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
      }
-     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA2))) {
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA2)) && !cursor.getString(cursor.getColumnIndex(Data.DATA2)).isEmpty()) {
        attributes.add(new Attribute(Constants.GIVEN_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA2))));
      }
-     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA3))) {
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA3)) && !cursor.getString(cursor.getColumnIndex(Data.DATA3)).isEmpty()) {
        attributes.add(new Attribute(Constants.FAMILY_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA3))));
      }
-     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4)) && !cursor.getString(cursor.getColumnIndex(Data.DATA4)).isEmpty()) {
        attributes.add(new Attribute(Constants.NAME_PREFIX, cursor.getString(cursor.getColumnIndex(Data.DATA4))));
      }
-     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5)) && !cursor.getString(cursor.getColumnIndex(Data.DATA5)).isEmpty()) {
        attributes.add(new Attribute(Constants.MIDDLE_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA5))));
      }
-     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6)) && !cursor.getString(cursor.getColumnIndex(Data.DATA6)).isEmpty()) {
        attributes.add(new Attribute(Constants.NAME_SUFFIX, cursor.getString(cursor.getColumnIndex(Data.DATA6))));
      }
-     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7)) && !cursor.getString(cursor.getColumnIndex(Data.DATA7)).isEmpty()) {
        attributes.add(new Attribute(Constants.PHONETIC_GIVEN_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA7))));
      }
-     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8)) && !cursor.getString(cursor.getColumnIndex(Data.DATA8)).isEmpty()) {
        attributes.add(new Attribute(Constants.PHONETIC_MIDDLE_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA8))));
      }
-     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9)) && !cursor.getString(cursor.getColumnIndex(Data.DATA9)).isEmpty()) {
        attributes.add(new Attribute(Constants.PHONETIC_FAMILY_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA9))));
      }
    } else if (str.equals(Phone.CONTENT_ITEM_TYPE)) {
@@ -1049,53 +1651,53 @@ public class Mapping {
    } else if (str.equals(Organization.CONTENT_ITEM_TYPE)) {
      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
      if (type == Organization.TYPE_WORK) {
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1)) && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_WORK_COMPANY, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4)) && !cursor.getString(cursor.getColumnIndex(Data.DATA4)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_WORK_TITLE, cursor.getString(cursor.getColumnIndex(Data.DATA4))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5)) && !cursor.getString(cursor.getColumnIndex(Data.DATA5)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_WORK_DEPARTMENT, cursor.getString(cursor.getColumnIndex(Data.DATA5))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6)) && !cursor.getString(cursor.getColumnIndex(Data.DATA6)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_WORK_JOB_DESCRIPTION, cursor.getString(cursor.getColumnIndex(Data.DATA6))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7)) && !cursor.getString(cursor.getColumnIndex(Data.DATA7)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_WORK_SYMBOL, cursor.getString(cursor.getColumnIndex(Data.DATA7))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8)) && !cursor.getString(cursor.getColumnIndex(Data.DATA8)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_WORK_PHONETIC_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA8))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9)) && !cursor.getString(cursor.getColumnIndex(Data.DATA9)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_WORK_OFFICE_LOCATION, cursor.getString(cursor.getColumnIndex(Data.DATA9))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10)) && !cursor.getString(cursor.getColumnIndex(Data.DATA10)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_WORK_PHONETIC_NAME_STYLE, cursor.getString(cursor.getColumnIndex(Data.DATA10))));
        }
      } else if (type == Organization.TYPE_OTHER) {
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1)) && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_COMPANY, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4)) && !cursor.getString(cursor.getColumnIndex(Data.DATA4)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_TITLE, cursor.getString(cursor.getColumnIndex(Data.DATA4))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5)) && !cursor.getString(cursor.getColumnIndex(Data.DATA5)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_DEPARTMENT, cursor.getString(cursor.getColumnIndex(Data.DATA5))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6)) && !cursor.getString(cursor.getColumnIndex(Data.DATA6)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_JOB_DESCRIPTION, cursor.getString(cursor.getColumnIndex(Data.DATA6))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7)) && !cursor.getString(cursor.getColumnIndex(Data.DATA7)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_SYMBOL, cursor.getString(cursor.getColumnIndex(Data.DATA7))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8)) && !cursor.getString(cursor.getColumnIndex(Data.DATA8)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_PHONETIC_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA8))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9)) && !cursor.getString(cursor.getColumnIndex(Data.DATA9)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_OFFICE_LOCATION, cursor.getString(cursor.getColumnIndex(Data.DATA9))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10)) && !cursor.getString(cursor.getColumnIndex(Data.DATA10)).isEmpty()) {
          attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_PHONETIC_NAME_STYLE, cursor.getString(cursor.getColumnIndex(Data.DATA10))));
        }
      } else if (type == Organization.TYPE_CUSTOM) {
@@ -1232,7 +1834,7 @@ public class Mapping {
        Log.i("NOT SUPPORTED TYPE NICKNAME", "NOT SUPPORTED TYPE NICKANEME");
      }
    } else if (str.equals(Note.CONTENT_ITEM_TYPE)) {
-     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+     if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1)) && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
        //attributes.add(new Attribute(Constants.NOTES, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
      }
    } else if (str.equals(StructuredPostal.CONTENT_ITEM_TYPE)) {
@@ -1242,78 +1844,78 @@ public class Mapping {
        //TYPE_CUSTOM. Put the actual type in LABEL.
        // String  LABEL DATA3
      } else if (type == StructuredPostal.TYPE_HOME) {
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1)) && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
          attributes.add(new Attribute(Constants.HOME_FORMATTED_ADDRESS, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4)) && !cursor.getString(cursor.getColumnIndex(Data.DATA4)).isEmpty()) {
          attributes.add(new Attribute(Constants.HOME_STREET, cursor.getString(cursor.getColumnIndex(Data.DATA4))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5)) && !cursor.getString(cursor.getColumnIndex(Data.DATA5)).isEmpty()) {
          attributes.add(new Attribute(Constants.HOME_POBOX, cursor.getString(cursor.getColumnIndex(Data.DATA5))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6)) && !cursor.getString(cursor.getColumnIndex(Data.DATA6)).isEmpty()) {
          attributes.add(new Attribute(Constants.HOME_NEIGHBORHOOD, cursor.getString(cursor.getColumnIndex(Data.DATA6))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7)) && !cursor.getString(cursor.getColumnIndex(Data.DATA7)).isEmpty()) {
          attributes.add(new Attribute(Constants.HOME_CITY, cursor.getString(cursor.getColumnIndex(Data.DATA7))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8)) && !cursor.getString(cursor.getColumnIndex(Data.DATA8)).isEmpty()) {
          attributes.add(new Attribute(Constants.HOME_REGION, cursor.getString(cursor.getColumnIndex(Data.DATA8))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9)) && !cursor.getString(cursor.getColumnIndex(Data.DATA9)).isEmpty()) {
          attributes.add(new Attribute(Constants.HOME_POSTAL_CODE, cursor.getString(cursor.getColumnIndex(Data.DATA9))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10)) && !cursor.getString(cursor.getColumnIndex(Data.DATA10)).isEmpty()) {
          attributes.add(new Attribute(Constants.HOME_COUNTRY, cursor.getString(cursor.getColumnIndex(Data.DATA10))));
        }
      } else if (type == StructuredPostal.TYPE_WORK) {
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1)) && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
          attributes.add(new Attribute(Constants.WORK_FORMATTED_ADDRESS, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4)) && !cursor.getString(cursor.getColumnIndex(Data.DATA4)).isEmpty()) {
          attributes.add(new Attribute(Constants.WORK_STREET, cursor.getString(cursor.getColumnIndex(Data.DATA4))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5)) && !cursor.getString(cursor.getColumnIndex(Data.DATA5)).isEmpty()) {
          attributes.add(new Attribute(Constants.WORK_POBOX, cursor.getString(cursor.getColumnIndex(Data.DATA5))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6)) && !cursor.getString(cursor.getColumnIndex(Data.DATA6)).isEmpty()) {
          attributes.add(new Attribute(Constants.WORK_NEIGHBORHOOD, cursor.getString(cursor.getColumnIndex(Data.DATA6))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7)) && !cursor.getString(cursor.getColumnIndex(Data.DATA7)).isEmpty()) {
          attributes.add(new Attribute(Constants.WORK_CITY, cursor.getString(cursor.getColumnIndex(Data.DATA7))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8)) && !cursor.getString(cursor.getColumnIndex(Data.DATA8)).isEmpty()) {
          attributes.add(new Attribute(Constants.WORK_REGION, cursor.getString(cursor.getColumnIndex(Data.DATA8))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9)) && !cursor.getString(cursor.getColumnIndex(Data.DATA9)).isEmpty()) {
          attributes.add(new Attribute(Constants.WORK_POSTAL_CODE, cursor.getString(cursor.getColumnIndex(Data.DATA9))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10)) && !cursor.getString(cursor.getColumnIndex(Data.DATA10)).isEmpty()) {
          attributes.add(new Attribute(Constants.WORK_COUNTRY, cursor.getString(cursor.getColumnIndex(Data.DATA10))));
        }
      } else if (type == StructuredPostal.TYPE_OTHER) {
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1)) && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
          attributes.add(new Attribute(Constants.OTHER_FORMATTED_ADDRESS, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4)) && !cursor.getString(cursor.getColumnIndex(Data.DATA4)).isEmpty()) {
          attributes.add(new Attribute(Constants.OTHER_STREET, cursor.getString(cursor.getColumnIndex(Data.DATA4))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5)) && !cursor.getString(cursor.getColumnIndex(Data.DATA5)).isEmpty()) {
          attributes.add(new Attribute(Constants.OTHER_POBOX, cursor.getString(cursor.getColumnIndex(Data.DATA5))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6)) && !cursor.getString(cursor.getColumnIndex(Data.DATA6)).isEmpty()) {
          attributes.add(new Attribute(Constants.OTHER_NEIGHBORHOOD, cursor.getString(cursor.getColumnIndex(Data.DATA6))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7)) && !cursor.getString(cursor.getColumnIndex(Data.DATA7)).isEmpty()) {
          attributes.add(new Attribute(Constants.OTHER_CITY, cursor.getString(cursor.getColumnIndex(Data.DATA7))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8)) && !cursor.getString(cursor.getColumnIndex(Data.DATA8)).isEmpty()) {
          attributes.add(new Attribute(Constants.OTHER_REGION, cursor.getString(cursor.getColumnIndex(Data.DATA8))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9)) && !cursor.getString(cursor.getColumnIndex(Data.DATA9)).isEmpty()) {
          attributes.add(new Attribute(Constants.OTHER_POSTAL_CODE, cursor.getString(cursor.getColumnIndex(Data.DATA9))));
        }
-       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+       if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10)) && !cursor.getString(cursor.getColumnIndex(Data.DATA10)).isEmpty()) {
          attributes.add(new Attribute(Constants.OTHER_COUNTRY, cursor.getString(cursor.getColumnIndex(Data.DATA10))));
        }
      } else {
@@ -1429,31 +2031,31 @@ public class Mapping {
     if (str.equals(StructuredName.CONTENT_ITEM_TYPE)) {
       contact.initStructuredName();
       contact.getStructuredName().getID().add(new ID(StructuredName.CONTENT_ITEM_TYPE, null, cursor.getString(cursor.getColumnIndex(Data._ID))));
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1)) && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
         contact.getStructuredName().setDisplayName(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA2))) {
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA2)) && !cursor.getString(cursor.getColumnIndex(Data.DATA2)).isEmpty()) {
         contact.getStructuredName().setGivenName(cursor.getString(cursor.getColumnIndex(Data.DATA2)));
       }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA3))) {
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA3)) && !cursor.getString(cursor.getColumnIndex(Data.DATA3)).isEmpty()) {
         contact.getStructuredName().setFamilyName(cursor.getString(cursor.getColumnIndex(Data.DATA3)));
       }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4)) && !cursor.getString(cursor.getColumnIndex(Data.DATA4)).isEmpty()) {
         contact.getStructuredName().setNamePrefix(cursor.getString(cursor.getColumnIndex(Data.DATA4)));
       }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5)) && !cursor.getString(cursor.getColumnIndex(Data.DATA5)).isEmpty()) {
         contact.getStructuredName().setMiddleName(cursor.getString(cursor.getColumnIndex(Data.DATA5)));
       }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6)) && !cursor.getString(cursor.getColumnIndex(Data.DATA6)).isEmpty()) {
         contact.getStructuredName().setNameSuffix(cursor.getString(cursor.getColumnIndex(Data.DATA6)));
       }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7)) && !cursor.getString(cursor.getColumnIndex(Data.DATA7)).isEmpty()) {
         contact.getStructuredName().setPhoneticGivenName(cursor.getString(cursor.getColumnIndex(Data.DATA7)));
       }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8)) && !cursor.getString(cursor.getColumnIndex(Data.DATA8)).isEmpty()) {
         contact.getStructuredName().setPhoneticMiddleName(cursor.getString(cursor.getColumnIndex(Data.DATA8)));
       }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9)) && !cursor.getString(cursor.getColumnIndex(Data.DATA9)).isEmpty()) {
         contact.getStructuredName().setPhoneticFamilyName(cursor.getString(cursor.getColumnIndex(Data.DATA9)));
       }
     } else if (str.equals(Phone.CONTENT_ITEM_TYPE)) {
@@ -1504,7 +2106,7 @@ public class Mapping {
       } else if (type == Phone.TYPE_WORK_PAGER) {
         contact.getPhone().setPhoneWorkPager(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       } else {
-        Log.i("NOT SUPPORTED TYPE PHONE", "NOT SUPPORTED TYPE PHONE");
+        Log.d("NOT SUPPORTED TYPE PHONE", "NOT SUPPORTED TYPE PHONE");
       }
     } else if (str.equals(Email.CONTENT_ITEM_TYPE)) {
       contact.initEmail();
@@ -1521,68 +2123,68 @@ public class Mapping {
       } else if (type == Email.TYPE_CUSTOM) {
         // TODO:
       } else {
-        Log.i("NOT SUPPORTED TYPE EMAIL", "NOT SUPPORTED TYPE EMAIL");
+        Log.d("NOT SUPPORTED TYPE EMAIL", "NOT SUPPORTED TYPE EMAIL");
       }
     } else if (str.equals(Photo.CONTENT_ITEM_TYPE)) {
-      
+      Log.d("NOT SUPPORTED TYPE Photo", "NOT SUPPORTED TYPE Photo");
     } else if (str.equals(Organization.CONTENT_ITEM_TYPE)) {
       contact.initOrganization();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getOrganization().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Organization.TYPE_WORK) {
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1)) && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
           contact.getOrganization().setOrganizationWorkCompany(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4)) && !cursor.getString(cursor.getColumnIndex(Data.DATA4)).isEmpty()) {
           contact.getOrganization().setOrganizationWorkTitle(cursor.getString(cursor.getColumnIndex(Data.DATA4)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5)) && !cursor.getString(cursor.getColumnIndex(Data.DATA5)).isEmpty()) {
           contact.getOrganization().setOrganizationWorkDepartment(cursor.getString(cursor.getColumnIndex(Data.DATA5)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6)) && !cursor.getString(cursor.getColumnIndex(Data.DATA6)).isEmpty()) {
           contact.getOrganization().setOrganizationWorkJobDescription(cursor.getString(cursor.getColumnIndex(Data.DATA6)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7)) && !cursor.getString(cursor.getColumnIndex(Data.DATA7)).isEmpty()) {
           contact.getOrganization().setOrganizationWorkSymbol(cursor.getString(cursor.getColumnIndex(Data.DATA7)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8)) && !cursor.getString(cursor.getColumnIndex(Data.DATA8)).isEmpty()) {
           contact.getOrganization().setOrganizationWorkPhoneticName(cursor.getString(cursor.getColumnIndex(Data.DATA8)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9)) && !cursor.getString(cursor.getColumnIndex(Data.DATA9)).isEmpty()) {
           contact.getOrganization().setOrganizationWorkOfficeLocation(cursor.getString(cursor.getColumnIndex(Data.DATA9)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10)) && !cursor.getString(cursor.getColumnIndex(Data.DATA10)).isEmpty()) {
           contact.getOrganization().setOrganizationWorkPhoneticNameStyle(cursor.getString(cursor.getColumnIndex(Data.DATA10)));
         }
       } else if (type == Organization.TYPE_OTHER) {
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1)) && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
           contact.getOrganization().setOrganizationOtherCompany(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4)) && !cursor.getString(cursor.getColumnIndex(Data.DATA4)).isEmpty()) {
           contact.getOrganization().setOrganizationOtherTitle(cursor.getString(cursor.getColumnIndex(Data.DATA4)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5)) && !cursor.getString(cursor.getColumnIndex(Data.DATA5)).isEmpty()) {
           contact.getOrganization().setOrganizationOtherDepartment(cursor.getString(cursor.getColumnIndex(Data.DATA5)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6)) && !cursor.getString(cursor.getColumnIndex(Data.DATA6)).isEmpty()) {
           contact.getOrganization().setOrganizationOtherJobDescription(cursor.getString(cursor.getColumnIndex(Data.DATA6)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7)) && !cursor.getString(cursor.getColumnIndex(Data.DATA7)).isEmpty()) {
           contact.getOrganization().setOrganizationOtherSymbol(cursor.getString(cursor.getColumnIndex(Data.DATA7)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8)) && !cursor.getString(cursor.getColumnIndex(Data.DATA8)).isEmpty()) {
           contact.getOrganization().setOrganizationOtherPhoneticName(cursor.getString(cursor.getColumnIndex(Data.DATA8)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9)) && !cursor.getString(cursor.getColumnIndex(Data.DATA9)).isEmpty()) {
           contact.getOrganization().setOrganizationOtherOfficeLocation(cursor.getString(cursor.getColumnIndex(Data.DATA9)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10)) && !cursor.getString(cursor.getColumnIndex(Data.DATA10)).isEmpty()) {
           contact.getOrganization().setOrganizationOtherPhoneticNameStyle(cursor.getString(cursor.getColumnIndex(Data.DATA10)));
         }
       } else if (type == Organization.TYPE_CUSTOM) {
-        // TODO:      String  LABEL DATA3 
+        Log.d("NOT SUPPORTED TYPE Organization", "NOT SUPPORTED TYPE TYPE_CUSTOM");
       } else {
-        
+        Log.d("NOT SUPPORTED TYPE Organization", "NOT SUPPORTED TYPE else");
       }
     } else if (str.equals(Im.CONTENT_ITEM_TYPE)) {
       contact.initIm();
@@ -1592,10 +2194,12 @@ public class Mapping {
       if (type == Im.TYPE_CUSTOM) {
         // TYPE_CUSTOM. Put the actual type in LABEL.
         // String  LABEL DATA3
+        Log.d("NOT SUPPORTED TYPE Im", "NOT SUPPORTED TYPE_CUSTOM");
       } else if (type == Im.TYPE_HOME) {
         if (protocol == Im.PROTOCOL_CUSTOM) {
           // PROTOCOL_CUSTOM. Also provide the actual protocol name as CUSTOM_PROTOCOL.
           // String  CUSTOM_PROTOCOL DATA6
+          Log.d("NOT SUPPORTED TYPE Im", "NOT SUPPORTED PROTOCOL_CUSTOM");
        // TODO:
         } else if (protocol == Im.PROTOCOL_AIM) {
           contact.getImSync().setImHomeAim(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
@@ -1616,12 +2220,13 @@ public class Mapping {
         } else if (protocol == Im.PROTOCOL_YAHOO) {
           contact.getImSync().setImHomeYahoo(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else {
-          Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
+          Log.d("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
         }
       } else if (type == Im.TYPE_WORK) {
         if (protocol == Im.PROTOCOL_CUSTOM) {
           // PROTOCOL_CUSTOM. Also provide the actual protocol name as CUSTOM_PROTOCOL.
           // String  CUSTOM_PROTOCOL DATA6
+          Log.d("NOT SUPPORTED TYPE Im TYPE_WORK", "NOT SUPPORTED PROTOCOL_CUSTOM");
        // TODO:
         } else if (protocol == Im.PROTOCOL_AIM) {
           contact.getImSync().setImWorkAim(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
@@ -1642,12 +2247,13 @@ public class Mapping {
         } else if (protocol == Im.PROTOCOL_YAHOO) {
           contact.getImSync().setImWorkYahoo(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else {
-          Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
+          Log.d("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
         }
       } else if (type == Im.TYPE_OTHER) {
         if (protocol == Im.PROTOCOL_CUSTOM) {
           // PROTOCOL_CUSTOM. Also provide the actual protocol name as CUSTOM_PROTOCOL.
           // String  CUSTOM_PROTOCOL DATA6
+          Log.d("NOT SUPPORTED TYPE Im TYPE_OTHER", "NOT SUPPORTED PROTOCOL_CUSTOM");
        // TODO:
         } else if (protocol == Im.PROTOCOL_AIM) {
           contact.getImSync().setImOtherAim(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
@@ -1668,10 +2274,11 @@ public class Mapping {
         } else if (protocol == Im.PROTOCOL_YAHOO) {
           contact.getImSync().setImOtherYahoo(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         } else {
-          Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
+          Log.d("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
         }
       } else {
         if (protocol == Im.PROTOCOL_CUSTOM) {
+          Log.d("NOT SUPPORTED TYPE Im ELSE", "NOT SUPPORTED PROTOCOL_CUSTOM");
           // PROTOCOL_CUSTOM. Also provide the actual protocol name as CUSTOM_PROTOCOL.
           // String  CUSTOM_PROTOCOL DATA6
        // TODO:
@@ -1694,7 +2301,7 @@ public class Mapping {
         } else if (protocol == Im.PROTOCOL_YAHOO) {
           contact.getIm().setImNullYahoo(cursor.getString(cursor.getColumnIndex(Data.DATA1)));*/
         } else {
-          Log.i("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
+          Log.d("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
         }
       }
     } else if (str.equals(Nickname.CONTENT_ITEM_TYPE)) {
@@ -1713,13 +2320,14 @@ public class Mapping {
         contact.getNickname().setNicknameInitials(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       } else if (type == Nickname.TYPE_CUSTOM) {
         // TODO: String  LABEL DATA3
+        Log.d("NOT SUPPORTED TYPE NICKNAME", "NOT SUPPORTED TYPE TYPE_CUSTOM");
       } else {
-        Log.i("NOT SUPPORTED TYPE NICKNAME", "NOT SUPPORTED TYPE NICKANEME");
+        Log.d("NOT SUPPORTED TYPE NICKNAME", "NOT SUPPORTED TYPE NICKANEME");
       }
     } else if (str.equals(Note.CONTENT_ITEM_TYPE)) {
       contact.initNote();
       contact.getNote().getID().add(new ID(Note.CONTENT_ITEM_TYPE, null, cursor.getString(cursor.getColumnIndex(Data._ID))));
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1)) && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
         contact.getNote().setNotes(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       }
     } else if (str.equals(StructuredPostal.CONTENT_ITEM_TYPE)) {
@@ -1730,95 +2338,99 @@ public class Mapping {
         // TODO:
         //TYPE_CUSTOM. Put the actual type in LABEL.
         // String  LABEL DATA3
+        Log.d("NOT SUPPORTED TYPE StructuredPostal", "NOT SUPPORTED TYPE TYPE_CUSTOM");
       } else if (type == StructuredPostal.TYPE_HOME) {
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1)) && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
           contact.getStructuredPostal().setHomeFormattedAddress(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4)) && !cursor.getString(cursor.getColumnIndex(Data.DATA4)).isEmpty()) {
           contact.getStructuredPostal().setHomeStreet(cursor.getString(cursor.getColumnIndex(Data.DATA4)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5)) && !cursor.getString(cursor.getColumnIndex(Data.DATA5)).isEmpty()) {
           contact.getStructuredPostal().setHomePOBox(cursor.getString(cursor.getColumnIndex(Data.DATA5)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6)) && !cursor.getString(cursor.getColumnIndex(Data.DATA6)).isEmpty()) {
           contact.getStructuredPostal().setHomeNeighborhood(cursor.getString(cursor.getColumnIndex(Data.DATA6)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7)) && !cursor.getString(cursor.getColumnIndex(Data.DATA7)).isEmpty()) {
           contact.getStructuredPostal().setHomeCity(cursor.getString(cursor.getColumnIndex(Data.DATA7)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8)) && !cursor.getString(cursor.getColumnIndex(Data.DATA8)).isEmpty()) {
           contact.getStructuredPostal().setHomeRegion(cursor.getString(cursor.getColumnIndex(Data.DATA8)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9)) && !cursor.getString(cursor.getColumnIndex(Data.DATA9)).isEmpty()) {
           contact.getStructuredPostal().setHomePostalCode(cursor.getString(cursor.getColumnIndex(Data.DATA9)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10)) && !cursor.getString(cursor.getColumnIndex(Data.DATA10)).isEmpty()) {
           contact.getStructuredPostal().setHomeCountry(cursor.getString(cursor.getColumnIndex(Data.DATA10)));
+          Log.d("MAPPING home jeempty:", cursor.getString(cursor.getColumnIndex(Data.DATA10))+":");
         }
       } else if (type == StructuredPostal.TYPE_WORK) {
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1)) && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
           contact.getStructuredPostal().setWorkFormattedAddress(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4)) && !cursor.getString(cursor.getColumnIndex(Data.DATA4)).isEmpty()) {
           contact.getStructuredPostal().setWorkStreet(cursor.getString(cursor.getColumnIndex(Data.DATA4)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5)) && !cursor.getString(cursor.getColumnIndex(Data.DATA5)).isEmpty()) {
           contact.getStructuredPostal().setWorkPOBox(cursor.getString(cursor.getColumnIndex(Data.DATA5)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6)) && !cursor.getString(cursor.getColumnIndex(Data.DATA6)).isEmpty()) {
           contact.getStructuredPostal().setWorkNeighborhood(cursor.getString(cursor.getColumnIndex(Data.DATA6)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7)) && !cursor.getString(cursor.getColumnIndex(Data.DATA7)).isEmpty()) {
           contact.getStructuredPostal().setWorkCity(cursor.getString(cursor.getColumnIndex(Data.DATA7)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8)) && !cursor.getString(cursor.getColumnIndex(Data.DATA8)).isEmpty()) {
           contact.getStructuredPostal().setWorkRegion(cursor.getString(cursor.getColumnIndex(Data.DATA8)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+        if  (!cursor.isNull(cursor.getColumnIndex(Data.DATA9)) && !cursor.getString(cursor.getColumnIndex(Data.DATA9)).isEmpty()) {
           contact.getStructuredPostal().setWorkPostalCode(cursor.getString(cursor.getColumnIndex(Data.DATA9)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10)) && !cursor.getString(cursor.getColumnIndex(Data.DATA10)).isEmpty()) {
           contact.getStructuredPostal().setWorkCountry(cursor.getString(cursor.getColumnIndex(Data.DATA10)));
         }
       } else if (type == StructuredPostal.TYPE_OTHER) {
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1)) && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
           contact.getStructuredPostal().setOtherFormattedAddress(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4)) && !cursor.getString(cursor.getColumnIndex(Data.DATA4)).isEmpty()) {
           contact.getStructuredPostal().setOtherStreet(cursor.getString(cursor.getColumnIndex(Data.DATA4)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5)) && !cursor.getString(cursor.getColumnIndex(Data.DATA5)).isEmpty()) {
           contact.getStructuredPostal().setOtherPOBox(cursor.getString(cursor.getColumnIndex(Data.DATA5)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6)) && !cursor.getString(cursor.getColumnIndex(Data.DATA6)).isEmpty()) {
           contact.getStructuredPostal().setOtherNeighborhood(cursor.getString(cursor.getColumnIndex(Data.DATA6)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7)) && !cursor.getString(cursor.getColumnIndex(Data.DATA7)).isEmpty()) {
           contact.getStructuredPostal().setOtherCity(cursor.getString(cursor.getColumnIndex(Data.DATA7)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8)) && !cursor.getString(cursor.getColumnIndex(Data.DATA8)).isEmpty()) {
           contact.getStructuredPostal().setOtherRegion(cursor.getString(cursor.getColumnIndex(Data.DATA8)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))) {
+        if  (!cursor.isNull(cursor.getColumnIndex(Data.DATA9)) && !cursor.getString(cursor.getColumnIndex(Data.DATA9)).isEmpty()) {
           contact.getStructuredPostal().setOtherPostalCode(cursor.getString(cursor.getColumnIndex(Data.DATA9)));
         }
-        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10))) {
+        if (!cursor.isNull(cursor.getColumnIndex(Data.DATA10)) && !cursor.getString(cursor.getColumnIndex(Data.DATA10)).isEmpty()) {
           contact.getStructuredPostal().setOtherCountry(cursor.getString(cursor.getColumnIndex(Data.DATA10)));
         }
       } else {
-        
+        Log.d("NOT SUPPORTED TYPE StructuredPostal", "NOT SUPPORTED ELSE");
       }
        
     } else if (str.equals(GroupMembership.CONTENT_ITEM_TYPE)) {
       // TODO:
       //long  GROUP_ROW_ID  DATA1
       //attributes.add(new Attribute(Constants., cursor.getString(cursor.getColumnIndex(Data.DATA1))));
+      Log.d("NOT SUPPORTED TYPE GroupMembership", "NOT SUPPORTED TYPE ");
     } else if (str.equals(Website.CONTENT_ITEM_TYPE)) {
       contact.initWebsite();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getWebsite().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Website.TYPE_CUSTOM) {
         //TODO:String  LABEL DATA3,TYPE_CUSTOM. Put the actual type in LABEL. 
+        Log.d("NOT SUPPORTED TYPE Website", "NOT SUPPORTED TYPE_CUSTOM ");
       } else if (type == Website.TYPE_BLOG) {
         contact.getWebsite().setWebsiteBlog(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       } else if (type == Website.TYPE_FTP) {
@@ -1834,7 +2446,7 @@ public class Mapping {
       } else if (type == Website.TYPE_WORK) {
         contact.getWebsite().setWebsiteWork(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       } else {
-        Log.i("NOT SUPPORTED TYPE WEBSITE", "NOT SUPPORTED TYPE WEBSITE");
+        Log.d("NOT SUPPORTED TYPE WEBSITE", "NOT SUPPORTED TYPE WEBSITE");
       }
     } else if (str.equals(Event.CONTENT_ITEM_TYPE)) {
       contact.initEvent();
@@ -1843,6 +2455,7 @@ public class Mapping {
       if (type == Event.TYPE_CUSTOM) {
         // TYPE_CUSTOM. Put the actual type in LABEL.
         // String  LABEL DATA3
+        Log.d("NOT SUPPORTED TYPE Event", "NOT SUPPORTED TYPE_CUSTOM ");
       } else if (type == Event.TYPE_ANNIVERSARY) {
         contact.getEvent().setEventAnniversary(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       } else if (type == Event.TYPE_BIRTHDAY) {
@@ -1850,7 +2463,7 @@ public class Mapping {
       } else if (type == Event.TYPE_OTHER) {
         contact.getEvent().setEventOther(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       } else {
-        Log.i("NOT SUPPORTED TYPE Event", "NOT SUPPORTED TYPE EVENT");
+        Log.d("NOT SUPPORTED TYPE Event", "NOT SUPPORTED TYPE EVENT");
       }
     } else if (str.equals(Relation.CONTENT_ITEM_TYPE)) {
       contact.initRelation();
@@ -1860,6 +2473,7 @@ public class Mapping {
         // TODO:
         //attributes.add(new Attribute(Constants.EVENT_ANNIVERSARY, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
         //String  LABEL DATA3
+        Log.d("NOT SUPPORTED TYPE Relation", "NOT SUPPORTED TYPE_CUSTOM ");
       } else if (type == Relation.TYPE_ASSISTANT) {
         contact.getRelation().setRelationAssistant(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       } else if (type == Relation.TYPE_BROTHER) {
@@ -1889,7 +2503,7 @@ public class Mapping {
       } else if (type == Relation.TYPE_SPOUSE) {
         contact.getRelation().setRelationSpouse(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       } else {
-        Log.i("NOT SUPPORTED TYPE Relation", "NOT SUPPORTED TYPE Relation");
+        Log.d("NOT SUPPORTED TYPE Relation", "NOT SUPPORTED TYPE Relation");
       }
     } else if (str.equals(SipAddress.CONTENT_ITEM_TYPE)) {
       contact.initSipAddressSync();
@@ -1899,6 +2513,7 @@ public class Mapping {
         // TODO:
         // TYPE_CUSTOM. Put the actual type in LABEL.
         // String  LABEL DATA3
+        Log.d("NOT SUPPORTED TYPE SipAddress", "NOT SUPPORTED TYPE_CUSTOM ");
       } else if (type == SipAddress.TYPE_HOME) {
         contact.getSipAddress().setHomeSip(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       } else if (type == SipAddress.TYPE_WORK) {
@@ -1906,7 +2521,7 @@ public class Mapping {
       } else if (type == SipAddress.TYPE_OTHER) {
         contact.getSipAddress().setOtherSip(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       } else {
-        Log.i("NOT SUPPORTED TYPE SIP", "NOT SUPPORTED TYPE SIP");
+        Log.d("NOT SUPPORTED TYPE SIP", "NOT SUPPORTED TYPE SIP");
       }
     } else if (str.equals(Identity.CONTENT_ITEM_TYPE)) {
       contact.initIdentity();
@@ -1914,7 +2529,7 @@ public class Mapping {
       contact.getIdentity().setIdentityText(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       contact.getIdentity().setIdentityNamespace(cursor.getString(cursor.getColumnIndex(Data.DATA2)));
     } else {
-      Log.i("NOT SUPPORTED TYPE MIME", "NOT SUPPORTED TYPE MIME: " + str);
+      Log.d("NOT SUPPORTED TYPE MIME", "NOT SUPPORTED TYPE MIME: " + str);
     }
   }
 }

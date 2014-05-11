@@ -60,10 +60,25 @@ public class ContactRow implements Parcelable {
     this(id, name, false, null, null, accouNamePrevious, accouTypePrevious, null, null);
   }
   
+  /**
+   * 
+   */
   public ContactRow(String id, String name, Boolean sync, Integer idTable, String accouNamePrevious, String accouTypePrevious, String timestamp, String uuid) {
     this(id, name, sync, null, idTable, accouNamePrevious, accouTypePrevious, timestamp, uuid);
   }
   
+  /**
+   * 
+   * @param id
+   * @param name
+   * @param sync
+   * @param groups
+   * @param idTable
+   * @param accouNamePrevious
+   * @param accouTypePrevious
+   * @param timestamp
+   * @param uuid
+   */
   public ContactRow(String id, String name, Boolean sync, String[] groups, Integer idTable, String accouNamePrevious, String accouTypePrevious, 
       String timestamp, String uuid) {
     this.id = id;
@@ -105,6 +120,32 @@ public class ContactRow implements Parcelable {
     } 
     cursor.close();
     return groupMembers;
+  }
+  
+  public static int fetchGroupMembersCount(ContentResolver contentResolver, String groupId) {
+    Set<String> groupMembers = new HashSet<String>();
+    Cursor cursor = null;
+    try {
+      String where = CommonDataKinds.GroupMembership.GROUP_ROW_ID + "=" + groupId + " AND " + 
+          CommonDataKinds.GroupMembership.MIMETYPE + "='" + CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE + "'";
+      String[] projection = new String[]{GroupMembership.RAW_CONTACT_ID};
+      cursor = contentResolver.query(Data.CONTENT_URI, projection, where, null, null);
+      while (cursor.moveToNext()) {
+        groupMembers.add(cursor.getString(cursor.getColumnIndex(GroupMembership.RAW_CONTACT_ID)));
+      }
+    } catch(Exception ex) { 
+      ex.printStackTrace();
+    } finally {
+      try {
+        if( cursor != null && !cursor.isClosed()) {
+          cursor.close();
+        }
+      } catch(Exception ex) {
+        ex.printStackTrace();
+      }
+    }
+    
+    return groupMembers.size();
   }
   
   public static Set<ContactRow> fetchGroupMembers(ContentResolver contentResolver, String groupId) {
@@ -171,21 +212,22 @@ public class ContactRow implements Parcelable {
    * @return list of ContactRow.
    */
   public static ArrayList<ContactRow> fetchAllContact(ContentResolver contentResolver) {
-    if (contacts == null) {
+    //if (contacts == null) {
       Cursor cursor = null;
       try {
         contacts = new ArrayList<ContactRow>(); 
-        String[] projection = new String[]{RawContacts._ID, RawContacts.DISPLAY_NAME_SOURCE, //CommonDataKinds.GroupMembership.GROUP_ROW_ID, 
+        String[] projection = new String[]{RawContacts._ID, RawContacts.DISPLAY_NAME_PRIMARY, //CommonDataKinds.GroupMembership.GROUP_ROW_ID, 
             RawContacts.ACCOUNT_NAME, RawContacts.ACCOUNT_TYPE};
-        cursor = contentResolver.query(RawContacts.CONTENT_URI, projection, null, null, RawContacts.DISPLAY_NAME_SOURCE + " COLLATE LOCALIZED ASC");
+        cursor = contentResolver.query(RawContacts.CONTENT_URI, projection, null, null, RawContacts.DISPLAY_NAME_PRIMARY + " COLLATE LOCALIZED ASC");
         while (cursor.moveToNext()) {
           ContactRow contactShow = new ContactRow(
               cursor.getString(cursor.getColumnIndex(RawContacts._ID)),
-              cursor.getString(cursor.getColumnIndex(RawContacts.DISPLAY_NAME_SOURCE)),
+              cursor.getString(cursor.getColumnIndex(RawContacts.DISPLAY_NAME_PRIMARY)),
               cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_NAME)),
               cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_TYPE))
               );
-          boolean found = false;
+          contacts.add(contactShow);
+          /*boolean found = false;
           for (ContactRow co : contacts) {
             if ( co.getId().equals(contactShow.getId())) {
               found = true;
@@ -195,7 +237,7 @@ public class ContactRow implements Parcelable {
           }
           if( !found) {
             contacts.add(contactShow);
-          }
+          }*/
         }
       } catch(Exception ex) { 
           ex.printStackTrace();
@@ -208,7 +250,7 @@ public class ContactRow implements Parcelable {
           ex.printStackTrace();
         }
       }
-    }
+    //}
      
     Log.i(TAG, "all user:" + contacts.size());
     return contacts;
