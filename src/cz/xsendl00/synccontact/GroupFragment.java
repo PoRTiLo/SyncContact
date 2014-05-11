@@ -1,6 +1,7 @@
 package cz.xsendl00.synccontact;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 import cz.xsendl00.synccontact.R;
 
@@ -41,7 +42,7 @@ public class GroupFragment extends Fragment implements
   public static GroupFragment newInstance(Pair p, boolean first) {
     GroupFragment groupFragment = new GroupFragment();
     Bundle args = new Bundle();
-    args.putParcelable("pair", p);
+    args.putParcelable("PAIR", p);
     args.putBoolean("FIRST", first);
     groupFragment.setArguments(args);
     return groupFragment;
@@ -50,7 +51,7 @@ public class GroupFragment extends Fragment implements
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    pair = getArguments().getParcelable("pair");
+    pair = getArguments().getParcelable("PAIR");
     first = getArguments().getBoolean("FIRST");
     setHasOptionsMenu(true);
     selectAll = isSelectedAll();
@@ -225,10 +226,10 @@ public class GroupFragment extends Fragment implements
     final ContentResolver contentResolver =  getActivity().getContentResolver();
     new Thread(new Runnable() {
       public void run() {
-        for (GroupRow groupRow : pair.getGroupsList()) {
+        for (GroupRow groupRow : groups) {
           final String id = groupRow.getId();
           if (getActivity() != null) {
-            final ArrayList<String> list = ContactRow.fetchGroupMembersId(contentResolver, id);
+            final Set<String> list = new ContactRow().fetchGroupMembersId(contentResolver, id);
             if (list != null) {
               for (String id1 : list) {
                 for (ContactRow c : pair.getContactList()) {
@@ -250,15 +251,14 @@ public class GroupFragment extends Fragment implements
       @Override
       public void run() {
         HelperSQL db = new HelperSQL(getActivity());
-        for (GroupRow groupRow : pair.getGroupsList()) {
+        for (GroupRow groupRow : groups) {
           final String id = groupRow.getId();
           db.updateGroupSync(groupRow);
+          Log.i(TAG, "updated " + groupRow.toString());
           if (getActivity() != null) {
-            final ArrayList<String> list = ContactRow.fetchGroupMembersId(contentResolver, id);
+            final Set<String> list = new ContactRow().fetchGroupMembersId(contentResolver, id);
             if (list != null) {
-              for (String id1 : list) {
-                db.updateContactSync(id1, isChecked);
-              }
+              db.updateContactsSync(list, isChecked);
             }
           }
           else {

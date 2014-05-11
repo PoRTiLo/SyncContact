@@ -72,20 +72,36 @@ public class Mapping {
     return dirtyContactsId;
   }
   
-  public static Map<String, GoogleContact> fetchDirtyContacts(Context context, List<ContactRow> list) {
+  /**
+   * Fetch contact selected like modified. In database SYNC = 1;
+   * @param context
+   * @param list
+   * @return map of uuid and googleContact.
+   */
+  public Map<String, GoogleContact> fetchDirtyContacts(Context context, List<ContactRow> list) {
     Map<String, GoogleContact> dirtyContacts = new HashMap<String, GoogleContact>();
-    for (ContactRow con : list) {
-      //Log.i(TAG, con.getId());
-      Cursor c = context.getContentResolver().query(
-        RawContacts.CONTENT_URI,
-        new String[]{RawContacts._ID},
-        RawContacts._ID + "=? AND " + RawContacts.DIRTY + "=?",
-        new String[]{con.getId(), "1"}, null);
-      while (c.moveToNext()) {
-        //Log.i(TAG, c.getString(c.getColumnIndex(RawContacts._ID)));
-        dirtyContacts.put(con.getUuid(), mappingContactFromDB(context.getContentResolver(), c.getString(c.getColumnIndex(RawContacts._ID))));
+    Cursor cursor = null;
+    try {
+      for (ContactRow contactRow : list) {
+        cursor = context.getContentResolver().query(
+          RawContacts.CONTENT_URI,
+          new String[]{RawContacts._ID},
+          RawContacts._ID + "=? AND " + RawContacts.DIRTY + "=?",
+          new String[]{contactRow.getId(), "1"}, null);
+        while (cursor.moveToNext()) {
+          dirtyContacts.put(contactRow.getUuid(), mappingContactFromDB(context.getContentResolver(), cursor.getString(cursor.getColumnIndex(RawContacts._ID))));
+        }
       }
-      c.close();
+    } catch(Exception ex) { 
+      ex.printStackTrace();
+    } finally {
+      try {
+        if( cursor != null && !cursor.isClosed() ) {
+          cursor.close();
+        }
+      } catch(Exception ex) {
+        ex.printStackTrace();
+      }
     }
     return dirtyContacts;
   }
@@ -244,7 +260,7 @@ public class Mapping {
   }
   
   public static AddRequest mappingRequest(ContentResolver cr, String id, String baseDn, String rdn) {
-    Cursor cursor = ContactDetail.fetchAllDataOfContact(cr, id);
+    Cursor cursor = new ContactDetail().fetchAllDataOfContact(cr, id);
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
     
     attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GOOGLE));
@@ -282,14 +298,33 @@ public class Mapping {
     
   }
   
-  public static GoogleContact mappingContactFromDB(ContentResolver cr, String id) {
-    Cursor cursor = ContactDetail.fetchAllDataOfContact(cr, id);
-    GoogleContact contact = new GoogleContact();
-    contact.setId(id);
-    while (cursor.moveToNext()) {
-      fillContact(cursor, contact);
+  /**
+   * 
+   * @param contentResolver
+   * @param id
+   * @return 
+   */
+  public GoogleContact mappingContactFromDB(ContentResolver contentResolver, String id) {
+    Cursor cursor = null;
+    GoogleContact contact = null;
+    try {
+      cursor = new ContactDetail().fetchAllDataOfContact(contentResolver, id);
+      contact = new GoogleContact();
+      contact.setId(id);
+      while (cursor.moveToNext()) {
+        fillContact(cursor, contact);
+      }
+    } catch(Exception ex) { 
+      ex.printStackTrace();
+    } finally {
+      try {
+        if (cursor != null && !cursor.isClosed()) {
+          cursor.close();
+        }
+      } catch(Exception ex) {
+        ex.printStackTrace();
+      }
     }
-    cursor.close();
     
     return contact;
   }
@@ -1386,7 +1421,7 @@ public class Mapping {
    return attributes;
   }
   
-  private static void fillContact(Cursor cursor, GoogleContact contact) {
+  private void fillContact(Cursor cursor, GoogleContact contact) {
     
     String str = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
     
@@ -1493,7 +1528,7 @@ public class Mapping {
     } else if (str.equals(Organization.CONTENT_ITEM_TYPE)) {
       contact.initOrganization();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
-      contact.getEmail().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
+      contact.getOrganization().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Organization.TYPE_WORK) {
         if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))) {
           contact.getOrganization().setOrganizationWorkCompany(cursor.getString(cursor.getColumnIndex(Data.DATA1)));

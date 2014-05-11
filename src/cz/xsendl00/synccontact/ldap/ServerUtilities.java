@@ -192,48 +192,9 @@ public class ServerUtilities {
     return contactsServer;
   }
   
-  public static void synchronization(final ServerInstance ldapServer, final Context context) throws RemoteException, OperationApplicationException {
-    // get sync user
-    HelperSQL db = new HelperSQL(context);
-    List<ContactRow> contactsId = db.getSyncContacts();
-    Log.i(TAG, "contactsId: " + contactsId.size());
-    // get contact with dirty flag
-    Map<String, GoogleContact> contactsDirty = Mapping.fetchDirtyContacts(context, contactsId);
-    Log.i(TAG, "fetchDirtyContacts: " + contactsDirty.size());
-    //for(GoogleContact c : contactsDirty) {
-    //  Log.i(TAG, c.getStructuredName().getDisplayName());
-    //}
-    // get timestamp last synchronization
-    String timestamp = db.newerTimestamp();
-    Log.i(TAG, timestamp);
-    // get contact from server which was newer than timestamp
-    Map<String, GoogleContact> contactsServer = fetchModifyContactsLDAP(ldapServer, context, timestamp);
-    Log.i(TAG, "fetchModifyContactsLDAP: " + contactsServer.size());
-    //for(GoogleContact c : contactsServer) {
-    //  Log.i(TAG, c.getStructuredName().getDisplayName());
-    //}
-    // intersection local change and LDAP change
-    Map<String, GoogleContact> intersection = intersection(contactsDirty, contactsServer);
-    // difference local change and intersection, must be update on LDAP server
-    Map<String, GoogleContact> differenceDirty = difference(contactsDirty, intersection);
-    // difference LDAP change and intersection, must be update on DB
-    Map<String, GoogleContact> differenceLDAP = difference(contactsServer, intersection);
-    
-    // merge contact
-    
-    // update db syncContact.db
-    
-    // update db contact.db
-    AndroidDB.updateContactsDb(context, differenceLDAP);
-    // update server contact
-    updateContactsLDAP(ldapServer, context, differenceLDAP);//differenceDirty
-    // set new timestamp
-    timestamp = ContactRow.createTimestamp();
-    // set dirty flag to disable (0)
-    db.updateContacts(differenceDirty, timestamp);
-  }
   
-  private static void updateContactsLDAP(final ServerInstance ldapServer, final Context context, Map<String, GoogleContact> differenceDirty) {
+  
+  public static void updateContactsLDAP(final ServerInstance ldapServer, final Context context, Map<String, GoogleContact> differenceDirty) {
     for (Map.Entry<String, GoogleContact> entry : differenceDirty.entrySet()) {
       if (checkExistsContactLDAP(ldapServer, context, entry.getKey())) {
         // update
@@ -264,17 +225,7 @@ public class ServerUtilities {
     
   }
   
-  public static <K, V> Map<K, V> intersection(final Map<K, V> map1, final Map<K, V> map2) {
-    Log.i(TAG, "intersection: " + map1.size() + " to " + map2.size());
-    Map<K, V> map = new HashMap<K, V>();
-    for (Map.Entry<K, V> entry : map1.entrySet()) {
-      if(map2.get(entry.getKey()) != null) {
-        map.put(entry.getKey(), entry.getValue());
-      }
-    }
-    Log.i(TAG, "intersection result: " + map.size());
-    return map;
-  }
+
   
   public static boolean checkExistsContactLDAP(final ServerInstance ldapServer, final Context context, String uuid) {
     LDAPConnection connection = null;
@@ -303,24 +254,7 @@ public class ServerUtilities {
     
   }
   
-  public static <K, V> Map<K, V> difference(final Map<K, V> map1, final Map<K, V> map2) {
-    Log.i(TAG, "difference: " + map1.size() + " to " + map2.size());
-    Map<K, V> map = new HashMap<K, V>();
-    map.putAll(map1);
-    for (Map.Entry<K, V> entry : map2.entrySet()) {
-      if(map.get(entry.getKey()) != null) {
-        map.remove(entry.getKey());
-      }
-    }
-    /*
-    for (Map.Entry<K, V> entry : map.entrySet()) {
-      GoogleContact g = (GoogleContact) entry.getValue();
-      Log.i(TAG, "difference result: " + entry.getKey() + ":" + g.getStructuredName().getDisplayName());
-    }
-    
-    Log.i(TAG, "difference result: " + map.size());*/
-    return map;
-  }
+
   
 	public static List<GoogleContact> fetchContacts(final ServerInstance ldapServer, final AccountData accountData, final Bundle mappingBundle, 
 	    final Date lastUpdated, final Context context) {

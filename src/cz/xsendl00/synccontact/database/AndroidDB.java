@@ -1,6 +1,7 @@
 package cz.xsendl00.synccontact.database;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import android.content.ContentProviderOperation;
@@ -14,6 +15,7 @@ import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
 import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.utils.Constants;
+import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.Mapping;
 
 /**
@@ -47,7 +49,7 @@ public class AndroidDB {
       Log.i(TAG, "create sql heleper ");
       String id = s.getContactId(entry.getKey());
       Log.i(TAG, "uuid:: " + entry.getKey() + " mapping to:" + id);
-      GoogleContact gc = Mapping.mappingContactFromDB(context.getContentResolver(), id);
+      GoogleContact gc = new Mapping().mappingContactFromDB(context.getContentResolver(), id);
       Log.i(TAG, "z db se vzal: " + entry.getValue().getStructuredName().getDisplayName());
       op.addAll(GoogleContact.createOperationUpdate(gc, entry.getValue()));
     }
@@ -85,26 +87,88 @@ public class AndroidDB {
       e.printStackTrace();
     }
   }
+  public static void importContactsToSyncAccount(Context context, List<ContactRow> contactRows) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    for (ContactRow contactRow : contactRows) {
+      Log.i(TAG, contactRow.getId());
+      ops.add(ContentProviderOperation.newUpdate(ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, Integer.valueOf(contactRow.getId())))
+         .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
+         .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE)
+         .build()
+       );
+    }
+     
+    try {
+      ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+      //for (ContentProviderResult cn : con) {
+      //  Log.i(TAG, cn.toString());
+     // }
+    } catch (RemoteException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (OperationApplicationException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
   
+  /**
+   * Convert contact to default account from syncContact account
+   * @param context context activity
+   * @param id Identificator of raw contact
+   * @param accountName
+   * @param accountType
+   */
   public static void exportContactFromSyncAccount(Context context, Integer id, String accountName, String accountType) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     Log.i(TAG, id.toString());
     ops.add(ContentProviderOperation.newUpdate(ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, id))
        .withValue(RawContacts.ACCOUNT_NAME, accountName)
        .withValue(RawContacts.ACCOUNT_TYPE, accountType)
+       .withYieldAllowed(true)
        .build()
      );
-     
+    
     try {
       ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
       for (ContentProviderResult cn : con) {
         Log.i(TAG, cn.toString());
       }
     } catch (RemoteException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     } catch (OperationApplicationException e) {
-      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+  
+  /**
+   * Convert contact to default account from syncContact account
+   * @param context context activity
+   * @param contactRows 
+   */
+  public static void exportContactsFromSyncAccount(Context context, List<ContactRow> contactRows) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    int size = contactRows.size();
+    int i = 1;
+    for (ContactRow contactRow : contactRows) {
+      ops.add(ContentProviderOperation.newUpdate(ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, Integer.valueOf(contactRow.getId())))
+          .withValue(RawContacts.ACCOUNT_NAME, contactRow.getAccouNamePrevious())
+          .withValue(RawContacts.ACCOUNT_TYPE, contactRow.getAccouTypePrevious())
+          //.withYieldAllowed(true)
+          .build()
+        );
+      Log.i(TAG,contactRow.getId() +  ", exportContactsFromSyncAccount: " + i++ + "/" + size + ", to:" + contactRow.getAccouNamePrevious());
+    }
+    
+    
+    try {
+      ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+//      for (ContentProviderResult cn : con) {
+//        Log.i(TAG, cn.toString());
+//      }
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    } catch (OperationApplicationException e) {
       e.printStackTrace();
     }
   }

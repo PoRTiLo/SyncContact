@@ -1,0 +1,15 @@
+<PreferenceScreen
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+            android:title="General Settings" />
+
+    <PreferenceScreen
+        android:key="account_settings"
+        android:title="Account Settings"
+        android:summary="Sync frequency, notifications, etc.">
+        <intent
+            android:action="cz.xsendl00.synccontact.Preferences.ACCOUNT_SETUP"
+            android:targetPackage="cz.xsendl00.synccontact"
+            android:targetClass="cz.xsendl00.synccontact.Preferences" />
+    </PreferenceScreen>
+</PreferenceScreen>

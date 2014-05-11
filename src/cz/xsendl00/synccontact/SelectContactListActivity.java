@@ -9,6 +9,7 @@ import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
+import cz.xsendl00.synccontact.ldap.Synchronization;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
@@ -16,10 +17,12 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.OperationApplicationException;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -103,31 +106,7 @@ public class SelectContactListActivity extends Activity implements
     Log.i(TAG, "sync");
   }
 
-  private class ExportAccountTask extends AsyncTask<Void, Void, Boolean> {
-    private ProgressDialog progressDialog;
-
-    @Override
-    protected Boolean doInBackground(Void... params) {
-      HelperSQL db = new HelperSQL(getApplicationContext());
-
-      // AndroidDB.exportContactFromSyncAccount(Context context, Integer id,
-      // String accountName, String accountType);
-      // ServerUtilities.addContactsToServer(new
-      // ServerInstance(AccountData.getAccountData(getApplicationContext())),
-      // handler, SelectContactListActivity.this);
-      return true;
-    }
-
-    protected void onPostExecute(Boolean bool) {
-      progressDialog.dismiss();
-    }
-
-    protected void onPreExecute() {
-      super.onPreExecute();
-      progressDialog = ProgressDialog.show(SelectContactListActivity.this,
-          "Downloading...", "Downloading data from server", true);
-    }
-  }
+  
 
   private class ChangeAccountTask extends AsyncTask<Void, Void, Boolean> {
     private ProgressDialog progressDialog;
@@ -193,24 +172,30 @@ public class SelectContactListActivity extends Activity implements
     protected Pair doInBackground(Void... params) {
 
       Pair p = new Pair();
-      p.getGroupsList().addAll(
-          GroupRow.fetchGroups(SelectContactListActivity.this
-              .getContentResolver()));
+      
+      Log.i(TAG, "getGroupsList");
+      p.getGroupsList().clear();
+      p.getGroupsList().addAll(GroupRow.fetchGroups(SelectContactListActivity.this.getContentResolver()));
+      Log.i(TAG, "getGroupsList size:" + p.getGroupsList().size());
       for (GroupRow group : p.getGroupsList()) {
         ArrayList<ContactRow> groupMembers = new ArrayList<ContactRow>();
-        groupMembers
-            .addAll(ContactRow.fetchGroupMembers(
-                SelectContactListActivity.this.getContentResolver(),
-                group.getId()));
+        groupMembers.addAll(ContactRow.fetchGroupMembers(SelectContactListActivity.this.getContentResolver(), group.getId()));
         group.setSize(groupMembers.size());
+        Log.i(TAG, "id:" + group.getId() + "group size:" + group.getSize());
         // p.getGroupMemberList().put(group, groupMembers);
       }
       HelperSQL db = new HelperSQL(SelectContactListActivity.this);
+      Log.i(TAG, "fillGroups");
       db.fillGroups(p.getGroupsList());
+      
+      Log.i(TAG, "getContactList");
       p.getContactList().addAll(
           ContactRow.fetchAllContact(SelectContactListActivity.this
               .getContentResolver()));
+      Log.i(TAG, "getContactList size:" + p.getContactList().size());
+      Log.i(TAG, "fillContacts");
       db.fillContacts(p.getContactList());
+      Log.i(TAG, "fillContacts END");
       return p;
     }
 
@@ -270,7 +255,48 @@ public class SelectContactListActivity extends Activity implements
         .edit();
     editor.putBoolean(Constants.PREFS_START_FIRST, false);
     editor.commit();
+    
+    // Selected contatc should be import to server
+    new SyncTask(SelectContactListActivity.this).execute();
+    
+    
+  }
+  
+  private class SyncTask extends AsyncTask<Void, Void, Boolean> {
+    private ProgressDialog progressDialog;
+    
+    private Activity activity;
 
+    public SyncTask(Activity activity) {
+      this.activity = activity;
+    }
+    
+    @Override
+    protected Boolean doInBackground(Void...params) {
+      try {
+        Synchronization synchronization = new Synchronization();
+        synchronization.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
+      } catch (RemoteException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch (OperationApplicationException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      return true;
+    }
+    protected void onPostExecute(Boolean bool) {
+      progressDialog.dismiss();
+      ((SelectContactListActivity) activity).onTaskCompleted();
+    }
+    
+    protected void onPreExecute() {
+      super.onPreExecute();
+      progressDialog = ProgressDialog.show(SelectContactListActivity.this, "Downloading...","Downloading data from server", true);
+    }
+  }
+  
+  public void onTaskCompleted() {
     Intent intent = new Intent(this, MainActivity.class);
     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
         | Intent.FLAG_ACTIVITY_NEW_TASK);

@@ -73,10 +73,11 @@ public class GroupRow implements Parcelable {
   }
   
   // TODO: list init only once, but what will be happen if add new group?
-  public static ArrayList<GroupRow> fetchGroups(ContentResolver contentResolver){
-    if (groups == null) {
+  public static ArrayList<GroupRow> fetchGroups(ContentResolver contentResolver) {
+    Cursor cursor = null;
+    try {
       String[] projection = new String[]{ContactsContract.Groups._ID, ContactsContract.Groups.TITLE};
-      Cursor cursor = contentResolver.query(ContactsContract.Groups.CONTENT_URI, projection, null, null, null);
+      cursor = contentResolver.query(ContactsContract.Groups.CONTENT_URI, projection, null, null, null);
       groups = new ArrayList<GroupRow>();
       while (cursor.moveToNext()) {
         groups.add(new GroupRow(
@@ -85,14 +86,24 @@ public class GroupRow implements Parcelable {
           )
         );
       }
-      cursor.close();
-      Collections.sort(groups,new Comparator<GroupRow>() {
-        @Override
-        public int compare(GroupRow lhs, GroupRow rhs) {
-          return rhs.getName().compareTo(lhs.getName()) < 0 ? 0 : -1;
+    } catch(Exception ex) {
+        ex.printStackTrace();
+    } finally {
+      try {
+        if ( cursor != null && !cursor.isClosed() ) {
+          cursor.close();
         }
-      });
+      } catch(Exception ex) {
+        ex.printStackTrace();
+      }
     }
+    
+    Collections.sort(groups,new Comparator<GroupRow>() {
+      @Override
+      public int compare(GroupRow lhs, GroupRow rhs) {
+        return rhs.getName().compareTo(lhs.getName()) < 0 ? 0 : -1;
+      }
+    });
     return groups;
   }
 
@@ -122,9 +133,13 @@ public class GroupRow implements Parcelable {
   public void writeToParcel(Parcel dest, int flags) {
     dest.writeString(this.id);
     dest.writeString(this.name);
-    dest.writeInt(this.idTable);
+    if (this.idTable != null) {
+      dest.writeInt(this.idTable);
+    }
     dest.writeValue(this.sync);
-    dest.writeInt(this.size);
+    if (this.size != null) {
+      dest.writeInt(this.size);
+    }
   }
   
   public static final Parcelable.Creator<GroupRow> CREATOR = new Parcelable.Creator<GroupRow>() {

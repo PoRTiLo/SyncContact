@@ -146,32 +146,25 @@ public class ContactFragment extends Fragment implements
   }
   
   private void selectAll(final boolean result) {
+    new Thread(new Runnable() {
+      public void run() {
+        updateDB(pair.getContactList(), result);
+      }
+    }).start();
     for (ContactRow contactRow : pair.getContactList()) {
       contactRow.setSync(result);
     }
     adapter.notifyDataSetChanged();
-    new Thread(new Runnable() {
-      public void run() {
-        updateDB(pair.getContactList());
-      }
-    }).start();
-    //new Thread(new Runnable() {
-    //  public void run() {
-        for (GroupRow groupRow : pair.getGroupsList()) {
-          groupRow.setSync(result);
-        }
-    //  }
-    //});
+    for (GroupRow groupRow : pair.getGroupsList()) {
+      groupRow.setSync(result);
+    }
   }
   
-  private void updateDB(final ArrayList<ContactRow> contacts) {
+  private void updateDB(final ArrayList<ContactRow> contacts, final boolean result) {
     new Thread(new Runnable() {
       public void run() {
         HelperSQL db = new HelperSQL(getActivity());
-        for (ContactRow contactRow : contacts) {
-          db.updateContactSync(contactRow);
-        }
-        
+        db.updateContactsSync(contacts, result);
       }
     }).start();
   }
@@ -181,13 +174,12 @@ public class ContactFragment extends Fragment implements
     final int pos = (Integer) buttonView.getTag();
     if (pos != ListView.INVALID_POSITION) {
       ContactRow p = pair.getContactList().get(pos);
-      final ContactRow p1 = p;
       if (p.isSync() != isChecked) {
         p.setSync(isChecked);
         Log.i("COntactfragment", "change");
-        ArrayList<ContactRow> contacts = new ArrayList<ContactRow> ();
-        contacts.add(p1);
-        updateDB(contacts);
+        ArrayList<ContactRow> contacts = new ArrayList<ContactRow>();
+        contacts.add(p);
+        updateDB(contacts, isChecked);
       }
     }
   }

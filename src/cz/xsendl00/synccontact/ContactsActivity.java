@@ -1,6 +1,6 @@
 package cz.xsendl00.synccontact;
 
-import java.util.ArrayList;
+import java.util.SortedSet;
 
 import cz.xsendl00.synccontact.utils.ContactRow;
 import android.app.Activity;
@@ -31,18 +31,18 @@ public class ContactsActivity extends ListActivity {
     new Load(id, ContactsActivity.this).execute();
   }
 
-  private void onTaskCompleted(ArrayList<ContactRow> list) {
+  private void onTaskCompleted(SortedSet<String> list) {
     String[] values = new String[list.size()];
     int i = 0;
-    for (ContactRow c : list) {
-      values[i++] = c.getName();
+    for (String c : list) {
+      values[i++] = c;
     }
     ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
         android.R.layout.simple_list_item_1, values);
     setListAdapter(adapter);
   }
 
-  private class Load extends AsyncTask<Void, Void, ArrayList<ContactRow>> {
+  private class Load extends AsyncTask<Void, Void, SortedSet<String>> {
 
     private String id;
     private Activity activity;
@@ -53,14 +53,12 @@ public class ContactsActivity extends ListActivity {
     }
 
     @Override
-    protected ArrayList<ContactRow> doInBackground(Void... params) {
-      ArrayList<ContactRow> a = ContactRow.fetchGroupMembers(
-          activity.getContentResolver(), id);
-      return a;
+    protected SortedSet<String> doInBackground(Void... params) {
+      return ContactRow.fetchGroupMembersName(activity.getContentResolver(), id);
     }
 
-    protected void onPostExecute(ArrayList<ContactRow> p) {
-      ((ContactsActivity) activity).onTaskCompleted(p);
+    protected void onPostExecute(SortedSet<String> contacts) {
+      ((ContactsActivity) activity).onTaskCompleted(contacts);
     }
 
     protected void onPreExecute() {
@@ -93,7 +91,6 @@ public class ContactsActivity extends ListActivity {
     default:
       break;
     }
-
     return true;
   }
 }

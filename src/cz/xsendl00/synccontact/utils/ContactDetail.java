@@ -52,10 +52,17 @@ public class ContactDetail {
    *                    have the Cursor from the Contacts table, and you've selected
    *                    the desired row, move the row's LOOKUP_KEY value into this
    *                    variable.
-   * @return
+   * @return cursor on data.
    */
-  public static Cursor fetchAllDataOfContact(ContentResolver contentResolver, String mLookupKey) {
-    mSelectionArgs[0] = mLookupKey;
-    return contentResolver.query(Data.CONTENT_URI, PROJECTION, SELECTION, mSelectionArgs, SORT_ORDER);
+  public Cursor fetchAllDataOfContact(ContentResolver contentResolver, String mLookupKey) {
+    Cursor cursor = null;
+    try {
+      mSelectionArgs[0] = mLookupKey;
+      cursor = contentResolver.query(Data.CONTENT_URI, PROJECTION, SELECTION, mSelectionArgs, SORT_ORDER);
+      return cursor;
+    } catch(Exception ex) { 
+      ex.printStackTrace();
+    }
+    return null;
   }
 }

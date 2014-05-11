@@ -4,6 +4,7 @@ import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
+import cz.xsendl00.synccontact.ldap.Synchronization;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import android.app.Activity;
@@ -66,7 +67,8 @@ public class SynchronizationActivity extends Activity {
     @Override
     protected Boolean doInBackground(Void...params) {
       try {
-        ServerUtilities.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
+        Synchronization synchronization = new Synchronization();
+        synchronization.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
       } catch (RemoteException e) {
         // TODO Auto-generated catch block
         e.printStackTrace();

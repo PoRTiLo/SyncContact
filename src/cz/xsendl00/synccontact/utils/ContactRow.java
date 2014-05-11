@@ -3,9 +3,14 @@ package cz.xsendl00.synccontact.utils;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.SortedSet;
 import java.util.TimeZone;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import android.annotation.SuppressLint;
@@ -38,6 +43,15 @@ public class ContactRow implements Parcelable {
     this(null, null, true, null, null, null, null, null, null);
   }
   
+  @Override
+  public String toString() {
+    return "ContactRow [name=" + name + ", id=" + id + ", sync=" + sync
+        + ", groups=" + Arrays.toString(groups) + ", idTable=" + idTable
+        + ", accouNamePrevious=" + accouNamePrevious + ", accouTypePrevious="
+        + accouTypePrevious + ", timestamp=" + timestamp + ", uuid=" + uuid
+        + "]";
+  }
+
   public ContactRow(String id, String name) {
     this(id, name, false, null, null, null, null, null, null);
   }
@@ -79,15 +93,9 @@ public class ContactRow implements Parcelable {
     this.id = id;
   }
 
-  @Override
-  public String toString() {
-    return "Id: "+id + ", name: " + name + ", sync: " + sync + ", groups: " + groups + ", idTable: " + idTable + 
-        ", accouNamePrevious: " + accouNamePrevious + ", accouTypePrevious: " + accouTypePrevious + 
-        ", timestamp: " + timestamp + "\n";
-  }
   
-  public static ArrayList<String> fetchGroupMembersId(ContentResolver contentResolver, String groupId) {
-    ArrayList<String> groupMembers = new ArrayList<String>();
+  public Set<String> fetchGroupMembersId(ContentResolver contentResolver, String groupId) {
+    Set<String> groupMembers = new HashSet<String>();
     String where = CommonDataKinds.GroupMembership.GROUP_ROW_ID + "=" +groupId + " AND " + 
         CommonDataKinds.GroupMembership.MIMETYPE + "='" + CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE + "'";
     String[] projection = new String[]{GroupMembership.RAW_CONTACT_ID};
@@ -99,49 +107,109 @@ public class ContactRow implements Parcelable {
     return groupMembers;
   }
   
-  public static ArrayList<ContactRow> fetchGroupMembers(ContentResolver contentResolver, String groupId) {
-    ArrayList<ContactRow> groupMembers = new ArrayList<ContactRow>();
-    String where = CommonDataKinds.GroupMembership.GROUP_ROW_ID + "=" +groupId + " AND " + 
-        CommonDataKinds.GroupMembership.MIMETYPE + "='" + CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE + "'";
-    String[] projection = new String[]{GroupMembership.RAW_CONTACT_ID, Data.DISPLAY_NAME, RawContacts.ACCOUNT_NAME, RawContacts.ACCOUNT_TYPE};
-    Cursor cursor = contentResolver.query(Data.CONTENT_URI, projection, where, null, Data.DISPLAY_NAME + " COLLATE LOCALIZED ASC");
-    while (cursor.moveToNext()) {
-      ContactRow contactShow = new ContactRow(cursor.getString(cursor.getColumnIndex(GroupMembership.RAW_CONTACT_ID)),
-          cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME)),
-          cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_NAME)),
-          cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_TYPE))
-          );
-      groupMembers.add(contactShow);
-    } 
-    cursor.close();
+  public static Set<ContactRow> fetchGroupMembers(ContentResolver contentResolver, String groupId) {
+    Set<ContactRow> groupMembers = new HashSet<ContactRow>();
+    Cursor cursor = null;
+    try {
+      String where = CommonDataKinds.GroupMembership.GROUP_ROW_ID + "=" +groupId + " AND " + 
+          CommonDataKinds.GroupMembership.MIMETYPE + "='" + CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE + "'";
+      String[] projection = new String[]{GroupMembership.RAW_CONTACT_ID, Data.DISPLAY_NAME, RawContacts.ACCOUNT_NAME, RawContacts.ACCOUNT_TYPE};
+      cursor = contentResolver.query(Data.CONTENT_URI, projection, where, null, Data.DISPLAY_NAME + " COLLATE LOCALIZED ASC");
+      while (cursor.moveToNext()) {
+        ContactRow contactShow = new ContactRow(
+            cursor.getString(cursor.getColumnIndex(GroupMembership.RAW_CONTACT_ID)),
+            cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME)),
+            cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_NAME)),
+            cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_TYPE))
+            );
+        groupMembers.add(contactShow);
+      }
+    } catch(Exception ex) { 
+      ex.printStackTrace();
+    } finally {
+      try {
+        if( cursor != null && !cursor.isClosed()) {
+          cursor.close();
+        }
+      } catch(Exception ex) {
+        ex.printStackTrace();
+      }
+    }
+    
     return groupMembers;
   }
   
+  public static SortedSet<String> fetchGroupMembersName(ContentResolver contentResolver, String groupId) {
+    SortedSet<String> groupMembers = new TreeSet<String>();
+    Cursor cursor = null;
+    try {
+      String where = CommonDataKinds.GroupMembership.GROUP_ROW_ID + "=" + groupId + " AND " + 
+          CommonDataKinds.GroupMembership.MIMETYPE + "='" + CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE + "'";
+      String[] projection = new String[]{Data.DISPLAY_NAME};
+      cursor = contentResolver.query(Data.CONTENT_URI, projection, where, null, Data.DISPLAY_NAME + " COLLATE LOCALIZED ASC");
+      while (cursor.moveToNext()) {
+        groupMembers.add(cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME)));
+      }
+    } catch(Exception ex) { 
+      ex.printStackTrace();
+    } finally {
+      try {
+        if( cursor != null && !cursor.isClosed()) {
+          cursor.close();
+        }
+      } catch(Exception ex) {
+        ex.printStackTrace();
+      }
+    }
+    
+    return groupMembers;
+  }
+  
+  /**
+   * Fetch all contact from contact provider database.
+   * @param contentResolver
+   * @return list of ContactRow.
+   */
   public static ArrayList<ContactRow> fetchAllContact(ContentResolver contentResolver) {
     if (contacts == null) {
-      contacts = new ArrayList<ContactRow>(); 
-      String[] projection = new String[]{GroupMembership.RAW_CONTACT_ID, Data.DISPLAY_NAME, 
-          CommonDataKinds.GroupMembership.GROUP_ROW_ID, RawContacts.ACCOUNT_NAME, RawContacts.ACCOUNT_TYPE};
-      Cursor cursor = contentResolver.query(Data.CONTENT_URI, projection, null, null, Data.DISPLAY_NAME + " COLLATE LOCALIZED ASC");
-      while (cursor.moveToNext()) {
-        ContactRow contactShow = new ContactRow(cursor.getString(cursor.getColumnIndex(GroupMembership.RAW_CONTACT_ID)),
-            cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME)),
-            cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_NAME)),
-          cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_TYPE))
-            );
-        boolean found = false;
-        for (ContactRow co : contacts) {
-          if ( co.getId().equals(contactShow.getId())) {
-            found = true;
-          } else {
-            
+      Cursor cursor = null;
+      try {
+        contacts = new ArrayList<ContactRow>(); 
+        String[] projection = new String[]{RawContacts._ID, RawContacts.DISPLAY_NAME_SOURCE, //CommonDataKinds.GroupMembership.GROUP_ROW_ID, 
+            RawContacts.ACCOUNT_NAME, RawContacts.ACCOUNT_TYPE};
+        cursor = contentResolver.query(RawContacts.CONTENT_URI, projection, null, null, RawContacts.DISPLAY_NAME_SOURCE + " COLLATE LOCALIZED ASC");
+        while (cursor.moveToNext()) {
+          ContactRow contactShow = new ContactRow(
+              cursor.getString(cursor.getColumnIndex(RawContacts._ID)),
+              cursor.getString(cursor.getColumnIndex(RawContacts.DISPLAY_NAME_SOURCE)),
+              cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_NAME)),
+              cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_TYPE))
+              );
+          boolean found = false;
+          for (ContactRow co : contacts) {
+            if ( co.getId().equals(contactShow.getId())) {
+              found = true;
+            } else {
+              
+            }
+          }
+          if( !found) {
+            contacts.add(contactShow);
           }
         }
-        if( !found) {
-          contacts.add(contactShow);
+      } catch(Exception ex) { 
+          ex.printStackTrace();
+      } finally {
+        try {
+          if( cursor != null && !cursor.isClosed()) {
+            cursor.close();
+          }
+        } catch(Exception ex) {
+          ex.printStackTrace();
         }
       }
     }
+     
     Log.i(TAG, "all user:" + contacts.size());
     return contacts;
   }
