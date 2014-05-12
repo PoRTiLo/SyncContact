@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.CommonDataKinds.Relation;
 import android.provider.ContactsContract.CommonDataKinds.Website;
 import cz.xsendl00.synccontact.utils.Constants;
 
@@ -175,13 +176,22 @@ public class WebsiteSync extends AbstractType implements ContactInterface {
    * @param type      like Website.TYPE_HOME
    * @return
    */
-  public static ContentProviderOperation add(String id, String value, int type) {
+  public static ContentProviderOperation add(int id, String value, int type, boolean create) {
+    if (create) {
+      return ContentProviderOperation.newInsert(Data.CONTENT_URI)
+          .withValueBackReference(Data.RAW_CONTACT_ID, id)
+          .withValue(Data.MIMETYPE, Website.CONTENT_ITEM_TYPE)
+          .withValue(Website.TYPE, type)
+          .withValue(Website.DATA, value)
+          .build();
+    } else {
     return ContentProviderOperation.newInsert(Data.CONTENT_URI)
     .withValue(Data.RAW_CONTACT_ID, id)
     .withValue(Data.MIMETYPE, Website.CONTENT_ITEM_TYPE)
     .withValue(Website.TYPE, type)
     .withValue(Website.DATA, value)
     .build();
+    }
   }
   
   public static ContentProviderOperation update(String id, String value, int type) {
@@ -193,29 +203,29 @@ public class WebsiteSync extends AbstractType implements ContactInterface {
   }
   
 
-  public static ArrayList<ContentProviderOperation> operation(String id, WebsiteSync em1, WebsiteSync em2) {
+  public static ArrayList<ContentProviderOperation> operation(int id, WebsiteSync em1, WebsiteSync em2, boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       if (em2.getWebsiteBlog() != null) {
-        ops.add(add(id, em2.getWebsiteBlog(), Website.TYPE_BLOG));
+        ops.add(add(id, em2.getWebsiteBlog(), Website.TYPE_BLOG, create));
       }
       if (em2.getWebsiteFtp() != null) {
-        ops.add(add(id, em2.getWebsiteFtp(), Website.TYPE_FTP));
+        ops.add(add(id, em2.getWebsiteFtp(), Website.TYPE_FTP, create));
       }
       if (em2.getWebsiteHome() != null) {
-        ops.add(add(id, em2.getWebsiteHome(), Website.TYPE_HOME));
+        ops.add(add(id, em2.getWebsiteHome(), Website.TYPE_HOME, create));
       }
       if (em2.getWebsiteOther() != null) {
-        ops.add(add(id, em2.getWebsiteOther(), Website.TYPE_OTHER));
+        ops.add(add(id, em2.getWebsiteOther(), Website.TYPE_OTHER, create));
       }
       if (em2.getWebsiteHomepage() != null) {
-        ops.add(add(id, em2.getWebsiteHomepage(), Website.TYPE_HOMEPAGE));
+        ops.add(add(id, em2.getWebsiteHomepage(), Website.TYPE_HOMEPAGE, create));
       }
       if (em2.getWebsiteProfile() != null) {
-        ops.add(add(id, em2.getWebsiteProfile(), Website.TYPE_PROFILE));
+        ops.add(add(id, em2.getWebsiteProfile(), Website.TYPE_PROFILE, create));
       }
       if (em2.getWebsiteWork() != null) {
-        ops.add(add(id, em2.getWebsiteWork(), Website.TYPE_WORK));
+        ops.add(add(id, em2.getWebsiteWork(), Website.TYPE_WORK, create));
       }
     } else if (em1 == null && em2 == null) { // nothing
       
@@ -244,37 +254,37 @@ public class WebsiteSync extends AbstractType implements ContactInterface {
       
     } else if (em1 != null && em2 != null) { // clear or update data in db
       if (em2.getWebsiteBlog() != null) {
-        ops.add(add(id, em2.getWebsiteBlog(), Website.TYPE_BLOG));
+        ops.add(add(id, em2.getWebsiteBlog(), Website.TYPE_BLOG, create));
       } else {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_BLOG), null)));
       }
       if (em2.getWebsiteFtp() != null) {
-        ops.add(add(id, em2.getWebsiteFtp(), Website.TYPE_FTP));
+        ops.add(add(id, em2.getWebsiteFtp(), Website.TYPE_FTP, create));
       } else {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_FTP), null)));
       }
       if (em2.getWebsiteHome() != null) {
-        ops.add(add(id, em2.getWebsiteHome(), Website.TYPE_HOME));
+        ops.add(add(id, em2.getWebsiteHome(), Website.TYPE_HOME, create));
       } else {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_HOMEPAGE), null)));
       }
       if (em2.getWebsiteOther() != null) {
-        ops.add(add(id, em2.getWebsiteOther(), Website.TYPE_OTHER));
+        ops.add(add(id, em2.getWebsiteOther(), Website.TYPE_OTHER, create));
       } else {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_OTHER), null)));
       }
       if (em2.getWebsiteHomepage() != null) {
-        ops.add(add(id, em2.getWebsiteHomepage(), Website.TYPE_HOMEPAGE));
+        ops.add(add(id, em2.getWebsiteHomepage(), Website.TYPE_HOMEPAGE, create));
       } else {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_HOMEPAGE), null)));
       }
       if (em2.getWebsiteProfile() != null) {
-        ops.add(add(id, em2.getWebsiteProfile(), Website.TYPE_PROFILE));
+        ops.add(add(id, em2.getWebsiteProfile(), Website.TYPE_PROFILE, create));
       } else {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_PROFILE), null)));
       }
       if (em2.getWebsiteWork() != null) {
-        ops.add(add(id, em2.getWebsiteWork(), Website.TYPE_WORK));
+        ops.add(add(id, em2.getWebsiteWork(), Website.TYPE_WORK, create));
       } else {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_WORK), null)));
       }

@@ -213,9 +213,15 @@ public class StructuredNameSync extends AbstractType implements ContactInterface
   }
 
 
-  public static ContentProviderOperation add(String id, Map<String, String> values) {
+  public static ContentProviderOperation add(int id, Map<String, String> values, boolean create) {
     ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newInsert(Data.CONTENT_URI);
-    operationBuilder.withValue(Data.RAW_CONTACT_ID, id).withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE);
+    if (create) {
+      operationBuilder
+      .withValueBackReference(Data.RAW_CONTACT_ID, id)
+      .withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE);
+    } else {
+      operationBuilder.withValue(Data.RAW_CONTACT_ID, id).withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE);
+    }
     Iterator<String> iter = values.keySet().iterator();
     while(iter.hasNext()) {
       String key = (String)iter.next();
@@ -241,13 +247,12 @@ public class StructuredNameSync extends AbstractType implements ContactInterface
   }
   
 
-  public static ArrayList<ContentProviderOperation> operation(String id, StructuredNameSync em1, StructuredNameSync em2) {
+  public static ArrayList<ContentProviderOperation> operation(int id, StructuredNameSync em1, StructuredNameSync em2, boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       Map<String, String> value = op(em2);
-      
       if (value.size() > 0) {
-        ops.add(add(id,value));
+        ops.add(add(id,value, create));
       }
     } else if (em1 == null && em2 == null) { // nothing
       

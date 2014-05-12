@@ -331,6 +331,30 @@ public class GoogleContact {
       ops.addAll(relationOps);
     }
     
+    ArrayList<ContentProviderOperation> sipOps;
+    sipOps = SipAddressSync.operation(id, con1.getSipAddress(), con2.getSipAddress(), create);
+    if (sipOps != null) {
+      ops.addAll(sipOps);
+    }
+    
+    ArrayList<ContentProviderOperation> nameOps;
+    nameOps = StructuredNameSync.operation(id, con1.getStructuredName(), con2.getStructuredName(), create);
+    if (nameOps != null) {
+      ops.addAll(nameOps);
+    }
+    
+    ArrayList<ContentProviderOperation> addressOps;
+    addressOps = StructuredPostalSync.operation(id, con1.getStructuredPostal(), con2.getStructuredPostal(), create);
+    if (addressOps != null) {
+      ops.addAll(addressOps);
+    }
+    
+    ArrayList<ContentProviderOperation> webOps;
+    webOps = WebsiteSync.operation(id, con1.getWebsite(), con2.getWebsite(), create);
+    if (webOps != null) {
+      ops.addAll(webOps);
+    }
+    
     return ops;
   }
 

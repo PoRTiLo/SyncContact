@@ -510,11 +510,19 @@ public class StructuredPostalSync extends AbstractType implements ContactInterfa
     return values;
   }
 
-  public static ContentProviderOperation add(String id, Map<String, String> values, int type) {
+  public static ContentProviderOperation add(int id, Map<String, String> values, int type, boolean create) {
     ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newInsert(Data.CONTENT_URI);
-    operationBuilder.withValue(Data.RAW_CONTACT_ID, id)
-        .withValue(Data.MIMETYPE, StructuredPostal.CONTENT_ITEM_TYPE)
-        .withValue(StructuredPostal.TYPE, type);
+    if (create) {
+      operationBuilder
+      .withValueBackReference(Data.RAW_CONTACT_ID, id)
+      .withValue(Data.MIMETYPE, StructuredPostal.CONTENT_ITEM_TYPE)
+      .withValue(StructuredPostal.TYPE, type);
+    } else {
+      operationBuilder.withValue(Data.RAW_CONTACT_ID, id)
+      .withValue(Data.MIMETYPE, StructuredPostal.CONTENT_ITEM_TYPE)
+      .withValue(StructuredPostal.TYPE, type);
+    }
+    
     
     Iterator<String> iter = values.keySet().iterator();
     while(iter.hasNext()) {
@@ -541,28 +549,28 @@ public class StructuredPostalSync extends AbstractType implements ContactInterfa
   }
   
 
-  public static ArrayList<ContentProviderOperation> operation(String id, StructuredPostalSync em1, StructuredPostalSync em2) {
+  public static ArrayList<ContentProviderOperation> operation(int id, StructuredPostalSync em1, StructuredPostalSync em2, boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       Map<String, String> value = op(em2.getHomeStreet(), em2.getHomePOBox(), em2.getHomeCity(), 
           em2.getHomeRegion(), em2.getHomePostalCode(), em2.getHomeCountry(), em2.getHomeFormattedAddress());
       
       if (value.size() > 0) {
-        ops.add(add(id,value, StructuredPostal.TYPE_HOME));
+        ops.add(add(id,value, StructuredPostal.TYPE_HOME, create));
       }
       
       value = op(em2.getWorkStreet(), em2.getWorkPOBox(), em2.getWorkCity(), em2.getWorkRegion(), 
           em2.getWorkPostalCode(), em2.getWorkCountry(), em2.getWorkFormattedAddress());
       
       if (value.size() > 0) {
-        ops.add(add(id,value, StructuredPostal.TYPE_WORK));
+        ops.add(add(id,value, StructuredPostal.TYPE_WORK, create));
       }
       
       value = op(em2.getOtherStreet(), em2.getOtherPOBox(), em2.getOtherCity(), em2.getOtherRegion(), 
           em2.getOtherPostalCode(), em2.getOtherCountry(), em2.getOtherFormattedAddress());
       
       if (value.size() > 0) {
-        ops.add(add(id,value, StructuredPostal.TYPE_OTHER));
+        ops.add(add(id,value, StructuredPostal.TYPE_OTHER, create));
       }
       
     } else if (em1 == null && em2 == null) { // nothing
@@ -596,7 +604,7 @@ public class StructuredPostalSync extends AbstractType implements ContactInterfa
       if (value1 != null && (value1.size() > 0) && (value2 == null || !(value2.size() > 0))) {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(StructuredPostal.TYPE_HOME), null)));
       } else if ((value1 == null || !(value1.size() > 0)) && value2 != null && (value2.size() > 0)) {
-        ops.add(add(id,value2, StructuredPostal.TYPE_HOME));
+        ops.add(add(id,value2, StructuredPostal.TYPE_HOME, create));
       } else if (value1 != null && (value1.size() > 0) && value2 != null && (value2.size() > 0)) {
         ops.add(update(ID.getIdByValue(em1.getID(), String.valueOf(StructuredPostal.TYPE_HOME), null), value2));
       }
@@ -608,7 +616,7 @@ public class StructuredPostalSync extends AbstractType implements ContactInterfa
       if (value1 != null && (value1.size() > 0) && (value2 == null || !(value2.size() > 0))) {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(StructuredPostal.TYPE_WORK), null)));
       } else if ((value1 == null || !(value1.size() > 0)) && value2 != null && (value2.size() > 0)) {
-        ops.add(add(id,value2, StructuredPostal.TYPE_WORK));
+        ops.add(add(id,value2, StructuredPostal.TYPE_WORK, create));
       } else if (value1 != null && (value1.size() > 0) && value2 != null && (value2.size() > 0)) {
         ops.add(update(ID.getIdByValue(em1.getID(), String.valueOf(StructuredPostal.TYPE_WORK), null), value2));
       }
@@ -620,7 +628,7 @@ public class StructuredPostalSync extends AbstractType implements ContactInterfa
       if (value1 != null && (value1.size() > 0) && (value2 == null || !(value2.size() > 0))) {
         ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(StructuredPostal.TYPE_OTHER), null)));
       } else if ((value1 == null || !(value1.size() > 0)) && value2 != null && (value2.size() > 0)) {
-        ops.add(add(id,value2, StructuredPostal.TYPE_OTHER));
+        ops.add(add(id,value2, StructuredPostal.TYPE_OTHER, create));
       } else if (value1 != null && (value1.size() > 0) && value2 != null && (value2.size() > 0)) {
         ops.add(update(ID.getIdByValue(em1.getID(), String.valueOf(StructuredPostal.TYPE_OTHER), null), value2));
       }

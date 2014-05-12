@@ -6,6 +6,7 @@ import java.util.List;
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.CommonDataKinds.Relation;
 import android.provider.ContactsContract.CommonDataKinds.SipAddress;
 import cz.xsendl00.synccontact.utils.Constants;
 
@@ -102,35 +103,44 @@ public class SipAddressSync extends AbstractType implements ContactInterface {
    * @param type      like SipAddress.TYPE_HOME
    * @return
    */
-  public static ContentProviderOperation add(String id, String value, int type) {
+  public static ContentProviderOperation add(int id, String value, int type, boolean create) {
+    if (create) {
+      return ContentProviderOperation.newInsert(Data.CONTENT_URI)
+          .withValueBackReference(Data.RAW_CONTACT_ID, id)
+          .withValue(Data.MIMETYPE, SipAddress.CONTENT_ITEM_TYPE)
+    .withValue(SipAddress.TYPE, type)
+    .withValue(SipAddress.DATA, value)
+          .build();
+    } else {
     return ContentProviderOperation.newInsert(Data.CONTENT_URI)
     .withValue(Data.RAW_CONTACT_ID, id)
     .withValue(Data.MIMETYPE, SipAddress.CONTENT_ITEM_TYPE)
     .withValue(SipAddress.TYPE, type)
     .withValue(SipAddress.DATA, value)
     .build();
+    }
   }
   
-  public static ContentProviderOperation update(String id, String value, int type) {
+  public static ContentProviderOperation update(int id, String value, int type) {
     return ContentProviderOperation.newUpdate(Data.CONTENT_URI)
-        .withSelection(Data._ID + "=?", new String[]{id})
+        .withSelection(Data._ID + "=?", new String[]{String.valueOf(id)})
         .withValue(Data.MIMETYPE, SipAddress.CONTENT_ITEM_TYPE)
         .withValue(SipAddress.DATA, value)
         .build();
   }
   
 
-  public static ArrayList<ContentProviderOperation> operation(String id, SipAddressSync em1, SipAddressSync em2) {
+  public static ArrayList<ContentProviderOperation> operation(int id, SipAddressSync em1, SipAddressSync em2, boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       if (em2.getHomeSip() != null) {
-        ops.add(add(id, em2.getHomeSip(), SipAddress.TYPE_HOME));
+        ops.add(add(id, em2.getHomeSip(), SipAddress.TYPE_HOME, create));
       }
       if (em2.getOtherSip()!= null) {
-        ops.add(add(id, em2.getOtherSip(), SipAddress.TYPE_OTHER));
+        ops.add(add(id, em2.getOtherSip(), SipAddress.TYPE_OTHER, create));
       }
       if (em2.getWorkSip() != null) {
-        ops.add(add(id, em2.getWorkSip(), SipAddress.TYPE_WORK));
+        ops.add(add(id, em2.getWorkSip(), SipAddress.TYPE_WORK, create));
       }
     } else if (em1 == null && em2 == null) { // nothing
       
@@ -147,16 +157,16 @@ public class SipAddressSync extends AbstractType implements ContactInterface {
       
     } else if (em1 != null && em2 != null) { // clear or update data in db
       ArrayList<ContentProviderOperation> op;
-      op = createOps(em1.getHomeSip(), em2.getHomeSip(), em1.getID(), SipAddress.TYPE_HOME, id);
+      op = createOps(em1.getHomeSip(), em2.getHomeSip(), em1.getID(), SipAddress.TYPE_HOME, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      op = createOps(em1.getOtherSip(), em2.getOtherSip(), em1.getID(), SipAddress.TYPE_OTHER, id);
+      op = createOps(em1.getOtherSip(), em2.getOtherSip(), em1.getID(), SipAddress.TYPE_OTHER, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getWorkSip(), em2.getWorkSip(), em1.getID(), SipAddress.TYPE_WORK, id);
+      op = createOps(em1.getWorkSip(), em2.getWorkSip(), em1.getID(), SipAddress.TYPE_WORK, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
@@ -173,12 +183,12 @@ public class SipAddressSync extends AbstractType implements ContactInterface {
    * @param id
    * @return
    */
-  private static ArrayList<ContentProviderOperation> createOps(String value1, String value2, List<ID> ids, int type, String id) {
+  private static ArrayList<ContentProviderOperation> createOps(String value1, String value2, List<ID> ids, int type, int id, boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if(value2 != null || value2 != null) {
       String i = ID.getIdByValue(ids, String.valueOf(type), null);
       if (i == null && value2 != null) {
-        ops.add(add(id, value2, type));
+        ops.add(add(id, value2, type, create));
       } else if ( i != null && value2 == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && value2 != null && !value2.equals(value1)) { 
