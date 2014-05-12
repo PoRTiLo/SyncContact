@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import cz.xsendl00.synccontact.R;
 
-import cz.xsendl00.synccontact.GroupFragment.OnHeadlineSelectedListener;
+//import cz.xsendl00.synccontact.GroupFragment.OnHeadlineSelectedListener;
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
@@ -26,18 +26,25 @@ import android.os.Handler;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 
 public class SelectContactListActivity extends Activity implements
-    OnTaskCompleted, OnHeadlineSelectedListener {
-
+    OnTaskCompleted//, OnHeadlineSelectedListener {
+    {
   private static final String TAG = "SelectContactListActivity";
 
   private final Handler handler = new Handler();
   private ProgressDialog progressDialog;
-  private Pair pair;
+  private static Pair pair;
   private boolean first = false;
+
+  public boolean isFirst() {
+    return first;
+  }
+
+  public void setFirst(boolean first) {
+    this.first = first;
+  }
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -46,15 +53,17 @@ public class SelectContactListActivity extends Activity implements
     getActionBar().setDisplayHomeAsUpEnabled(true);
     Intent intent = getIntent();
     first = intent.getBooleanExtra("FIRST", false);
-    progressDialog = ProgressDialog.show(SelectContactListActivity.this,
-        Constants.AC_LOADING, Constants.AC_LOADING_TEXT_DB, true);
-    if (first) {
-      // TODO; pro prvni zmeninut menu
-     
-      new LoadTask(SelectContactListActivity.this).execute();
+    if (pair == null) {
+      progressDialog = ProgressDialog.show(SelectContactListActivity.this,
+          Constants.AC_LOADING, Constants.AC_LOADING_TEXT_DB, true);
+      if (first) {
+        new LoadTask(SelectContactListActivity.this).execute();
+      } else {
+        new LoadTask(SelectContactListActivity.this).execute();
+        //new LoadTaskSimply(SelectContactListActivity.this).execute();
+      }
     } else {
-     
-      new LoadTaskSimply(SelectContactListActivity.this).execute();
+      init();
     }
   }
 
@@ -64,17 +73,14 @@ public class SelectContactListActivity extends Activity implements
     if (first) {
       // TODO; pro prvni zmeninut menu
       getMenuInflater().inflate(R.menu.contacts_menu_simply, menu);
-     // new LoadTask(SelectContactListActivity.this).execute();
     } else {
       getMenuInflater().inflate(R.menu.contacts_menu, menu);
-      //new LoadTaskSimply(SelectContactListActivity.this).execute();
     }
 
     return super.onCreateOptionsMenu(menu);
   }
 
-  public void onTaskCompleted(Pair p) {
-    pair = p;
+  private void init() {
     ActionBar actionBar = getActionBar();
     actionBar.removeAllTabs();
     actionBar.setHomeButtonEnabled(false);
@@ -84,14 +90,20 @@ public class SelectContactListActivity extends Activity implements
     actionBar.addTab(actionBar
         .newTab()
         .setText("GROUP")
-        .setTabListener(
-            new MyTabListener(GroupFragment.newInstance(pair, first))));
+        .setIcon(R.drawable.ic_action_group)
+        .setTabListener(new MyTabListener<GroupFragment>(this, "GROUP", GroupFragment.class))
+        );
     actionBar.addTab(actionBar
         .newTab()
         .setText("CONTACT")
-        .setTabListener(
-            new MyTabListener(ContactFragment.newInstance(pair, first))));
-
+        .setIcon(R.drawable.ic_action_person)
+        .setTabListener(new MyTabListener<ContactFragment>(this, "CONTACT", ContactFragment.class))
+        );
+  }
+  
+  public void onTaskCompleted(Pair p) {
+    pair = p;
+    init();
   }
   public void onBackPressed() {
     super.onBackPressed();
@@ -158,7 +170,6 @@ public class SelectContactListActivity extends Activity implements
   public void update() {
     progressDialog = ProgressDialog.show(SelectContactListActivity.this,
         Constants.AC_LOADING, Constants.AC_LOADING_TEXT_DB, true);
-
     new  LoadTask(SelectContactListActivity.this).execute();
   }
   
@@ -184,6 +195,8 @@ public class SelectContactListActivity extends Activity implements
       HelperSQL db = new HelperSQL(SelectContactListActivity.this);
       db.fillGroups(p.getGroupsList());
       Log.i(TAG, "getGroupsList fill time: " + Utils.getTime());
+      
+      
       p.getContactList().addAll(ContactRow.fetchAllContact(SelectContactListActivity.this.getContentResolver()));
       Log.i(TAG, "getContactList time: " + Utils.getTime());
       Log.i(TAG, "getContactList size:" + p.getContactList().size());
@@ -214,7 +227,7 @@ public class SelectContactListActivity extends Activity implements
 
     @Override
     protected Pair doInBackground(Void... params) {
-
+Log.i(TAG, "TADYYY");
       Pair p = new Pair();
       HelperSQL db = new HelperSQL(SelectContactListActivity.this);
       // load group
@@ -237,11 +250,11 @@ public class SelectContactListActivity extends Activity implements
     }
   }
 
-  @Override
-  public void onArticleSelected(Pair p) {
+  //@Override
+ // public void onArticleSelected(Pair p) {
     // this.pair = p;
     // pair.getContactList().get(1).setSync(true);
-  }
+ // }
 
   public void mainActivity(View view) {
     Editor editor = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
@@ -295,5 +308,15 @@ public class SelectContactListActivity extends Activity implements
         | Intent.FLAG_ACTIVITY_NEW_TASK);
     startActivity(intent);
 
+  }
+  
+  
+  
+  public Pair getPair() {
+    return pair;
+  }
+
+  public void setPair(Pair pair) {
+    this.pair = pair;
   }
 }

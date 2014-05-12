@@ -65,6 +65,14 @@ public class AndroidDB {
     return true;
   }
   
+  /**
+   * Add new contact to contact provider databse. Mapping it from Google COntact. 
+   * @param googleContact
+   */
+  public void addContact(final GoogleContact googleContact) {
+    
+  }
+  
   public static void importContactToSyncAccount(Context context, Integer id) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     Log.i(TAG, id.toString());

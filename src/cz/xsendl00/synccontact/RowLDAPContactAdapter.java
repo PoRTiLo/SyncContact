@@ -1,6 +1,6 @@
 package cz.xsendl00.synccontact;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Context;
@@ -9,21 +9,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
 import cz.xsendl00.synccontact.R;
 
 import cz.xsendl00.synccontact.utils.ContactRow;
 
-public class RowContactAdapter extends BaseAdapter {
+public class RowLDAPContactAdapter extends BaseAdapter {
   
   private Context context;
-  private List<ContactRow> data;
+  private ArrayList<ContactRow> data;
   ViewHolder holder;
-  ContactFragment par;
+  ContactLDAPFragment par;
   GroupFragment parG;
   
-  public RowContactAdapter(Context context, List<ContactRow> data, ContactFragment par) {
+  public RowLDAPContactAdapter(Context context, ArrayList<ContactRow> data, ContactLDAPFragment par) {
     super();
     this.par = par;
     this.data = data;
@@ -65,9 +67,10 @@ public class RowContactAdapter extends BaseAdapter {
       holder = (ViewHolder) convertView.getTag();
     }
     holder.checkSync.setTag(position);
-    holder.checkSync.setOnCheckedChangeListener( (ContactFragment) par);
+    holder.checkSync.setOnCheckedChangeListener( (ContactLDAPFragment) par);
     ContactRow contact = (ContactRow) getItem(position);
     holder.contactName.setText(contact.getName());
+    //holder.groupSize.setText("Number of contact: " + group.getSize());
     holder.checkSync.setChecked(contact.isSync());
     return convertView;
   }

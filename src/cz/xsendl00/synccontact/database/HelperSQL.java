@@ -1,6 +1,7 @@
 package cz.xsendl00.synccontact.database;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -129,7 +130,7 @@ public class HelperSQL extends SQLiteOpenHelper {
   public List<GroupRow> getAllGroups() {
     List<GroupRow> groupList = new ArrayList<GroupRow>();
     String selectQuery = "SELECT  * FROM " + GROUP_TABLE_NAME;
-    SQLiteDatabase db = this.getWritableDatabase();
+    SQLiteDatabase db = this.getReadableDatabase();
     Cursor cursor = db.rawQuery(selectQuery, null);
     if (cursor.moveToFirst()) {
       do {
@@ -168,7 +169,7 @@ public class HelperSQL extends SQLiteOpenHelper {
   }
 
   // Insert data from db
-  public void fillGroups(ArrayList<GroupRow> groups) {
+  public void fillGroups(List<GroupRow> groups) {
     List<GroupRow> grTable = getAllGroups();
     for (GroupRow gr : groups) {
       boolean found = false;
@@ -234,12 +235,34 @@ public class HelperSQL extends SQLiteOpenHelper {
       }
     }
   }
+  public List<ContactRow> getContactsSync() {
+    List<ContactRow> contactList = new ArrayList<ContactRow>();
+    String selectQuery = "SELECT " + CONTACT_KEY_NAME + ","
+        + CONTACT_KEY_UUID + "," + CONTACT_KEY_SYNC 
+        + " FROM " + CONTACT_TABLE_NAME + " WHERE "
+        + CONTACT_KEY_SYNC + " =1";
+    SQLiteDatabase db = this.getReadableDatabase();
+    Cursor cursor = db.rawQuery(selectQuery, null);
+    if (cursor.moveToFirst()) {
+      do {
+        // Adding contact to list
+        ContactRow contactRow = new ContactRow();
+        contactRow.setName(cursor.getString(0));
+        contactRow.setUuid(cursor.getString(1));
+        contactRow.setSync(cursor.getInt(2) == 1);
+        contactList.add(contactRow);
+      } while (cursor.moveToNext());
+      cursor.close();
+    }
+    db.close();
+    return contactList;
 
+  }
   // Getting All Contacts
   public List<ContactRow> getAllContacts() {
     List<ContactRow> contactList = new ArrayList<ContactRow>();
     String selectQuery = "SELECT * FROM " + CONTACT_TABLE_NAME;
-    SQLiteDatabase db = this.getWritableDatabase();
+    SQLiteDatabase db = this.getReadableDatabase();
     Cursor cursor = db.rawQuery(selectQuery, null);
     if (cursor.moveToFirst()) {
       do {
@@ -247,7 +270,34 @@ public class HelperSQL extends SQLiteOpenHelper {
         contactList.add(new ContactRow(cursor.getString(7),
             cursor.getString(1), cursor.getInt(2) > 0, cursor.getInt(0), cursor
                 .getString(3), cursor.getString(4), cursor.getString(5), cursor
-                .getString(5)));
+                .getString(6)));
+      } while (cursor.moveToNext());
+      cursor.close();
+    }
+    db.close();
+    return contactList;
+  }
+  
+  /**
+   * Getting all ContactRow.
+   * @return map of contactRow.
+   */
+  public Map<String, ContactRow> getAllContactsMap() {
+    Map<String, ContactRow> contactList = new HashMap<String, ContactRow>();
+    String selectQuery = "SELECT * FROM " + CONTACT_TABLE_NAME;
+    SQLiteDatabase db = this.getReadableDatabase();
+    Cursor cursor = db.rawQuery(selectQuery, null);
+    if (cursor.moveToFirst()) {
+      do {
+        Log.i(TAG, cursor.getString(6) +  new ContactRow(cursor.getString(7),
+            cursor.getString(1), cursor.getInt(2) > 0, cursor.getInt(0), cursor
+            .getString(3), cursor.getString(4), cursor.getString(5), cursor
+            .getString(6)).toString());
+        // Adding contact to list
+        contactList.put(cursor.getString(6), new ContactRow(cursor.getString(7),
+            cursor.getString(1), cursor.getInt(2) > 0, cursor.getInt(0), cursor
+                .getString(3), cursor.getString(4), cursor.getString(5), cursor
+                .getString(6)));
       } while (cursor.moveToNext());
       cursor.close();
     }
@@ -462,7 +512,7 @@ public class HelperSQL extends SQLiteOpenHelper {
    * 
    * @param contacts
    */
-  public void fillContacts(ArrayList<ContactRow> contacts) {
+  public void fillContacts(List<ContactRow> contacts) {
     Log.i(TAG, "fillContacts.start" + Utils.getTime());
     Log.i(TAG, "fillContacts.getAllContacts.start" + Utils.getTime());
     List<ContactRow> conTable = getAllContacts();

@@ -110,6 +110,20 @@ public class Mapping {
     return dirtyContacts;
   }
   
+  /**
+   * Create attribute for mapping data from LDAP server.
+   * @return array of name LDAP attributes.
+   */
+  public static final String[] createAttributesSimply() {
+    ArrayList<String> ldapAttributes = new ArrayList<String>();
+    ldapAttributes.add(Constants.DISPLAY_NAME);
+    ldapAttributes.add(Constants.UUID);
+    
+    String[] ldapArray = new String[ldapAttributes.size()];
+    ldapArray = ldapAttributes.toArray(ldapArray);
+    return ldapArray;
+  }
+  
   public static final String[] createAttributes() {
     ArrayList<String> ldapAttributes = new ArrayList<String>();
     ldapAttributes.add(Constants.WORK_SIP);
@@ -305,7 +319,7 @@ public class Mapping {
   
   public static ModifyRequest mappingRequest(GoogleContact gc, String baseDn) {
     List<Modification> mod;
-    mod = fill(gc);
+    mod = fillModification(gc);
     if (mod != null && mod.size() > 0) {
       ModifyRequest modifyRequest = new ModifyRequest("uuid=" + gc.getUuid().toString() + ",ou=users," + baseDn, mod);
       //Log.i(TAG, "ModifyRequest : " + modifyRequest.toLDIFString());
@@ -895,6 +909,7 @@ public class Mapping {
     }
     return attributes;
   }
+  
   /**
    * 
    * @param contentResolver
@@ -912,9 +927,6 @@ public class Mapping {
       contact.setUuid(uuid);
       while (cursor.moveToNext()) {
         fillContact(cursor, contact);
-      }
-      if (cursor != null && !cursor.isClosed()) {
-        cursor.close();
       }
     } catch(Exception ex) { 
       ex.printStackTrace();
@@ -1086,7 +1098,7 @@ public class Mapping {
     return c;
   }
   
-  private static List<Modification> fill(GoogleContact gc) {
+  private static List<Modification> fillModification(GoogleContact gc) {
     List<Modification> mod = new ArrayList<Modification>();
     
     EmailSync e = gc.getEmail(); 
@@ -1549,6 +1561,7 @@ public class Mapping {
   }
   
 //TODO: vnd.com.google.cursor.item/contact_misc add by google?
+  //todo groupmempber
   private static ArrayList<Attribute> fill(Cursor cursor) {
    
    ArrayList<Attribute> attributes = new ArrayList<Attribute>();

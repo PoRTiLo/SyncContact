@@ -4,7 +4,7 @@
   android:id="@+id/fragment_group"
   android:paddingBottom="@dimen/margin_8"
   android:paddingLeft="@dimen/margin_8"
-  android:paddingRight="@dimen/margin_8" >
+  android:paddingRight="@dimen/margin_8">
   
   <ListView
     android:id="@+id/list_group"
@@ -13,5 +13,4 @@
     android:divider="#b5b5b5"
     android:dividerHeight="0.3dp"/>
 
- 
 </LinearLayout>

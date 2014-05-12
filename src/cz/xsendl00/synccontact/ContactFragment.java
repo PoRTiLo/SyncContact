@@ -8,9 +8,11 @@ import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
 import android.app.Fragment;
+import android.content.ContentUris;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-//import android.support.v4.app.Fragment;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,38 +24,32 @@ import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
 
+/**
+ * Fragment for contact data.
+ * @author portilo
+ *
+ */
 public class ContactFragment extends Fragment implements
     android.widget.CompoundButton.OnCheckedChangeListener {
 
-  private Pair pair;
-
+  private SelectContactListActivity activity;
   private ListView listRow;
   private RowContactAdapter adapter;
   private boolean first = false;
   private static boolean selectAll;
 
-  // newInstance constructor for creating fragment with arguments
-  public static ContactFragment newInstance(Pair p, boolean first) {
-    Log.i("ContactFragment", "newInstance");
-    ContactFragment contactFragment = new ContactFragment();
-    Bundle args = new Bundle();
-    args.putParcelable("pair", p);
-    args.putBoolean("FIRST", first);
-    contactFragment.setArguments(args);
-    return contactFragment;
-  }
-
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    pair = getArguments().getParcelable("pair");
-    first = getArguments().getBoolean("FIRST");
     setHasOptionsMenu(true);
+    activity = (SelectContactListActivity) getActivity();
+    first = activity.isFirst();
     selectAll = isSelectedAll();
   }
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    super.onCreateView(inflater, container, savedInstanceState);
     View rootView = null;
     if (first) {
       rootView = inflater.inflate(R.layout.fragment_contact, container, false);
@@ -66,14 +62,17 @@ public class ContactFragment extends Fragment implements
   public void onResume() {
     super.onResume();
     listRow = (ListView) getActivity().findViewById(R.id.list_contact);
-    adapter = new RowContactAdapter(getActivity().getApplicationContext(), this.pair.getContactList(), this);
+    adapter = new RowContactAdapter(getActivity().getApplicationContext(), activity.getPair().getContactList(), this);
     listRow.setAdapter(adapter);
 
     if (listRow != null) {
       listRow.setOnItemClickListener(new OnItemClickListener() {
         public void onItemClick(AdapterView<?> parent, View view, int position,
             long id) {
-          // TODO: show info -> edit contact
+          Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, 1); 
+          Intent i = new Intent(Intent.ACTION_VIEW);
+          i.setData(contactUri);
+          startActivityForResult(i, 1);
         }
       });
     }
@@ -116,17 +115,6 @@ public class ContactFragment extends Fragment implements
       case android.R.id.home:
         // TODO
         Log.i("Conatctfragmemnt", "jsem tuuuuuuuuuuuuuuuuuuuuu");
-        /*
-         * Intent upIntent = NavUtils.getParentActivityIntent(this); if
-         * (NavUtils.shouldUpRecreateTask(this, upIntent)) { // This activity is
-         * NOT part of this app's task, so create a new task // when navigating
-         * up, with a synthesized back stack. TaskStackBuilder.create(this) // Add
-         * all of this activity's parents to the back stack
-         * .addNextIntentWithParentStack(upIntent) // Navigate up to the closest
-         * parent .startActivities(); } else { // This activity is part of this
-         * app's task, so simply // navigate up to the logical parent activity.
-         * NavUtils.navigateUpTo(this, upIntent); }
-         */
         break;
       default:
         break;
@@ -136,7 +124,7 @@ public class ContactFragment extends Fragment implements
 
   private boolean isSelectedAll() {
     boolean selectAll = true;
-    for (ContactRow contactRow : pair.getContactList()) {
+    for (ContactRow contactRow : activity.getPair().getContactList()) {
       if (!contactRow.isSync()) {
         selectAll =false;
         break;
@@ -148,16 +136,16 @@ public class ContactFragment extends Fragment implements
   private void selectAll(final boolean result) {
     new Thread(new Runnable() {
       public void run() {
-        updateDB(pair.getContactList(), result);
+        updateDB(activity.getPair().getContactList(), result);
       }
     }).start();
-    for (ContactRow contactRow : pair.getContactList()) {
+    for (ContactRow contactRow : activity.getPair().getContactList()) {
       contactRow.setSync(result);
     }
     adapter.notifyDataSetChanged();
     new Thread(new Runnable() {
       public void run() {
-        for (GroupRow groupRow : pair.getGroupsList()) {
+        for (GroupRow groupRow : activity.getPair().getGroupsList()) {
           groupRow.setSync(result);
           HelperSQL db = new HelperSQL(getActivity());
           db.updateGroupSync(groupRow);
@@ -179,7 +167,7 @@ public class ContactFragment extends Fragment implements
   public void onCheckedChanged(CompoundButton buttonView, final boolean isChecked) {
     final int pos = (Integer) buttonView.getTag();
     if (pos != ListView.INVALID_POSITION) {
-      ContactRow p = pair.getContactList().get(pos);
+      ContactRow p = activity.getPair().getContactList().get(pos);
       if (p.isSync() != isChecked) {
         p.setSync(isChecked);
         ArrayList<ContactRow> contacts = new ArrayList<ContactRow>();

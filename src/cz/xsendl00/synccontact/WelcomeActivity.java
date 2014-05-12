@@ -9,6 +9,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+/**
+ * Welcome activity.
+ * @author portilo
+ *
+ */
 public class WelcomeActivity extends Activity {
 
   private Toast toast;
@@ -21,6 +26,10 @@ public class WelcomeActivity extends Activity {
     getActionBar().setDisplayHomeAsUpEnabled(true);
   }
 
+  /**
+   * Open activity for configuration connection to server LDAP.
+   * @param view
+   */
   public void addServerActivity(View view) {
     Intent intent = new Intent(this, AddServerActivity.class);
     startActivity(intent);

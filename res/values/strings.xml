@@ -10,7 +10,7 @@
     <string name="app_name_edit">Edit</string>
     <string name="app_name_info">Info</string>
     <string name="app_name_settings">Settings</string>
-    <string name="action_settings">Settings</string>
+    <string name="app_name_ldap_contact">LDAP contacts</string>
     <string name="title_section1">Section 1</string>
     <string name="title_section2">Section 2</string>
     <string name="title_section3">Section 3</string>

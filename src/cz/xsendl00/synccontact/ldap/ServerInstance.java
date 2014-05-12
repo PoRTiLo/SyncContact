@@ -14,7 +14,6 @@ import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.ResultCode;
 import com.unboundid.ldap.sdk.extensions.StartTLSExtendedRequest;
 import com.unboundid.util.ssl.SSLUtil;
-import com.unboundid.util.ssl.TrustAllTrustManager;
 
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.utils.Constants;
@@ -32,6 +31,10 @@ public class ServerInstance implements Serializable {
   
   private AccountData accountData;
 
+  /**
+   * ServerInstance
+   * @param accountData
+   */
   public ServerInstance(final AccountData accountData) {
     this.accountData = new AccountData(accountData);
     this.accountData.setName(((accountData.getName() == null) || (accountData.getName().length() == 0) ? null : accountData.getName()));
@@ -42,6 +45,10 @@ public class ServerInstance implements Serializable {
     this.accountData.setEncryption(accountData.getEncryption());
   }
   
+  /**
+   * Account Data
+   * @return account data.
+   */
   public AccountData getAccountdData() {
     return this.accountData;
   }
@@ -63,7 +70,9 @@ public class ServerInstance implements Serializable {
   
   /**
    * Get server connection.
-   * @return
+   * @param handler 
+   * @param context 
+   * @return return LDAP connection
    * @throws LDAPException
    */
   public LDAPConnection getConnection(final Handler handler, final Context context) throws LDAPException {
@@ -84,7 +93,7 @@ public class ServerInstance implements Serializable {
 
     if (accountData.getEncryption() == Constants.STARTTLS_INT) {
       Log.d(TAG, "Trying to connect with: STARTLS");
-      final SSLUtil sslUtil = new SSLUtil(new TrustAllTrustManager());//new MyTrustManager(context.getFilesDir().getPath().toString() + Constants.CERT_NAME, handler, context));
+      final SSLUtil sslUtil = new SSLUtil(new MyTrustManager(context.getFilesDir().getPath().toString() + Constants.CERT_NAME, handler, context));
       try {
         final ExtendedResult r = conn.processExtendedOperation(new StartTLSExtendedRequest(sslUtil.createSSLContext()));
         if (r.getResultCode() != ResultCode.SUCCESS) {

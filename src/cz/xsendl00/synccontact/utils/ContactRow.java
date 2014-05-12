@@ -62,6 +62,14 @@ public class ContactRow implements Parcelable {
   
   /**
    * 
+   * @param id
+   * @param name
+   * @param sync
+   * @param idTable
+   * @param accouNamePrevious
+   * @param accouTypePrevious
+   * @param timestamp
+   * @param uuid
    */
   public ContactRow(String id, String name, Boolean sync, Integer idTable, String accouNamePrevious, String accouTypePrevious, String timestamp, String uuid) {
     this(id, name, sync, null, idTable, accouNamePrevious, accouTypePrevious, timestamp, uuid);

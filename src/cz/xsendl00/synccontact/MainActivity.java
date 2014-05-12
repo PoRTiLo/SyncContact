@@ -121,7 +121,8 @@ public class MainActivity extends Activity {
    * @param view
    */
   public void startHelpActivity(View view) {
-    Intent intent = new Intent(this, HelpActivity.class);
+    //Intent intent = new Intent(this, HelpActivity.class);
+    Intent intent = new Intent(this, LDAPContactActivity.class);
     startActivity(intent);
   }
 

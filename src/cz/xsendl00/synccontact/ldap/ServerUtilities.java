@@ -20,6 +20,7 @@ import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.LDAPResult;
 import com.unboundid.ldap.sdk.ModifyRequest;
 import com.unboundid.ldap.sdk.RootDSE;
+import com.unboundid.ldap.sdk.SearchRequest;
 import com.unboundid.ldap.sdk.SearchResult;
 import com.unboundid.ldap.sdk.SearchResultEntry;
 import com.unboundid.ldap.sdk.SearchScope;
@@ -103,8 +104,6 @@ public class ServerUtilities {
     
   }
   
-  
-  
   public static void addContactsToServer(final ServerInstance ldapServer, Handler handler, final Context context) {
  // get sync user
     HelperSQL db = new HelperSQL(context);
@@ -165,26 +164,99 @@ public class ServerUtilities {
     }
   }
   
-  public static String fetchModifyTimestamp(final ServerInstance ldapServer, final Context context) {
+  
+  /**
+   * retrieves a count of entries
+   * @param ldapServer 
+   * @param context 
+   * @return entry count
+   */
+  public static int getEntryCount(final ServerInstance ldapServer, final Context context) {
     LDAPConnection connection = null;
+    int size = 0;
     try {
       connection = ldapServer.getConnection(null, context);
-      String filter = "(&(objectClass=googleContact)(" + Constants.LDAP_MODIFY_TIME_STAMP + ":generalizedTimeMatch:=20140328193405Z))";
-      //Log.i(TAG, filter);
-      SearchResult searchResult = connection.search(
-          "ou=users,dc=synccontact,dc=xsendl00,dc=cz", SearchScope.SUB, 
-          filter,
-          Constants.LDAP_MODIFY_TIME_STAMP);
-      //Log.i(TAG, searchResult.getEntryCount() + " entries returned.");
+      String filter = "(objectClass=googleContact)";
+      size = connection.search("ou=users,dc=synccontact,dc=xsendl00,dc=cz", SearchScope.SUB, filter,
+          Constants.UUID).getEntryCount();
+    } catch (LDAPException e) {
+      e.printStackTrace();
+    } finally {
+      if (connection != null) {
+        connection.close();
+      }
+    }
+   
+    return size;
+  }
+  
+  public GoogleContact fetchLDAPContact(final ServerInstance ldapServer, final Context context, final Handler handler, final String uuid) {
+    GoogleContact googleContact = null;
+    LDAPConnection connection = null;
+    try {
+      
+      connection = ldapServer.getConnection(handler, context);
+      String filter = "(&(objectClass=googleContact)(" + Constants.UUID + "=" + uuid + "))";
+      SearchResult searchResult = connection.search("ou=users,dc=synccontact,dc=xsendl00,dc=cz", SearchScope.SUB, filter, Mapping.createAttributes());
+      
       for (SearchResultEntry e : searchResult.getSearchEntries()) {
-        //Log.i(TAG, e.getAttributeValue(Constants.LDAP_MODIFY_TIME_STAMP));
-        return e.getAttributeValue(Constants.LDAP_MODIFY_TIME_STAMP);
+        Log.i(TAG, e.toString());
+        googleContact = Mapping.mappingContactFromLDAP(e);
+      }
+      new Thread(new Runnable() {
+        public void run() {
+          googleContact.
+        }
+      }).start();
+    } catch (LDAPException e) {
+      /*Log.v(TAG, "LDAPException on fetching contacts", e);
+      NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+      int icon = R.drawable.ic_launcher;
+      CharSequence tickerText = "Error on LDAP Sync";
+      Notification notification = new Notification(icon, tickerText, System.currentTimeMillis());
+      Intent notificationIntent = new Intent(context, SyncService.class);
+      PendingIntent contentIntent = PendingIntent.getService(context, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+      notification.setLatestEventInfo(context, tickerText, e.getMessage().replace("\\n", " "), contentIntent);
+      notification.flags = Notification.FLAG_AUTO_CANCEL;
+      mNotificationManager.notify(0, notification);*/
+      return null;
+    } finally {
+      if (connection != null) {
+        connection.close();
+      }
+    }
+
+    return googleContact;
+  }
+  
+  /**
+   * Get all contact from server. Only display name and UUID attributes will be received. 
+   * @param ldapServer
+   * @param context
+   * @return List of ContactRow
+   */
+  public static List<ContactRow> fetchLDAPContacts(final ServerInstance ldapServer, final Context context, final Handler handler) {
+    List<ContactRow> contactsServer = new ArrayList<ContactRow>();
+    LDAPConnection connection = null;
+    try {
+      connection = ldapServer.getConnection(handler, context);
+      String filter = "(objectClass=googleContact)";
+      SearchResult searchResult = connection.search("ou=users,dc=synccontact,dc=xsendl00,dc=cz", SearchScope.SUB, filter,
+          Mapping.createAttributesSimply());
+      for (SearchResultEntry e : searchResult.getSearchEntries()) {
+        ContactRow contactRow = new ContactRow();
+        contactRow.setUuid(e.getAttributeValue(Constants.UUID));
+        contactRow.setName(e.getAttributeValue(Constants.DISPLAY_NAME));
+        contactsServer.add(contactRow);
       }
     } catch (LDAPException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
+    } finally {
+      if (connection != null) {
+        connection.close();
+      }
     }
-    return null;
+    return contactsServer;
   }
   
   public static Map<String, GoogleContact> fetchModifyContactsLDAP(final ServerInstance ldapServer, final Context context, String timestamp) {
@@ -278,42 +350,7 @@ public class ServerUtilities {
   
 
   
-	public static List<GoogleContact> fetchContacts(final ServerInstance ldapServer, final AccountData accountData, final Bundle mappingBundle, 
-	    final Date lastUpdated, final Context context) {
-		final ArrayList<GoogleContact> friendList = new ArrayList<GoogleContact>();
-		LDAPConnection connection = null;
-		try {
-		  Log.i(TAG, "base Dn:" + accountData.getBaseDn());
-			connection = ldapServer.getConnection(null, context);
-			
-			SearchResult searchResult = connection.search(accountData.getBaseDn(), SearchScope.SUB, accountData.getSearchFilter(), getUsedAttributes(mappingBundle));
-			Log.i(TAG, searchResult.getEntryCount() + " entries returned.");
-
-			for (SearchResultEntry e : searchResult.getSearchEntries()) {
-			  Log.i(TAG, e.toString());
-				GoogleContact u = Mapping.mappingContactFromLDAP(e);
-				friendList.add(u);
-			}
-		} catch (LDAPException e) {
-			/*Log.v(TAG, "LDAPException on fetching contacts", e);
-			NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-			int icon = R.drawable.ic_launcher;
-			CharSequence tickerText = "Error on LDAP Sync";
-			Notification notification = new Notification(icon, tickerText, System.currentTimeMillis());
-			Intent notificationIntent = new Intent(context, SyncService.class);
-			PendingIntent contentIntent = PendingIntent.getService(context, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-			notification.setLatestEventInfo(context, tickerText, e.getMessage().replace("\\n", " "), contentIntent);
-			notification.flags = Notification.FLAG_AUTO_CANCEL;
-			mNotificationManager.notify(0, notification);*/
-			return null;
-		} finally {
-			if (connection != null) {
-				connection.close();
-			}
-		}
-
-		return friendList;
-	}
+	
 
 	private static String[] getUsedAttributes(Bundle mappingBundle) {
 		ArrayList<String> ldapAttributes = new ArrayList<String>();
