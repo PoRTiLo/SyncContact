@@ -2,12 +2,18 @@ package cz.xsendl00.synccontact.contact;
 
 import java.util.ArrayList;
 
+import cz.xsendl00.synccontact.utils.Constants;
+
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.RawContacts;
+import android.util.Log;
 
 public class GoogleContact {
 
+  private static final String TAG = "GoogleContact";
+  
   private EmailSync email;
   private EventSync event;
   private IdentitySync identity;
@@ -24,23 +30,7 @@ public class GoogleContact {
   private String timestamp;
   private String uuid;
   private String id;
-  
-  public GoogleContact() {
-    /*this.email = new EmailSync();
-    this.event = new EventSync();
-    this.identity = new IdentitySync();
-    this.im = new ImSync();
-    this.nickname = new NicknameSync();
-    this.note = new NoteSync();
-    this.organization = new OrganizationSync();
-    this.phone = new PhoneSync();
-    this.relation = new RelationSync();
-    this.sipAddressSync = new SipAddressSync();
-    this.structuredNameSync = new StructuredNameSync();
-    this.structuredPostalSync = new StructuredPostalSync();
-    this.website = new WebsiteSync();*/
-  }
-  
+
   public void init() {
     this.email = new EmailSync();
     this.event = new EventSync();
@@ -259,60 +249,84 @@ public class GoogleContact {
     return values;
   }
   
-  public static ArrayList<ContentProviderOperation> createOperationUpdate(GoogleContact con1, GoogleContact con2) {
+  public static ArrayList<ContentProviderOperation> createOperationNew(GoogleContact con1, GoogleContact con2) {
+
+    Log.i(TAG, "con1:" + con1.toString());
+    Log.i(TAG, "con2:" + con2.toString());
     
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     
+    int rawContactInsertIndex = ops.size();
+    ops.add(ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
+             .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE)
+             .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
+             .build());
+    ops.addAll(createOperation(rawContactInsertIndex, con1, con2, false));
+    
+    Log.i(TAG, ops.toString());
+    
+    return ops;
+  }
+  
+  public static ArrayList<ContentProviderOperation> createOperationUpdate(GoogleContact con1, GoogleContact con2) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    ops = createOperation(Integer.getInteger(con1.getId()), con1, con2, false);
+    return ops;
+  }
+  
+  private static ArrayList<ContentProviderOperation> createOperation(int id, GoogleContact con1, GoogleContact con2, boolean create) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    
     ArrayList<ContentProviderOperation> emailOps;
-    emailOps = EmailSync.operation(con1.getId(), con1.getEmail(), con2.getEmail());
+    emailOps = EmailSync.operation(id, con1.getEmail(), con2.getEmail(), create);
     if (emailOps != null) {
       ops.addAll(emailOps);
     }
     
     ArrayList<ContentProviderOperation> eventOps;
-    eventOps = EventSync.operation(con1.getId(), con1.getEvent(), con2.getEvent());
+    eventOps = EventSync.operation(id, con1.getEvent(), con2.getEvent(), create);
     if (eventOps != null) {
       ops.addAll(eventOps);
     }
     
     ArrayList<ContentProviderOperation> identityOps;
-    identityOps = IdentitySync.operation(con1.getId(), con1.getIdentity(), con2.getIdentity());
+    identityOps = IdentitySync.operation(id, con1.getIdentity(), con2.getIdentity(), create);
     if (identityOps != null) {
       ops.addAll(identityOps);
     }
     
     ArrayList<ContentProviderOperation> imOps;
-    imOps = ImSync.operation(con1.getId(), con1.getImSync(), con2.getImSync());
+    imOps = ImSync.operation(id, con1.getImSync(), con2.getImSync(), create);
     if (imOps != null) {
       ops.addAll(imOps);
     }
     
     ArrayList<ContentProviderOperation> nicknameOps;
-    nicknameOps = NicknameSync.operation(con1.getId(), con1.getNickname(), con2.getNickname());
+    nicknameOps = NicknameSync.operation(id, con1.getNickname(), con2.getNickname(), create);
     if (nicknameOps != null) {
       ops.addAll(nicknameOps);
     }
     
     ArrayList<ContentProviderOperation> noteOps;
-    noteOps = NoteSync.operation(con1.getId(), con1.getNote(), con2.getNote());
+    noteOps = NoteSync.operation(id, con1.getNote(), con2.getNote(), create);
     if (noteOps != null) {
       ops.addAll(noteOps);
     }
     
     ArrayList<ContentProviderOperation> orgOps;
-    orgOps = OrganizationSync.operation(con1.getId(), con1.getOrganization(), con2.getOrganization());
+    orgOps = OrganizationSync.operation(id, con1.getOrganization(), con2.getOrganization(), create);
     if (orgOps != null) {
       ops.addAll(orgOps);
     }
     
     ArrayList<ContentProviderOperation> phoneOps;
-    phoneOps = PhoneSync.operation(con1.getId(), con1.getPhone(), con2.getPhone());
+    phoneOps = PhoneSync.operation(id, con1.getPhone(), con2.getPhone(), create);
     if (phoneOps != null) {
       ops.addAll(phoneOps);
     }
     
     ArrayList<ContentProviderOperation> relationOps;
-    relationOps = RelationSync.operation(con1.getId(), con1.getRelation(), con2.getRelation());
+    relationOps = RelationSync.operation(id, con1.getRelation(), con2.getRelation(), create);
     if (relationOps != null) {
       ops.addAll(relationOps);
     }

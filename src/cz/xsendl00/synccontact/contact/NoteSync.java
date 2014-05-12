@@ -7,6 +7,7 @@ import android.content.ContentValues;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Nickname;
 import android.provider.ContactsContract.CommonDataKinds.Note;
+import android.provider.ContactsContract.CommonDataKinds.Relation;
 import cz.xsendl00.synccontact.utils.Constants;
 
 /**
@@ -67,12 +68,21 @@ public class NoteSync extends AbstractType implements ContactInterface {
    * @param type      like Nickname.TYPE_HOME
    * @return
    */
-  public static ContentProviderOperation add(String id, String value) {
-    return ContentProviderOperation.newInsert(Data.CONTENT_URI)
-    .withValue(Data.RAW_CONTACT_ID, id)
-    .withValue(Data.MIMETYPE, Note.CONTENT_ITEM_TYPE)
-    .withValue(Note.DATA1, value)
-    .build();
+  public static ContentProviderOperation add(int id, String value, boolean create) {
+    if (create) {
+      return ContentProviderOperation.newInsert(Data.CONTENT_URI)
+          .withValueBackReference(Data.RAW_CONTACT_ID, id)
+          .withValue(Data.MIMETYPE, Relation.CONTENT_ITEM_TYPE)
+          .withValue(Data.MIMETYPE, Note.CONTENT_ITEM_TYPE)
+          .withValue(Note.DATA1, value)
+          .build();
+    } else {
+      return ContentProviderOperation.newInsert(Data.CONTENT_URI)
+      .withValue(Data.RAW_CONTACT_ID, id)
+      .withValue(Data.MIMETYPE, Note.CONTENT_ITEM_TYPE)
+      .withValue(Note.DATA1, value)
+      .build();
+    }
   }
   
   public static ContentProviderOperation update(String id, String value) {
@@ -84,11 +94,11 @@ public class NoteSync extends AbstractType implements ContactInterface {
   }
   
 
-  public static ArrayList<ContentProviderOperation> operation(String id, NoteSync em1, NoteSync em2) {
+  public static ArrayList<ContentProviderOperation> operation(int id, NoteSync em1, NoteSync em2, boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       if (em2.getNotes() != null) {
-        ops.add(add(id, em2.getNotes()));
+        ops.add(add(id, em2.getNotes(), create));
       }
     } else if (em1 == null && em2 == null) { // nothing
       
@@ -98,7 +108,7 @@ public class NoteSync extends AbstractType implements ContactInterface {
       }
     } else if (em1 != null && em2 != null) { // clear or update data in db
       if (em2.getNotes() != null && em1.getNotes() == null) {
-        ops.add(add(id, em2.getNotes()));
+        ops.add(add(id, em2.getNotes(), create));
       } else if (em2.getNotes() != null && em1.getNotes() != null && !em2.getNotes().equals(em1.getNotes())) {
         ops.add(update(ID.getIdByValue(em1.getID(), Note.CONTENT_ITEM_TYPE, null), em2.getNotes()));
       } else {

@@ -7,6 +7,7 @@ import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Nickname;
+import android.provider.ContactsContract.CommonDataKinds.Relation;
 import cz.xsendl00.synccontact.utils.Constants;
 
 /**
@@ -154,16 +155,25 @@ public class NicknameSync extends AbstractType implements ContactInterface {
    * @param type      like Nickname.TYPE_HOME
    * @return
    */
-  public static ContentProviderOperation add(String id, String value, int type) {
+  public static ContentProviderOperation add(int id, String value, int type, boolean create) {
+    if (create) {
+      return ContentProviderOperation.newInsert(Data.CONTENT_URI)
+          .withValueBackReference(Data.RAW_CONTACT_ID, id)
+          .withValue(Data.MIMETYPE, Nickname.CONTENT_ITEM_TYPE)
+          .withValue(Nickname.TYPE, type)
+           .withValue(Nickname.DATA, value)
+          .build();
+    } else {
     return ContentProviderOperation.newInsert(Data.CONTENT_URI)
     .withValue(Data.RAW_CONTACT_ID, id)
     .withValue(Data.MIMETYPE, Nickname.CONTENT_ITEM_TYPE)
     .withValue(Nickname.TYPE, type)
     .withValue(Nickname.DATA, value)
     .build();
+    }
   }
   
-  public static ContentProviderOperation update(String id, String value, int type) {
+  public static ContentProviderOperation update(int id, String value, int type) {
     return ContentProviderOperation.newUpdate(Data.CONTENT_URI)
         .withSelection(Data._ID + "=?", new String[]{String.valueOf(id)})
         .withValue(Data.MIMETYPE, Nickname.CONTENT_ITEM_TYPE)
@@ -172,23 +182,23 @@ public class NicknameSync extends AbstractType implements ContactInterface {
   }
   
 
-  public static ArrayList<ContentProviderOperation> operation(String id, NicknameSync em1, NicknameSync em2) {
+  public static ArrayList<ContentProviderOperation> operation(int id, NicknameSync em1, NicknameSync em2, boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       if (em2.getNicknameDefault() != null) {
-        ops.add(add(id, em2.getNicknameDefault(), Nickname.TYPE_OTHER_NAME));
+        ops.add(add(id, em2.getNicknameDefault(), Nickname.TYPE_OTHER_NAME, create));
       }
       if (em2.getNicknameInitials() != null) {
-        ops.add(add(id, em2.getNicknameInitials(), Nickname.TYPE_INITIALS));
+        ops.add(add(id, em2.getNicknameInitials(), Nickname.TYPE_INITIALS, create));
       }
       if (em2.getNicknameMaiden() != null) {
-        ops.add(add(id, em2.getNicknameMaiden(), Nickname.TYPE_MAIDEN_NAME));
+        ops.add(add(id, em2.getNicknameMaiden(), Nickname.TYPE_MAIDEN_NAME, create));
       }
       if (em2.getNicknameOther() != null) {
-        ops.add(add(id, em2.getNicknameOther(), Nickname.TYPE_OTHER_NAME));
+        ops.add(add(id, em2.getNicknameOther(), Nickname.TYPE_OTHER_NAME, create));
       }
       if (em2.getNicknameShort() != null) {
-        ops.add(add(id, em2.getNicknameShort(), Nickname.TYPE_SHORT_NAME));
+        ops.add(add(id, em2.getNicknameShort(), Nickname.TYPE_SHORT_NAME, create));
       }
     } else if (em1 == null && em2 == null) { // nothing
       
@@ -211,26 +221,26 @@ public class NicknameSync extends AbstractType implements ContactInterface {
       
     } else if (em1 != null && em2 != null) { // clear or update data in db
       ArrayList<ContentProviderOperation> op;
-      op = createOps(em1.getNicknameDefault(), em2.getNicknameDefault(), em1.getID(), Nickname.TYPE_DEFAULT, id);
+      op = createOps(em1.getNicknameDefault(), em2.getNicknameDefault(), em1.getID(), Nickname.TYPE_DEFAULT, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      op = createOps(em1.getNicknameInitials(), em2.getNicknameInitials(), em1.getID(), Nickname.TYPE_INITIALS, id);
-      if (op != null && op.size() > 0) {
-        ops.addAll(op);
-      }
-      
-      op = createOps(em1.getNicknameMaiden(), em2.getNicknameMaiden(), em1.getID(), Nickname.TYPE_MAIDEN_NAME, id);
+      op = createOps(em1.getNicknameInitials(), em2.getNicknameInitials(), em1.getID(), Nickname.TYPE_INITIALS, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getNicknameOther(), em2.getNicknameOther(), em1.getID(), Nickname.TYPE_OTHER_NAME, id);
+      op = createOps(em1.getNicknameMaiden(), em2.getNicknameMaiden(), em1.getID(), Nickname.TYPE_MAIDEN_NAME, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getNicknameShort(), em2.getNicknameShort(), em1.getID(), Nickname.TYPE_SHORT_NAME, id);
+      op = createOps(em1.getNicknameOther(), em2.getNicknameOther(), em1.getID(), Nickname.TYPE_OTHER_NAME, id, create);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getNicknameShort(), em2.getNicknameShort(), em1.getID(), Nickname.TYPE_SHORT_NAME, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
@@ -247,12 +257,12 @@ public class NicknameSync extends AbstractType implements ContactInterface {
    * @param id
    * @return
    */
-  private static ArrayList<ContentProviderOperation> createOps(String value1, String value2, List<ID> ids, int type, String id) {
+  private static ArrayList<ContentProviderOperation> createOps(String value1, String value2, List<ID> ids, int type, int id, boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if(value2 != null || value2 != null) {
       String i = ID.getIdByValue(ids, String.valueOf(type), null);
       if (i == null && value2 != null) {
-        ops.add(add(id, value2, type));
+        ops.add(add(id, value2, type, create));
       } else if ( i != null && value2 == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && value2 != null && !value2.equals(value1)) { 

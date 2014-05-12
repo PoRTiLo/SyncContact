@@ -26,9 +26,11 @@ import android.widget.ListView;
 public class ContactLDAPFragment extends Fragment implements
     android.widget.CompoundButton.OnCheckedChangeListener {
 
+  private static final String TAG = "ContactLDAPFragment";
   private LDAPContactActivity activity;
   private ListView listRow;
   private RowLDAPContactAdapter adapter;
+  
   private static boolean selectAll;
 
   @Override
@@ -49,6 +51,7 @@ public class ContactLDAPFragment extends Fragment implements
   public void onResume() {
     super.onResume();
     listRow = (ListView) getActivity().findViewById(R.id.list_contact);
+    Log.i(TAG, "size in ContactLDAPFragment :" + activity.getPair().getContactList().size());
     adapter = new RowLDAPContactAdapter(getActivity().getApplicationContext(), activity.getPair().getContactList(), this);
     listRow.setAdapter(adapter);
   }

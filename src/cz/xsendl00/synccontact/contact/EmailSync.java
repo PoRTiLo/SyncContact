@@ -6,6 +6,7 @@ import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Email;
+import android.provider.ContactsContract.CommonDataKinds.Relation;
 import cz.xsendl00.synccontact.utils.Constants;
 
 /**
@@ -113,13 +114,22 @@ public class EmailSync extends AbstractType implements ContactInterface {
     return values;
   }
   
-  public static ContentProviderOperation add(String id, String email, int type) {
+  public static ContentProviderOperation add(int id, String email, int type, boolean create) {
+    if (create) {
+      return ContentProviderOperation.newInsert(Data.CONTENT_URI)
+          .withValueBackReference(Data.RAW_CONTACT_ID, id)
+          .withValue(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE)
+    .withValue(Email.ADDRESS, email)
+    .withValue(Email.TYPE, type)
+          .build();
+    } else {
     return ContentProviderOperation.newInsert(Data.CONTENT_URI)
     .withValue(Data.RAW_CONTACT_ID, id)
     .withValue(Data.MIMETYPE, Email.CONTENT_ITEM_TYPE)
     .withValue(Email.ADDRESS, email)
     .withValue(Email.TYPE, type)
     .build();
+    }
   }
   
   public static ContentProviderOperation update(String id, String email, int type) {
@@ -131,21 +141,21 @@ public class EmailSync extends AbstractType implements ContactInterface {
         .build();
   }
   
-  public static ArrayList<ContentProviderOperation> operation(String id, EmailSync em1, EmailSync em2) {
+  public static ArrayList<ContentProviderOperation> operation(int id, EmailSync em1, EmailSync em2, boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       
       if (em2.getHomeMail() != null) {
-        ops.add(add(id, em2.getHomeMail(), Email.TYPE_HOME));
+        ops.add(add(id, em2.getHomeMail(), Email.TYPE_HOME, create));
       }
       if (em2.getMobileMail() != null) {
-        ops.add(add(id, em2.getMobileMail(), Email.TYPE_MOBILE));
+        ops.add(add(id, em2.getMobileMail(), Email.TYPE_MOBILE, create));
       }
       if (em2.getOtherMail() != null) {
-        ops.add(add(id, em2.getOtherMail(), Email.TYPE_OTHER));
+        ops.add(add(id, em2.getOtherMail(), Email.TYPE_OTHER, create));
       }
       if (em2.getWorkMail() != null) {
-        ops.add(add(id, em2.getWorkMail(), Email.TYPE_WORK));
+        ops.add(add(id, em2.getWorkMail(), Email.TYPE_WORK, create));
       }
       
     } else if (em1 == null && em2 == null) { // nothing
@@ -166,7 +176,7 @@ public class EmailSync extends AbstractType implements ContactInterface {
       
       String i = ID.getIdByValue(em1.getID(), String.valueOf(Email.TYPE_HOME), null);
       if (i == null && em2.getHomeMail() != null) {
-        ops.add(add(id, em2.getHomeMail(), Email.TYPE_HOME));
+        ops.add(add(id, em2.getHomeMail(), Email.TYPE_HOME, create));
       } else if ( i != null && em2.getHomeMail() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getHomeMail() != null && !em2.getHomeMail().equals(em1.getHomeMail())) { 
@@ -175,7 +185,7 @@ public class EmailSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Email.TYPE_MOBILE), null);
       if (i == null && em2.getMobileMail() != null) {
-        ops.add(add(id, em2.getMobileMail(), Email.TYPE_HOME));
+        ops.add(add(id, em2.getMobileMail(), Email.TYPE_HOME, create));
       } else if ( i != null && em2.getMobileMail() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getMobileMail() != null && !em2.getMobileMail().equals(em1.getMobileMail())) { 
@@ -184,7 +194,7 @@ public class EmailSync extends AbstractType implements ContactInterface {
      
       i = ID.getIdByValue(em1.getID(), String.valueOf(Email.TYPE_OTHER), null);
       if (i == null && em2.getOtherMail() != null) {
-        ops.add(add(id, em2.getOtherMail(), Email.TYPE_HOME));
+        ops.add(add(id, em2.getOtherMail(), Email.TYPE_HOME, create));
       } else if ( i != null && em2.getOtherMail() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getOtherMail() != null && !em2.getOtherMail().equals(em1.getOtherMail())) { 
@@ -193,7 +203,7 @@ public class EmailSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Email.TYPE_WORK), null);
       if (i == null && em2.getWorkMail() != null) {
-        ops.add(add(id, em2.getWorkMail(), Email.TYPE_HOME));
+        ops.add(add(id, em2.getWorkMail(), Email.TYPE_HOME, create));
       } else if ( i != null && em2.getWorkMail() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getWorkMail() != null && !em2.getWorkMail().equals(em1.getWorkMail())) { 

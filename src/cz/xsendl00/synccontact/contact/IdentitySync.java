@@ -87,9 +87,16 @@ public class IdentitySync extends AbstractType implements ContactInterface {
     return values;
   }
   
-  public static ContentProviderOperation add(String id, Map<String, String> values) {
+  public static ContentProviderOperation add(int id, Map<String, String> values, boolean create) {
     ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newInsert(Data.CONTENT_URI);
-    operationBuilder.withValue(Data.RAW_CONTACT_ID, id).withValue(Data.MIMETYPE, Identity.CONTENT_ITEM_TYPE);
+    if (create) {
+      operationBuilder
+      .withValueBackReference(Data.RAW_CONTACT_ID, id)
+      .withValue(Data.MIMETYPE, Identity.CONTENT_ITEM_TYPE);
+    } else {
+      operationBuilder.withValue(Data.RAW_CONTACT_ID, id).withValue(Data.MIMETYPE, Identity.CONTENT_ITEM_TYPE);
+    }
+    
     Iterator<String> iter = values.keySet().iterator();
     while(iter.hasNext()) {
       String key = (String)iter.next();
@@ -99,7 +106,7 @@ public class IdentitySync extends AbstractType implements ContactInterface {
     return operationBuilder.build();
   }
   
-  public static ContentProviderOperation update(String id, Map<String, String> values) {
+  public static ContentProviderOperation update(int id, Map<String, String> values) {
     ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(Data.CONTENT_URI);
     operationBuilder.withSelection(Data._ID + "=?",
         new String[] { String.valueOf(id) }).withValue(Data.MIMETYPE,
@@ -114,7 +121,7 @@ public class IdentitySync extends AbstractType implements ContactInterface {
     return operationBuilder.build();
   }
   
-  public static ArrayList<ContentProviderOperation> operation(String id, IdentitySync em1, IdentitySync em2) {
+  public static ArrayList<ContentProviderOperation> operation(int id, IdentitySync em1, IdentitySync em2, boolean create) {
     
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     Map<String, String> value = new HashMap<String, String>();
@@ -128,7 +135,7 @@ public class IdentitySync extends AbstractType implements ContactInterface {
         value.put(Identity.IDENTITY, em2.getIdentityText());
       }
       if (value.size() > 0) {
-        ops.add(add(id,value));
+        ops.add(add(id,value, create));
       }
     } else if (em1 == null && em2 == null) { // nothing
       
@@ -147,7 +154,7 @@ public class IdentitySync extends AbstractType implements ContactInterface {
           value.put(Identity.IDENTITY, em2.getIdentityText());
         }
         if (value.size() > 0) {
-          ops.add(add(id,value));
+          ops.add(add(id,value, create));
         }
         
       } else {

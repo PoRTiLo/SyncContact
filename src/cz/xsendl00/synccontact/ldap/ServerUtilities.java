@@ -7,11 +7,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import android.content.ContentProviderResult;
 import android.content.Context;
 import android.content.OperationApplicationException;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.RemoteException;
+import android.provider.ContactsContract;
 import android.util.Log;
 
 import com.unboundid.ldap.sdk.AddRequest;
@@ -191,7 +193,7 @@ public class ServerUtilities {
   }
   
   public GoogleContact fetchLDAPContact(final ServerInstance ldapServer, final Context context, final Handler handler, final String uuid) {
-    GoogleContact googleContact = null;
+    GoogleContact googleContactOut = null;
     LDAPConnection connection = null;
     try {
       
@@ -201,13 +203,26 @@ public class ServerUtilities {
       
       for (SearchResultEntry e : searchResult.getSearchEntries()) {
         Log.i(TAG, e.toString());
-        googleContact = Mapping.mappingContactFromLDAP(e);
+        final GoogleContact googleContact = Mapping.mappingContactFromLDAP(e);
+        new Thread(new Runnable() {
+          public void run() {
+            try {
+              ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, GoogleContact.createOperationNew(new GoogleContact(), googleContact));
+              for (ContentProviderResult a : contactUri) {
+                 Log.i(TAG, "res:" + a);
+              }
+            } catch (RemoteException e) {
+              e.printStackTrace();
+            } catch (OperationApplicationException e) {
+              e.printStackTrace();
+            }
+          }
+        }).start();
+        googleContactOut = googleContact;
+        break;
+        
       }
-      new Thread(new Runnable() {
-        public void run() {
-          googleContact.
-        }
-      }).start();
+      
     } catch (LDAPException e) {
       /*Log.v(TAG, "LDAPException on fetching contacts", e);
       NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -226,7 +241,7 @@ public class ServerUtilities {
       }
     }
 
-    return googleContact;
+    return googleContactOut;
   }
   
   /**

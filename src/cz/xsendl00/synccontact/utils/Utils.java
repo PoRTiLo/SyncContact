@@ -41,9 +41,10 @@ public class Utils {
     List<ContactRow> list = new ArrayList<ContactRow>();
     
     for (int pozicion = 0; pozicion < list1.size(); ) {
-      if(map2.get(list1.get(pozicion).getUuid()) != null) {
-        if (list1.get(pozicion).isSync()) {
-          list.add(list1.get(pozicion));
+      ContactRow contactRow= map2.get(list1.get(pozicion).getUuid());
+      if(contactRow != null) {
+        if (list1.get(pozicion).isSync() && !contactRow.isSync()) {
+          list.add(contactRow);
         }
         list1.remove(pozicion);
       } else {

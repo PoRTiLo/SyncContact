@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.provider.ContactsContract.CommonDataKinds.Im;
+import android.provider.ContactsContract.CommonDataKinds.Relation;
 import android.provider.ContactsContract.Data;
 import cz.xsendl00.synccontact.utils.Constants;
 
@@ -566,14 +567,20 @@ public class ImSync extends AbstractType implements ContactInterface {
    * @param type      like Im.TYPE_HOME
    * @return
    */
-  public static ContentProviderOperation add(String id, String value, int protocol, int type) {
-    return ContentProviderOperation.newInsert(Data.CONTENT_URI)
-    .withValue(Data.RAW_CONTACT_ID, id)
-    .withValue(Data.MIMETYPE, Im.CONTENT_ITEM_TYPE)
-    .withValue(Im.PROTOCOL, protocol)
-    .withValue(Im.TYPE, type)
-    .withValue(Im.DATA, value)
-    .build();
+  public static ContentProviderOperation add(int id, String value, int protocol, int type, boolean create) {
+    if (create) {
+      return ContentProviderOperation.newInsert(Data.CONTENT_URI)
+          .withValueBackReference(Data.RAW_CONTACT_ID, id)
+          .withValue(Data.MIMETYPE, Im.CONTENT_ITEM_TYPE)
+          .withValue(Im.PROTOCOL, protocol).withValue(Im.TYPE, type)
+          .withValue(Im.DATA, value).build();
+    } else {
+      return ContentProviderOperation.newInsert(Data.CONTENT_URI)
+          .withValue(Data.RAW_CONTACT_ID, id)
+          .withValue(Data.MIMETYPE, Im.CONTENT_ITEM_TYPE)
+          .withValue(Im.PROTOCOL, protocol).withValue(Im.TYPE, type)
+          .withValue(Im.DATA, value).build();
+    }
   }
   
   /**
@@ -595,91 +602,91 @@ public class ImSync extends AbstractType implements ContactInterface {
   }
   
 
-  public static ArrayList<ContentProviderOperation> operation(String id, ImSync em1, ImSync em2) {
+  public static ArrayList<ContentProviderOperation> operation(int id, ImSync em1, ImSync em2, boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       if (em2.getImHomeAim() != null) {
-        ops.add(add(id, em2.getImHomeAim(), Im.PROTOCOL_AIM, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeAim(), Im.PROTOCOL_AIM, Im.TYPE_HOME, create));
       }
       if (em2.getImHomeGoogleTalk() != null) {
-        ops.add(add(id, em2.getImHomeGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_HOME, create));
       }
       if (em2.getImHomeIcq() != null) {
-        ops.add(add(id, em2.getImHomeIcq(), Im.PROTOCOL_ICQ, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeIcq(), Im.PROTOCOL_ICQ, Im.TYPE_HOME, create));
       }
       if (em2.getImHomeJabber() != null) {
-        ops.add(add(id, em2.getImHomeJabber(), Im.PROTOCOL_JABBER, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeJabber(), Im.PROTOCOL_JABBER, Im.TYPE_HOME, create));
       }
       if (em2.getImHomeMsn() != null) {
-        ops.add(add(id, em2.getImHomeMsn(), Im.PROTOCOL_MSN, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeMsn(), Im.PROTOCOL_MSN, Im.TYPE_HOME, create));
       }
       if (em2.getImHomeNetmeeting() != null) {
-        ops.add(add(id, em2.getImHomeNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_HOME, create));
       }
       if (em2.getImHomeQq() != null) {
-        ops.add(add(id, em2.getImHomeQq(), Im.PROTOCOL_QQ, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeQq(), Im.PROTOCOL_QQ, Im.TYPE_HOME, create));
       }
       if (em2.getImHomeSkype() != null) {
-        ops.add(add(id, em2.getImHomeSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_HOME, create));
       }
       if (em2.getImHomeYahoo() != null) {
-        ops.add(add(id, em2.getImHomeYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_HOME, create));
       }
       
       if (em2.getImWorkAim() != null) {
-        ops.add(add(id, em2.getImWorkAim(), Im.PROTOCOL_AIM, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkAim(), Im.PROTOCOL_AIM, Im.TYPE_WORK, create));
       }
       if (em2.getImWorkGoogleTalk() != null) {
-        ops.add(add(id, em2.getImWorkGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_WORK, create));
       }
       if (em2.getImWorkIcq() != null) {
-        ops.add(add(id, em2.getImWorkIcq(), Im.PROTOCOL_ICQ, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkIcq(), Im.PROTOCOL_ICQ, Im.TYPE_WORK, create));
       }
       if (em2.getImWorkJabber() != null) {
-        ops.add(add(id, em2.getImWorkJabber(), Im.PROTOCOL_JABBER, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkJabber(), Im.PROTOCOL_JABBER, Im.TYPE_WORK, create));
       }
       if (em2.getImWorkMsn() != null) {
-        ops.add(add(id, em2.getImWorkMsn(), Im.PROTOCOL_MSN, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkMsn(), Im.PROTOCOL_MSN, Im.TYPE_WORK, create));
       }
       if (em2.getImWorkNetmeeting() != null) {
-        ops.add(add(id, em2.getImWorkNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_WORK, create));
       }
       if (em2.getImWorkQq() != null) {
-        ops.add(add(id, em2.getImWorkQq(), Im.PROTOCOL_QQ, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkQq(), Im.PROTOCOL_QQ, Im.TYPE_WORK, create));
       }
       if (em2.getImWorkSkype() != null) {
-        ops.add(add(id, em2.getImWorkSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_WORK, create));
       }
       if (em2.getImWorkYahoo() != null) {
-        ops.add(add(id, em2.getImHomeYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImHomeYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_WORK, create));
       }
       
       if (em2.getImOtherAim() != null) {
-        ops.add(add(id, em2.getImOtherAim(), Im.PROTOCOL_AIM, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherAim(), Im.PROTOCOL_AIM, Im.TYPE_OTHER, create));
       }
       if (em2.getImOtherGoogleTalk() != null) {
-        ops.add(add(id, em2.getImOtherGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_OTHER, create));
       }
       if (em2.getImOtherIcq() != null) {
-        ops.add(add(id, em2.getImOtherIcq(), Im.PROTOCOL_ICQ, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherIcq(), Im.PROTOCOL_ICQ, Im.TYPE_OTHER, create));
       }
       if (em2.getImOtherJabber() != null) {
-        ops.add(add(id, em2.getImOtherJabber(), Im.PROTOCOL_JABBER, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherJabber(), Im.PROTOCOL_JABBER, Im.TYPE_OTHER, create));
       }
       if (em2.getImOtherMsn() != null) {
-        ops.add(add(id, em2.getImOtherMsn(), Im.PROTOCOL_MSN, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherMsn(), Im.PROTOCOL_MSN, Im.TYPE_OTHER, create));
       }
       if (em2.getImOtherNetmeeting() != null) {
-        ops.add(add(id, em2.getImOtherNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_OTHER, create));
       }
       if (em2.getImOtherQq() != null) {
-        ops.add(add(id, em2.getImOtherQq(), Im.PROTOCOL_QQ, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherQq(), Im.PROTOCOL_QQ, Im.TYPE_OTHER, create));
       }
       if (em2.getImOtherSkype() != null) {
-        ops.add(add(id, em2.getImOtherSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_OTHER, create));
       }
       if (em2.getImOtherYahoo() != null) {
-        ops.add(add(id, em2.getImOtherYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_OTHER, create));
       }
     } else if (em1 == null && em2 == null) { // nothing
       
@@ -772,7 +779,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       if(em2.getImHomeAim() != null || em1.getImHomeAim() != null) {
         i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_AIM));
         if (i == null && em2.getImHomeAim() != null) {
-          ops.add(add(id, em2.getImHomeAim(), Im.PROTOCOL_AIM, Im.TYPE_HOME));
+          ops.add(add(id, em2.getImHomeAim(), Im.PROTOCOL_AIM, Im.TYPE_HOME, create));
         } else if ( i != null && em2.getImHomeAim() == null) {
           ops.add(GoogleContact.delete(i));
         } else if (i != null && em2.getImHomeAim() != null && !em2.getImHomeAim().equals(em1.getImHomeAim())) { 
@@ -782,7 +789,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_GOOGLE_TALK));
       if (i == null && em2.getImHomeGoogleTalk() != null) {
-        ops.add(add(id, em2.getImHomeGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_HOME, create));
       } else if ( i != null && em2.getImHomeGoogleTalk() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImHomeGoogleTalk() != null && !em2.getImHomeGoogleTalk().equals(em1.getImHomeGoogleTalk())) { 
@@ -791,7 +798,7 @@ public class ImSync extends AbstractType implements ContactInterface {
 
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_ICQ));
       if (i == null && em2.getImHomeIcq() != null) {
-        ops.add(add(id, em2.getImHomeIcq(), Im.PROTOCOL_ICQ, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeIcq(), Im.PROTOCOL_ICQ, Im.TYPE_HOME, create));
       } else if ( i != null && em2.getImHomeIcq() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImHomeIcq() != null && !em2.getImHomeIcq().equals(em1.getImHomeIcq())) { 
@@ -800,7 +807,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_JABBER));
       if (i == null && em2.getImHomeJabber() != null) {
-        ops.add(add(id, em2.getImHomeJabber(), Im.PROTOCOL_JABBER, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeJabber(), Im.PROTOCOL_JABBER, Im.TYPE_HOME, create));
       } else if ( i != null && em2.getImHomeJabber() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImHomeJabber() != null && !em2.getImHomeJabber().equals(em1.getImHomeJabber())) { 
@@ -809,7 +816,7 @@ public class ImSync extends AbstractType implements ContactInterface {
 
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_MSN));
       if (i == null && em2.getImHomeMsn() != null) {
-        ops.add(add(id, em2.getImHomeMsn(), Im.PROTOCOL_MSN, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeMsn(), Im.PROTOCOL_MSN, Im.TYPE_HOME, create));
       } else if ( i != null && em2.getImHomeMsn() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImHomeMsn() != null && !em2.getImHomeMsn().equals(em1.getImHomeMsn())) { 
@@ -818,7 +825,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_NETMEETING));
       if (i == null && em2.getImHomeNetmeeting() != null) {
-        ops.add(add(id, em2.getImHomeNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_HOME, create));
       } else if ( i != null && em2.getImHomeNetmeeting() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImHomeNetmeeting() != null && !em2.getImHomeNetmeeting().equals(em1.getImHomeNetmeeting())) { 
@@ -827,7 +834,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_QQ));
       if (i == null && em2.getImHomeQq() != null) {
-        ops.add(add(id, em2.getImHomeQq(), Im.PROTOCOL_QQ, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeQq(), Im.PROTOCOL_QQ, Im.TYPE_HOME, create));
       } else if ( i != null && em2.getImHomeQq() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImHomeQq() != null && !em2.getImHomeQq().equals(em1.getImHomeQq())) { 
@@ -836,7 +843,7 @@ public class ImSync extends AbstractType implements ContactInterface {
 
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_SKYPE));
       if (i == null && em2.getImHomeSkype() != null) {
-        ops.add(add(id, em2.getImHomeSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_HOME, create));
       } else if ( i != null && em2.getImHomeSkype() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImHomeSkype() != null && !em2.getImHomeSkype().equals(em1.getImHomeSkype())) { 
@@ -845,7 +852,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_HOME), String.valueOf(Im.PROTOCOL_YAHOO));
       if (i == null && em2.getImHomeYahoo() != null) {
-        ops.add(add(id, em2.getImHomeYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_HOME));
+        ops.add(add(id, em2.getImHomeYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_HOME, create));
       } else if ( i != null && em2.getImHomeYahoo() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImHomeYahoo() != null && !em2.getImHomeSkype().equals(em1.getImHomeYahoo())) { 
@@ -854,7 +861,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_AIM));
       if (i == null && em2.getImWorkAim() != null) {
-        ops.add(add(id, em2.getImWorkAim(), Im.PROTOCOL_AIM, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkAim(), Im.PROTOCOL_AIM, Im.TYPE_WORK, create));
       } else if ( i != null && em2.getImWorkAim() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImWorkAim() != null && !em2.getImWorkAim().equals(em1.getImWorkAim())) { 
@@ -863,7 +870,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_GOOGLE_TALK));
       if (i == null && em2.getImWorkGoogleTalk() != null) {
-        ops.add(add(id, em2.getImWorkGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_WORK, create));
       } else if ( i != null && em2.getImWorkGoogleTalk() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImWorkGoogleTalk() != null && !em2.getImWorkGoogleTalk().equals(em1.getImWorkGoogleTalk())) { 
@@ -872,7 +879,7 @@ public class ImSync extends AbstractType implements ContactInterface {
 
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_ICQ));
       if (i == null && em2.getImWorkIcq() != null) {
-        ops.add(add(id, em2.getImWorkIcq(), Im.PROTOCOL_ICQ, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkIcq(), Im.PROTOCOL_ICQ, Im.TYPE_WORK, create));
       } else if ( i != null && em2.getImWorkIcq() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImWorkIcq() != null && !em2.getImWorkIcq().equals(em1.getImWorkIcq())) { 
@@ -881,7 +888,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_JABBER));
       if (i == null && em2.getImWorkJabber() != null) {
-        ops.add(add(id, em2.getImWorkJabber(), Im.PROTOCOL_JABBER, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkJabber(), Im.PROTOCOL_JABBER, Im.TYPE_WORK, create));
       } else if ( i != null && em2.getImWorkJabber() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImWorkJabber() != null && !em2.getImWorkJabber().equals(em1.getImWorkJabber())) { 
@@ -890,7 +897,7 @@ public class ImSync extends AbstractType implements ContactInterface {
 
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_MSN));
       if (i == null && em2.getImWorkMsn() != null) {
-        ops.add(add(id, em2.getImWorkMsn(), Im.PROTOCOL_MSN, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkMsn(), Im.PROTOCOL_MSN, Im.TYPE_WORK, create));
       } else if ( i != null && em2.getImWorkMsn() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImWorkMsn() != null && !em2.getImWorkMsn().equals(em1.getImWorkMsn())) { 
@@ -899,7 +906,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_NETMEETING));
       if (i == null && em2.getImWorkNetmeeting() != null) {
-        ops.add(add(id, em2.getImWorkNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_WORK, create));
       } else if ( i != null && em2.getImWorkNetmeeting() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImWorkNetmeeting() != null && !em2.getImWorkNetmeeting().equals(em1.getImWorkNetmeeting())) { 
@@ -908,7 +915,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_QQ));
       if (i == null && em2.getImWorkQq() != null) {
-        ops.add(add(id, em2.getImWorkQq(), Im.PROTOCOL_QQ, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkQq(), Im.PROTOCOL_QQ, Im.TYPE_WORK, create));
       } else if ( i != null && em2.getImWorkQq() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImWorkQq() != null && !em2.getImWorkQq().equals(em1.getImWorkQq())) { 
@@ -917,7 +924,7 @@ public class ImSync extends AbstractType implements ContactInterface {
 
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_SKYPE));
       if (i == null && em2.getImWorkSkype() != null) {
-        ops.add(add(id, em2.getImWorkSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_WORK, create));
       } else if ( i != null && em2.getImWorkSkype() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImWorkSkype() != null && !em2.getImWorkSkype().equals(em1.getImWorkSkype())) { 
@@ -926,7 +933,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_WORK), String.valueOf(Im.PROTOCOL_YAHOO));
       if (i == null && em2.getImWorkYahoo() != null) {
-        ops.add(add(id, em2.getImWorkYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_WORK));
+        ops.add(add(id, em2.getImWorkYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_WORK, create));
       } else if ( i != null && em2.getImWorkYahoo() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImWorkYahoo() != null && !em2.getImWorkSkype().equals(em1.getImWorkYahoo())) { 
@@ -936,7 +943,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_AIM));
       if (i == null && em2.getImOtherAim() != null) {
-        ops.add(add(id, em2.getImOtherAim(), Im.PROTOCOL_AIM, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherAim(), Im.PROTOCOL_AIM, Im.TYPE_OTHER, create));
       } else if ( i != null && em2.getImOtherAim() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImOtherAim() != null && !em2.getImOtherAim().equals(em1.getImOtherAim())) { 
@@ -945,7 +952,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_GOOGLE_TALK));
       if (i == null && em2.getImOtherGoogleTalk() != null) {
-        ops.add(add(id, em2.getImOtherGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherGoogleTalk(), Im.PROTOCOL_GOOGLE_TALK, Im.TYPE_OTHER, create));
       } else if ( i != null && em2.getImOtherGoogleTalk() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImOtherGoogleTalk() != null && !em2.getImOtherGoogleTalk().equals(em1.getImOtherGoogleTalk())) { 
@@ -954,7 +961,7 @@ public class ImSync extends AbstractType implements ContactInterface {
 
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_ICQ));
       if (i == null && em2.getImOtherIcq() != null) {
-        ops.add(add(id, em2.getImOtherIcq(), Im.PROTOCOL_ICQ, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherIcq(), Im.PROTOCOL_ICQ, Im.TYPE_OTHER, create));
       } else if ( i != null && em2.getImOtherIcq() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImOtherIcq() != null && !em2.getImOtherIcq().equals(em1.getImOtherIcq())) { 
@@ -963,7 +970,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_JABBER));
       if (i == null && em2.getImOtherJabber() != null) {
-        ops.add(add(id, em2.getImOtherJabber(), Im.PROTOCOL_JABBER, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherJabber(), Im.PROTOCOL_JABBER, Im.TYPE_OTHER, create));
       } else if ( i != null && em2.getImOtherJabber() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImOtherJabber() != null && !em2.getImOtherJabber().equals(em1.getImOtherJabber())) { 
@@ -972,7 +979,7 @@ public class ImSync extends AbstractType implements ContactInterface {
 
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_MSN));
       if (i == null && em2.getImOtherMsn() != null) {
-        ops.add(add(id, em2.getImOtherMsn(), Im.PROTOCOL_MSN, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherMsn(), Im.PROTOCOL_MSN, Im.TYPE_OTHER, create));
       } else if ( i != null && em2.getImOtherMsn() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImOtherMsn() != null && !em2.getImOtherMsn().equals(em1.getImOtherMsn())) { 
@@ -981,7 +988,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_NETMEETING));
       if (i == null && em2.getImOtherNetmeeting() != null) {
-        ops.add(add(id, em2.getImOtherNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherNetmeeting(), Im.PROTOCOL_NETMEETING, Im.TYPE_OTHER, create));
       } else if ( i != null && em2.getImOtherNetmeeting() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImOtherNetmeeting() != null && !em2.getImOtherNetmeeting().equals(em1.getImOtherNetmeeting())) { 
@@ -990,7 +997,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_QQ));
       if (i == null && em2.getImOtherQq() != null) {
-        ops.add(add(id, em2.getImOtherQq(), Im.PROTOCOL_QQ, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherQq(), Im.PROTOCOL_QQ, Im.TYPE_OTHER, create));
       } else if ( i != null && em2.getImOtherQq() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImOtherQq() != null && !em2.getImOtherQq().equals(em1.getImOtherQq())) { 
@@ -999,7 +1006,7 @@ public class ImSync extends AbstractType implements ContactInterface {
 
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_SKYPE));
       if (i == null && em2.getImOtherSkype() != null) {
-        ops.add(add(id, em2.getImOtherSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherSkype(), Im.PROTOCOL_SKYPE, Im.TYPE_OTHER, create));
       } else if ( i != null && em2.getImOtherSkype() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImOtherSkype() != null && !em2.getImOtherSkype().equals(em1.getImOtherSkype())) { 
@@ -1008,7 +1015,7 @@ public class ImSync extends AbstractType implements ContactInterface {
       
       i = ID.getIdByValue(em1.getID(), String.valueOf(Im.TYPE_OTHER), String.valueOf(Im.PROTOCOL_YAHOO));
       if (i == null && em2.getImOtherYahoo() != null) {
-        ops.add(add(id, em2.getImOtherYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_OTHER));
+        ops.add(add(id, em2.getImOtherYahoo(), Im.PROTOCOL_YAHOO, Im.TYPE_OTHER, create));
       } else if ( i != null && em2.getImOtherYahoo() == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && em2.getImOtherYahoo() != null && !em2.getImOtherSkype().equals(em1.getImOtherYahoo())) { 

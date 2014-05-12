@@ -289,10 +289,6 @@ public class HelperSQL extends SQLiteOpenHelper {
     Cursor cursor = db.rawQuery(selectQuery, null);
     if (cursor.moveToFirst()) {
       do {
-        Log.i(TAG, cursor.getString(6) +  new ContactRow(cursor.getString(7),
-            cursor.getString(1), cursor.getInt(2) > 0, cursor.getInt(0), cursor
-            .getString(3), cursor.getString(4), cursor.getString(5), cursor
-            .getString(6)).toString());
         // Adding contact to list
         contactList.put(cursor.getString(6), new ContactRow(cursor.getString(7),
             cursor.getString(1), cursor.getInt(2) > 0, cursor.getInt(0), cursor

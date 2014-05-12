@@ -421,25 +421,34 @@ public class PhoneSync extends AbstractType implements ContactInterface{
     }
     return values;
   }
-  
+
   /**
    * 
-   * @param id        raw_contact id
-   * @param value     name of protocol
-   * @param protocol  like {@link Phone.PROTOCOl_AIM}
-   * @param type      like Phone.TYPE_HOME
+   * @param id
+   * @param value
+   * @param type
+   * @param create
    * @return
    */
-  public static ContentProviderOperation add(String id, String value, int type) {
-    return ContentProviderOperation.newInsert(Data.CONTENT_URI)
-    .withValue(Data.RAW_CONTACT_ID, id)
-    .withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
-    .withValue(Phone.TYPE, type)
-    .withValue(Phone.DATA, value)
-    .build();
+  public static ContentProviderOperation add(int id, String value, int type, boolean create) {
+    if (create) {
+      return ContentProviderOperation.newInsert(Data.CONTENT_URI)
+          .withValueBackReference(Data.RAW_CONTACT_ID, id)
+          .withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
+          .withValue(Phone.TYPE, type)
+          .withValue(Phone.DATA, value)
+          .build();
+    } else {
+      return ContentProviderOperation.newInsert(Data.CONTENT_URI)
+      .withValue(Data.RAW_CONTACT_ID, id)
+      .withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
+      .withValue(Phone.TYPE, type)
+      .withValue(Phone.DATA, value)
+      .build();
+    }
   }
   
-  public static ContentProviderOperation update(String id, String value, int type) {
+  public static ContentProviderOperation update(int id, String value, int type) {
     return ContentProviderOperation.newUpdate(Data.CONTENT_URI)
         .withSelection(Data._ID + "=?", new String[]{String.valueOf(id)})
         .withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
@@ -448,68 +457,68 @@ public class PhoneSync extends AbstractType implements ContactInterface{
   }
   
 
-  public static ArrayList<ContentProviderOperation> operation(String id, PhoneSync em1, PhoneSync em2) {
+  public static ArrayList<ContentProviderOperation> operation(int id, PhoneSync em1, PhoneSync em2, boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       if (em2.getPhoneAssistant() != null) {
-        ops.add(add(id, em2.getPhoneAssistant(), Phone.TYPE_ASSISTANT));
+        ops.add(add(id, em2.getPhoneAssistant(), Phone.TYPE_ASSISTANT, create));
       }
       if (em2.getPhoneCallback() != null) {
-        ops.add(add(id, em2.getPhoneCallback(), Phone.TYPE_CALLBACK));
+        ops.add(add(id, em2.getPhoneCallback(), Phone.TYPE_CALLBACK, create));
       }
       if (em2.getPhoneCar() != null) {
-        ops.add(add(id, em2.getPhoneCar(), Phone.TYPE_CAR));
+        ops.add(add(id, em2.getPhoneCar(), Phone.TYPE_CAR, create));
       }
       if (em2.getPhoneCompany() != null) {
-        ops.add(add(id, em2.getPhoneCompany(), Phone.TYPE_COMPANY_MAIN));
+        ops.add(add(id, em2.getPhoneCompany(), Phone.TYPE_COMPANY_MAIN, create));
       }
       if (em2.getPhoneFaxHome() != null) {
-        ops.add(add(id, em2.getPhoneFaxHome(), Phone.TYPE_FAX_HOME));
+        ops.add(add(id, em2.getPhoneFaxHome(), Phone.TYPE_FAX_HOME, create));
       }
       if (em2.getPhoneFaxWork() != null) {
-        ops.add(add(id, em2.getPhoneFaxWork(), Phone.TYPE_FAX_WORK));
+        ops.add(add(id, em2.getPhoneFaxWork(), Phone.TYPE_FAX_WORK, create));
       }
       if (em2.getPhoneHome()  != null) {
-        ops.add(add(id, em2.getPhoneHome(), Phone.TYPE_HOME));
+        ops.add(add(id, em2.getPhoneHome(), Phone.TYPE_HOME, create));
       }
       if (em2.getPhoneISDN() != null) {
-        ops.add(add(id, em2.getPhoneISDN(), Phone.TYPE_ISDN));
+        ops.add(add(id, em2.getPhoneISDN(), Phone.TYPE_ISDN, create));
       }
       if (em2.getPhoneMain() != null) {
-        ops.add(add(id, em2.getPhoneMain(), Phone.TYPE_MAIN));
+        ops.add(add(id, em2.getPhoneMain(), Phone.TYPE_MAIN, create));
       }
       if (em2.getPhoneMMS() != null) {
-        ops.add(add(id, em2.getPhoneMMS(), Phone.TYPE_MMS));
+        ops.add(add(id, em2.getPhoneMMS(), Phone.TYPE_MMS, create));
       }
       if (em2.getPhoneMobile() != null) {
-        ops.add(add(id, em2.getPhoneMobile(), Phone.TYPE_MOBILE));
+        ops.add(add(id, em2.getPhoneMobile(), Phone.TYPE_MOBILE, create));
       }
       if (em2.getPhoneOther() != null) {
-        ops.add(add(id, em2.getPhoneOther(), Phone.TYPE_OTHER));
+        ops.add(add(id, em2.getPhoneOther(), Phone.TYPE_OTHER, create));
       }
       if (em2.getPhoneOtherFax() != null) {
-        ops.add(add(id, em2.getPhoneOtherFax(), Phone.TYPE_OTHER_FAX));
+        ops.add(add(id, em2.getPhoneOtherFax(), Phone.TYPE_OTHER_FAX, create));
       }
       if (em2.getPhonePager() != null) {
-        ops.add(add(id, em2.getPhonePager(), Phone.TYPE_PAGER));
+        ops.add(add(id, em2.getPhonePager(), Phone.TYPE_PAGER, create));
       }
       if (em2.getPhoneRadio() != null) {
-        ops.add(add(id, em2.getPhoneRadio(), Phone.TYPE_RADIO));
+        ops.add(add(id, em2.getPhoneRadio(), Phone.TYPE_RADIO, create));
       }
       if (em2.getPhoneTelex() != null) {
-        ops.add(add(id, em2.getPhoneTelex(), Phone.TYPE_TELEX));
+        ops.add(add(id, em2.getPhoneTelex(), Phone.TYPE_TELEX, create));
       }
       if (em2.getPhoneTTYTDD() != null) {
-        ops.add(add(id, em2.getPhoneTTYTDD(), Phone.TYPE_TTY_TDD));
+        ops.add(add(id, em2.getPhoneTTYTDD(), Phone.TYPE_TTY_TDD, create));
       }
       if (em2.getPhoneWork() != null) {
-        ops.add(add(id, em2.getPhoneWork(), Phone.TYPE_WORK));
+        ops.add(add(id, em2.getPhoneWork(), Phone.TYPE_WORK, create));
       }
       if (em2.getPhoneWorkMobile() != null) {
-        ops.add(add(id, em2.getPhoneWorkMobile(), Phone.TYPE_WORK_MOBILE));
+        ops.add(add(id, em2.getPhoneWorkMobile(), Phone.TYPE_WORK_MOBILE, create));
       }
       if (em2.getPhoneWorkPager() != null) {
-        ops.add(add(id, em2.getPhoneWorkPager(), Phone.TYPE_WORK_PAGER));
+        ops.add(add(id, em2.getPhoneWorkPager(), Phone.TYPE_WORK_PAGER, create));
       }
     } else if (em1 == null && em2 == null) { // nothing
       
@@ -576,98 +585,98 @@ public class PhoneSync extends AbstractType implements ContactInterface{
       }
     } else if (em1 != null && em2 != null) { // clear or update data in db
       ArrayList<ContentProviderOperation> op;
-      op = createOps(em1.getPhoneAssistant(), em2.getPhoneAssistant(), em1.getID(), Phone.TYPE_ASSISTANT, id);
+      op = createOps(em1.getPhoneAssistant(), em2.getPhoneAssistant(), em1.getID(), Phone.TYPE_ASSISTANT, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      op = createOps(em1.getPhoneCallback(), em2.getPhoneCallback(), em1.getID(), Phone.TYPE_CALLBACK, id);
-      if (op != null && op.size() > 0) {
-        ops.addAll(op);
-      }
-      
-      op = createOps(em1.getPhoneCar(), em2.getPhoneCar(), em1.getID(), Phone.TYPE_CAR, id);
+      op = createOps(em1.getPhoneCallback(), em2.getPhoneCallback(), em1.getID(), Phone.TYPE_CALLBACK, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getPhoneCompany(), em2.getPhoneCompany(), em1.getID(), Phone.TYPE_COMPANY_MAIN, id);
+      op = createOps(em1.getPhoneCar(), em2.getPhoneCar(), em1.getID(), Phone.TYPE_CAR, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getPhoneFaxHome(), em2.getPhoneFaxHome(), em1.getID(), Phone.TYPE_FAX_HOME, id);
+      op = createOps(em1.getPhoneCompany(), em2.getPhoneCompany(), em1.getID(), Phone.TYPE_COMPANY_MAIN, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getPhoneFaxWork(), em2.getPhoneFaxWork(), em1.getID(), Phone.TYPE_FAX_WORK, id);
+      op = createOps(em1.getPhoneFaxHome(), em2.getPhoneFaxHome(), em1.getID(), Phone.TYPE_FAX_HOME, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getPhoneHome(), em2.getPhoneHome(), em1.getID(), Phone.TYPE_HOME, id);
-      if (op != null && op.size() > 0) {
-        ops.addAll(op);
-      }
-      op = createOps(em1.getPhoneISDN(), em2.getPhoneISDN(), em1.getID(), Phone.TYPE_ISDN, id);
+      op = createOps(em1.getPhoneFaxWork(), em2.getPhoneFaxWork(), em1.getID(), Phone.TYPE_FAX_WORK, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getPhoneMain(), em2.getPhoneMain(), em1.getID(), Phone.TYPE_MAIN, id);
+      op = createOps(em1.getPhoneHome(), em2.getPhoneHome(), em1.getID(), Phone.TYPE_HOME, id, create);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      op = createOps(em1.getPhoneISDN(), em2.getPhoneISDN(), em1.getID(), Phone.TYPE_ISDN, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getPhoneMMS(), em2.getPhoneMMS(), em1.getID(), Phone.TYPE_MMS, id);
+      op = createOps(em1.getPhoneMain(), em2.getPhoneMain(), em1.getID(), Phone.TYPE_MAIN, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getPhoneMobile(), em2.getPhoneMobile(), em1.getID(), Phone.TYPE_MOBILE, id);
+      op = createOps(em1.getPhoneMMS(), em2.getPhoneMMS(), em1.getID(), Phone.TYPE_MMS, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getPhoneOther(), em2.getPhoneOther(), em1.getID(), Phone.TYPE_OTHER, id);
+      op = createOps(em1.getPhoneMobile(), em2.getPhoneMobile(), em1.getID(), Phone.TYPE_MOBILE, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getPhoneOtherFax(), em2.getPhoneOtherFax(), em1.getID(), Phone.TYPE_OTHER_FAX, id);
-      if (op != null && op.size() > 0) {
-        ops.addAll(op);
-      }
-      op = createOps(em1.getPhonePager(), em2.getPhonePager(), em1.getID(), Phone.TYPE_PAGER, id);
+      op = createOps(em1.getPhoneOther(), em2.getPhoneOther(), em1.getID(), Phone.TYPE_OTHER, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getPhoneRadio(), em2.getPhoneRadio(), em1.getID(), Phone.TYPE_RADIO, id);
+      op = createOps(em1.getPhoneOtherFax(), em2.getPhoneOtherFax(), em1.getID(), Phone.TYPE_OTHER_FAX, id, create);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      op = createOps(em1.getPhonePager(), em2.getPhonePager(), em1.getID(), Phone.TYPE_PAGER, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getPhoneTelex(), em2.getPhoneTelex(), em1.getID(), Phone.TYPE_TELEX, id);
+      op = createOps(em1.getPhoneRadio(), em2.getPhoneRadio(), em1.getID(), Phone.TYPE_RADIO, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getPhoneTTYTDD(), em2.getPhoneTTYTDD(), em1.getID(), Phone.TYPE_TTY_TDD, id);
+      op = createOps(em1.getPhoneTelex(), em2.getPhoneTelex(), em1.getID(), Phone.TYPE_TELEX, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getPhoneWork(), em2.getPhoneWork(), em1.getID(), Phone.TYPE_WORK, id);
-      if (op != null && op.size() > 0) {
-        ops.addAll(op);
-      }
-      op = createOps(em1.getPhoneWorkMobile(), em2.getPhoneWorkMobile(), em1.getID(), Phone.TYPE_WORK_MOBILE, id);
+      op = createOps(em1.getPhoneTTYTDD(), em2.getPhoneTTYTDD(), em1.getID(), Phone.TYPE_TTY_TDD, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
       
-      op = createOps(em1.getPhoneWorkPager(), em2.getPhoneWorkPager(), em1.getID(), Phone.TYPE_WORK_PAGER, id);
+      op = createOps(em1.getPhoneWork(), em2.getPhoneWork(), em1.getID(), Phone.TYPE_WORK, id, create);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      op = createOps(em1.getPhoneWorkMobile(), em2.getPhoneWorkMobile(), em1.getID(), Phone.TYPE_WORK_MOBILE, id, create);
+      if (op != null && op.size() > 0) {
+        ops.addAll(op);
+      }
+      
+      op = createOps(em1.getPhoneWorkPager(), em2.getPhoneWorkPager(), em1.getID(), Phone.TYPE_WORK_PAGER, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
@@ -684,12 +693,12 @@ public class PhoneSync extends AbstractType implements ContactInterface{
    * @param id
    * @return
    */
-  private static ArrayList<ContentProviderOperation> createOps(String value1, String value2, List<ID> ids, int type, String id) {
+  private static ArrayList<ContentProviderOperation> createOps(String value1, String value2, List<ID> ids, int type, int id, boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if(value2 != null || value2 != null) {
       String i = ID.getIdByValue(ids, String.valueOf(type), null);
       if (i == null && value2 != null) {
-        ops.add(add(id, value2, type));
+        ops.add(add(id, value2, type, create));
       } else if ( i != null && value2 == null) {
         ops.add(GoogleContact.delete(i));
       } else if (i != null && value2 != null && !value2.equals(value1)) { 

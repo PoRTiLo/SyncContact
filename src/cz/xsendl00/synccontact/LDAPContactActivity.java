@@ -1,7 +1,9 @@
 package cz.xsendl00.synccontact;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import cz.xsendl00.synccontact.R;
 
@@ -20,6 +22,7 @@ import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -90,8 +93,12 @@ public class LDAPContactActivity extends Activity {
    *          data of contact and group from server
    */
   public void onTaskCompleted(Pair pair) {
+    
     this.setPair(pair);
+    Log.i(TAG, "pai size:"+pair.getContactList().size());
     init();
+   // ContactLDAPFragment fragment = (ContactLDAPFragment) getFragmentManager().findFragmentByTag("CONTACT_LDAP");
+   // fragment.getAdapter().notifyDataSetChanged();
   }
 
   /**
@@ -174,8 +181,11 @@ public class LDAPContactActivity extends Activity {
     protected Pair doInBackground(Void... params) {
       HelperSQL db = new HelperSQL(activity);
       Utils util = new Utils();
-      final List<ContactRow> intersection = util.intersectionDifference(pair.getContactList(), db.getAllContactsMap());
-      Log.i(TAG, "intersection:" + intersection.size() + ", pair.getContactList():" + pair.getContactList().size() + ", db.getAllContactsMap():" + db.getAllContactsMap().size());
+      Map<String, ContactRow> dbContact =  db.getAllContactsMap();
+      ArrayList<ContactRow> contactRows = new ArrayList<ContactRow>();
+      contactRows.addAll(pair.getContactList());
+      final List<ContactRow> intersection = util.intersectionDifference(contactRows, dbContact);
+      Log.i(TAG, "intersection:" + intersection.size() + ", contactRows:" + contactRows.size() + ", dbContact:" + dbContact.size());
       
       // intersection-> must be sign as sync
       new Thread(new Runnable() {
@@ -185,13 +195,11 @@ public class LDAPContactActivity extends Activity {
         }
       }).start();
       
-      pair.getContactList();
-      for (ContactRow contactRow : pair.getContactList()) {
-
+      for (ContactRow contactRow : contactRows) {
         GoogleContact googleContact =  new ServerUtilities().fetchLDAPContact(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext(), handler, contactRow.getUuid());
-        
+        Log.i(TAG, googleContact.getUuid());
       }
-      return null;
+      return pair;
     }
 
     protected void onPostExecute(Pair p) {

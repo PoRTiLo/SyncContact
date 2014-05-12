@@ -369,11 +369,20 @@ public class OrganizationSync extends AbstractType implements ContactInterface {
   
   
 
-  public static ContentProviderOperation add(String id, Map<String, String> values, int type) {
+  public static ContentProviderOperation add(int id, Map<String, String> values, int type, boolean create) {
     ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newInsert(Data.CONTENT_URI);
-    operationBuilder.withValue(Data.RAW_CONTACT_ID, id)
+    if (create) {
+      operationBuilder
+        .withValueBackReference(Data.RAW_CONTACT_ID, id)
+        .withValue(Data.MIMETYPE, Organization.CONTENT_ITEM_TYPE)
+        .withValue(Organization.TYPE, type);
+    } else {
+      operationBuilder.withValue(Data.RAW_CONTACT_ID, id)
       .withValue(Data.MIMETYPE, Organization.CONTENT_ITEM_TYPE)
       .withValue(Organization.TYPE, type);
+    }
+    
+    
     Iterator<String> iter = values.keySet().iterator();
     while(iter.hasNext()) {
       String key = (String)iter.next();
@@ -399,7 +408,7 @@ public class OrganizationSync extends AbstractType implements ContactInterface {
   }
   
 
-  public static ArrayList<ContentProviderOperation> operation(String id, OrganizationSync em1, OrganizationSync em2) {
+  public static ArrayList<ContentProviderOperation> operation(int id, OrganizationSync em1, OrganizationSync em2, boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       Map<String, String> value = new HashMap<String, String>();
@@ -428,7 +437,7 @@ public class OrganizationSync extends AbstractType implements ContactInterface {
         value.put(Organization.DATA4, em2.getOrganizationOtherTitle());
       }
       if (value.size() > 0) {
-        ops.add(add(id,value, Organization.TYPE_OTHER));
+        ops.add(add(id,value, Organization.TYPE_OTHER, create));
       }
       value.clear();
       if (em2.getOrganizationWorkCompany() != null) {
@@ -456,7 +465,7 @@ public class OrganizationSync extends AbstractType implements ContactInterface {
         value.put(Organization.DATA4, em2.getOrganizationWorkTitle());
       }
       if (value.size() > 0) {
-        ops.add(add(id,value, Organization.TYPE_WORK));
+        ops.add(add(id,value, Organization.TYPE_WORK, create));
       }
     } else if (em1 == null && em2 == null) { // nothing
       
