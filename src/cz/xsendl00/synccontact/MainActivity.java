@@ -2,6 +2,7 @@ package cz.xsendl00.synccontact;
 
 import cz.xsendl00.synccontact.R;
 
+import cz.xsendl00.synccontact.activity.first.WelcomeActivity;
 import cz.xsendl00.synccontact.utils.Constants;
 import android.app.Activity;
 import android.content.Intent;
@@ -112,7 +113,7 @@ public class MainActivity extends Activity {
    * @param view
    */
   public void startContactActivity(View view) {
-    Intent intent = new Intent(this, SelectContactListActivity.class);
+    Intent intent = new Intent(this, ContactsActivity.class);
     startActivity(intent);
   }
 

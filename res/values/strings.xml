@@ -9,6 +9,8 @@
     <string name="app_name_remove">Remove</string>
     <string name="app_name_edit">Edit</string>
     <string name="app_name_info">Info</string>
+    <string name="app_name_info_ldap">Info LDAP</string>
+    <string name="app_name_info_merge">Merge contact</string>
     <string name="app_name_settings">Settings</string>
     <string name="app_name_ldap_contact">LDAP contacts</string>
     <string name="title_section1">Section 1</string>

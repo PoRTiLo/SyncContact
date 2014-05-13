@@ -4,7 +4,7 @@ import java.util.List;
 
 import cz.xsendl00.synccontact.AddServerActivity;
 import cz.xsendl00.synccontact.MainActivity;
-import cz.xsendl00.synccontact.SelectContactListActivity;
+import cz.xsendl00.synccontact.ContactsActivity;
 import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
@@ -201,7 +201,7 @@ public class SyncAuthenticator extends AbstractAccountAuthenticator {
       AndroidDB.exportContactsFromSyncAccount(mContext, contactRows);
       // ServerUtilities.addContactsToServer(new
       // ServerInstance(AccountData.getAccountData(getApplicationContext())),
-      // handler, SelectContactListActivity.this);
+      // handler, ContactsActivity.this);
       
       return true;
     }

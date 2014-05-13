@@ -1,6 +1,11 @@
-package cz.xsendl00.synccontact;
+package cz.xsendl00.synccontact.activity.fragment;
 
+import cz.xsendl00.synccontact.ContactsActivity;
+import cz.xsendl00.synccontact.HelpActivity;
+import cz.xsendl00.synccontact.LDAPContactActivity;
 import cz.xsendl00.synccontact.R;
+import cz.xsendl00.synccontact.SettingsActivity;
+import cz.xsendl00.synccontact.R.id;
 
 import android.app.Fragment;
 import android.content.Intent;
@@ -45,7 +50,7 @@ public class GroupLDAPFragment extends Fragment implements
     Intent intent = null;
     switch (item.getItemId()) {
       case R.id.action_refresh:
-        ((SelectContactListActivity) getActivity()).update();
+        ((ContactsActivity) getActivity()).update();
         break;
       case R.id.action_add_group:
         break;
@@ -65,19 +70,6 @@ public class GroupLDAPFragment extends Fragment implements
         //item.setTitle(newText);
         break;
       case android.R.id.home:
-        // TODO
-        Log.i(TAG, "jsem tuuuuuuuuuuuuuuuuuuuuu");
-        /*
-         * Intent upIntent = NavUtils.getParentActivityIntent(this); if
-         * (NavUtils.shouldUpRecreateTask(this, upIntent)) { // This activity is
-         * NOT part of this app's task, so create a new task // when navigating
-         * up, with a synthesized back stack. TaskStackBuilder.create(this) // Add
-         * all of this activity's parents to the back stack
-         * .addNextIntentWithParentStack(upIntent) // Navigate up to the closest
-         * parent .startActivities(); } else { // This activity is part of this
-         * app's task, so simply // navigate up to the logical parent activity.
-         * NavUtils.navigateUpTo(this, upIntent); }
-         */
         break;
       default:
         break;

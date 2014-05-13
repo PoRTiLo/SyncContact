@@ -1,7 +1,12 @@
-package cz.xsendl00.synccontact;
+package cz.xsendl00.synccontact.activity.fragment;
 
 import java.util.List;
 
+import cz.xsendl00.synccontact.HelpActivity;
+import cz.xsendl00.synccontact.LDAPContactActivity;
+import cz.xsendl00.synccontact.R;
+import cz.xsendl00.synccontact.SettingsActivity;
+import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import android.app.Fragment;
@@ -13,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ListView;
 
@@ -30,6 +36,7 @@ public class ContactLDAPFragment extends Fragment implements
   private LDAPContactActivity activity;
   private ListView listRow;
   private RowLDAPContactAdapter adapter;
+  private ContactManager contactManager;
   
   private static boolean selectAll;
 
@@ -39,20 +46,27 @@ public class ContactLDAPFragment extends Fragment implements
     setHasOptionsMenu(true);
     
     activity = (LDAPContactActivity) getActivity();
+    contactManager = ContactManager.getInstance(activity);
     selectAll = selected();
   }
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View rootView = null;
     rootView = inflater.inflate(R.layout.fragment_contact, container, false);
+    Button button = (Button) rootView.findViewById(R.id.fragment_contact_button);
+    if (activity.isFirst() && contactManager.getContactListLDAP().isEmpty()) {
+      button.setText("Skip");
+    } else {
+      button.setText("Imported selected");
+    }
     return rootView;
   }
 
   public void onResume() {
     super.onResume();
     listRow = (ListView) getActivity().findViewById(R.id.list_contact);
-    Log.i(TAG, "size in ContactLDAPFragment :" + activity.getPair().getContactList().size());
-    adapter = new RowLDAPContactAdapter(getActivity().getApplicationContext(), activity.getPair().getContactList(), this);
+    Log.i(TAG, "size in ContactLDAPFragment :" + contactManager.getContactListLDAP().size());
+    adapter = new RowLDAPContactAdapter(getActivity().getApplicationContext(), contactManager.getContactListLDAP(), this);
     listRow.setAdapter(adapter);
   }
   
@@ -60,7 +74,7 @@ public class ContactLDAPFragment extends Fragment implements
     HelperSQL db = new HelperSQL(activity);
     List<ContactRow> contactRowDb = db.getContactsSync();
     int countSelect = 0;
-    for (ContactRow contactRow : activity.getPair().getContactList()) {
+    for (ContactRow contactRow : contactManager.getContactListLDAP()) {
       int i = 0;
       boolean found = false;
       for (ContactRow contactRow2 : contactRowDb) {
@@ -77,11 +91,11 @@ public class ContactLDAPFragment extends Fragment implements
         contactRow.setSync(false);
       }
     }
-    return selectAll = countSelect == activity.getPair().getContactList().size();
+    return selectAll = countSelect == contactManager.getContactListLDAP().size();
   }
   
   private void selectAll(final boolean result) {
-    for (ContactRow contactRow : activity.getPair().getContactList()) {
+    for (ContactRow contactRow : contactManager.getContactListLDAP()) {
       contactRow.setSync(result);
     }
     adapter.notifyDataSetChanged();
@@ -121,8 +135,7 @@ public class ContactLDAPFragment extends Fragment implements
         selectAll(selectAll);
         break;
       case android.R.id.home:
-        // TODO 
-        Log.i("taddy:", "taddyyy");
+        getActivity().finish();
         break;
       default:
         break;
@@ -134,7 +147,7 @@ public class ContactLDAPFragment extends Fragment implements
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
     final int pos = (Integer) buttonView.getTag();
     if (pos != ListView.INVALID_POSITION) {
-      ContactRow p = activity.getPair().getContactList().get(pos);
+      ContactRow p = contactManager.getContactListLDAP().get(pos);
       if (p.isSync() != isChecked) {
         p.setSync(isChecked);
       }

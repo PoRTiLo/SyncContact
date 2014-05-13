@@ -53,6 +53,7 @@ public class Mapping {
 
   private static final String TAG = "Mapping";
 
+  // TODO: nemam tam byt RawContacts._ID + "=? AND " + RawContacts.DIRTY + "=?",
   public static List<String> fetchDirtyContacts(Context context) {
     HelperSQL db = new HelperSQL(context);
     List<String> list = db.getSyncContactsId();

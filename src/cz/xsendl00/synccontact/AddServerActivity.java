@@ -2,6 +2,7 @@ package cz.xsendl00.synccontact;
 
 import cz.xsendl00.synccontact.R;
 
+import cz.xsendl00.synccontact.activity.first.InfoSyncActivity;
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.client.Address;
 import cz.xsendl00.synccontact.client.AddressType;
@@ -289,11 +290,10 @@ public class AddServerActivity extends AccountAuthenticatorActivity {
     setResult(RESULT_OK, intent);
     
     if (accountData.isNewAccount()) {
-      Intent intent1 = new Intent(this, InfoActivity.class);
+      Intent intent1 = new Intent(this, InfoSyncActivity.class);
       startActivity(intent1);
     } else {
       finish();
     }
-    //finish();
   }
 }

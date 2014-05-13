@@ -1,5 +1,9 @@
-package cz.xsendl00.synccontact;
+package cz.xsendl00.synccontact.activity.first;
 
+import cz.xsendl00.synccontact.HelpActivity;
+import cz.xsendl00.synccontact.LDAPContactActivity;
+import cz.xsendl00.synccontact.R;
+import cz.xsendl00.synccontact.SettingsActivity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,7 +12,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
-public class InfoActivity extends Activity {
+/**
+ * Info LDAp import data.
+ * @author portilo
+ *
+ */
+public class InfoLDAPActivity extends Activity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -17,8 +26,12 @@ public class InfoActivity extends Activity {
     getActionBar().setDisplayHomeAsUpEnabled(true);
   }
 
+  /**
+   * Go to import activity.
+   * @param view
+   */
   public void selectActivity(View view) {
-    Intent intent = new Intent(this, SelectContactListActivity.class);
+    Intent intent = new Intent(this, LDAPContactActivity.class);
     intent.putExtra("FIRST", true);
     startActivity(intent);
   }

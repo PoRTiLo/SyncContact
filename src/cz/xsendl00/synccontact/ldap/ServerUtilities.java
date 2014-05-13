@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
 
 import com.unboundid.ldap.sdk.AddRequest;
@@ -192,6 +193,14 @@ public class ServerUtilities {
     return size;
   }
   
+  /**
+   * Get contact from LDAP server and import them in database.
+   * @param ldapServer
+   * @param context
+   * @param handler
+   * @param uuid The uuid of contact, which will be added to phone.
+   * @return the new {@link GoogleContact} contact.
+   */
   public GoogleContact fetchLDAPContact(final ServerInstance ldapServer, final Context context, final Handler handler, final String uuid) {
     GoogleContact googleContactOut = null;
     LDAPConnection connection = null;
@@ -207,10 +216,21 @@ public class ServerUtilities {
         new Thread(new Runnable() {
           public void run() {
             try {
-              ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, GoogleContact.createOperationNew(new GoogleContact(), googleContact));
+              String id = null;
+              ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, new GoogleContact().createOperationNew(new GoogleContact(), googleContact));
               for (ContentProviderResult a : contactUri) {
-                 Log.i(TAG, "res:" + a);
+                if (id == null) {
+                  id = a.uri.getLastPathSegment();
+                }
+                Log.i(TAG, "id:" + id);
+                Log.i(TAG, "res:" + a.toString());
               }
+              HelperSQL db = new HelperSQL(context);
+              ContactRow contactRow = new ContactRow(id, 
+                  googleContact.getStructuredName().getDisplayName(), true, null, Constants.ACCOUNT_NAME, Constants.ACCOUNT_TYPE, ContactRow.createTimestamp(), googleContact.getUuid());
+              List<ContactRow> contacts = new ArrayList<ContactRow>();
+              contacts.add(contactRow);
+              db.addContacts(contacts);
             } catch (RemoteException e) {
               e.printStackTrace();
             } catch (OperationApplicationException e) {

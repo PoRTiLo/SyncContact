@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+  android:layout_width="match_parent"
+  android:descendantFocusability="blocksDescendants"
+  android:layout_height="match_parent" >
+  <TextView android:id="@+id/merge_ldap_info"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textStyle="bold"
+    android:text="ldap's name"/>
+  <TextView android:id="@+id/merge_ldap_contact"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textStyle="bold"
+    android:textAppearance="?android:attr/textAppearanceLarge"
+    android:layout_below="@id/merge_ldap_info" />
+   
+  <CheckBox android:id="@+id/merge_sync"
+    android:layout_alignParentLeft="true"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_below="@id/merge_ldap_contact" />
+  <TextView android:id="@+id/merge_info" 
+    android:layout_width="match_parent" 
+    android:layout_height="match_parent"
+    android:text="merge this contacts"
+    android:layout_below="@id/merge_ldap_contact" 
+    android:layout_toRightOf="@id/merge_sync"/>
+  
+  <TextView android:id="@+id/merge_local_info"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textStyle="bold"
+    android:text="local contact name"
+    android:layout_below="@id/merge_sync" /> 
+  <TextView android:id="@+id/merge_local_contact" 
+    android:layout_width="match_parent" 
+    android:layout_height="match_parent"
+    android:textAppearance="?android:attr/textAppearanceLarge"
+    android:layout_below="@id/merge_local_info"/>
+</RelativeLayout>

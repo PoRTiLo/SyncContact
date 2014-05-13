@@ -249,10 +249,16 @@ public class GoogleContact {
     return values;
   }
   
-  public static ArrayList<ContentProviderOperation> createOperationNew(GoogleContact con1, GoogleContact con2) {
+  /**
+   * Create list of {@link ContentProviderOperation}, which added new contact to contact provider database.
+   * @param oldGoogleContact The {@link GoogleContact}
+   * @param newGoogleContact The {@link GoogleContact} 
+   * @return list of ContentProviderOperation for adding new contact on based newGoogleContact.
+   */
+  public ArrayList<ContentProviderOperation> createOperationNew(final GoogleContact oldGoogleContact, final GoogleContact newGoogleContact) {
 
-    Log.i(TAG, "con1:" + con1.toString());
-    Log.i(TAG, "con2:" + con2.toString());
+    Log.i(TAG, "con1:" + oldGoogleContact.toString());
+    Log.i(TAG, "con2:" + newGoogleContact.toString());
     
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     
@@ -261,16 +267,16 @@ public class GoogleContact {
              .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE)
              .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
              .build());
-    ops.addAll(createOperation(rawContactInsertIndex, con1, con2, false));
+    ops.addAll(createOperation(rawContactInsertIndex, oldGoogleContact, newGoogleContact, true));
     
     Log.i(TAG, ops.toString());
     
     return ops;
   }
   
-  public static ArrayList<ContentProviderOperation> createOperationUpdate(GoogleContact con1, GoogleContact con2) {
+  public static ArrayList<ContentProviderOperation> createOperationUpdate(final GoogleContact oldGoogleContact, final GoogleContact newGoogleContact) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
-    ops = createOperation(Integer.getInteger(con1.getId()), con1, con2, false);
+    ops = createOperation(Integer.getInteger(oldGoogleContact.getId()), oldGoogleContact, newGoogleContact, false);
     return ops;
   }
   

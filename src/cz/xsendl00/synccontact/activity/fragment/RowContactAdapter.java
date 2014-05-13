@@ -1,4 +1,4 @@
-package cz.xsendl00.synccontact;
+package cz.xsendl00.synccontact.activity.fragment;
 
 import java.util.List;
 
@@ -13,6 +13,8 @@ import android.widget.TextView;
 
 import cz.xsendl00.synccontact.R;
 
+import cz.xsendl00.synccontact.R.id;
+import cz.xsendl00.synccontact.R.layout;
 import cz.xsendl00.synccontact.utils.ContactRow;
 
 public class RowContactAdapter extends BaseAdapter {

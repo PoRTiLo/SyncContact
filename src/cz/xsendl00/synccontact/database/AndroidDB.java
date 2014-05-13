@@ -9,6 +9,7 @@ import android.content.ContentProviderResult;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.database.Cursor;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.RawContacts;
@@ -64,15 +65,7 @@ public class AndroidDB {
 
     return true;
   }
-  
-  /**
-   * Add new contact to contact provider databse. Mapping it from Google COntact. 
-   * @param googleContact
-   */
-  public void addContact(final GoogleContact googleContact) {
-    
-  }
-  
+
   public static void importContactToSyncAccount(Context context, Integer id) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     Log.i(TAG, id.toString());
@@ -180,5 +173,33 @@ public class AndroidDB {
     }
   }
   
+  
+  /**
+   * get contact Id by raw id.
+   * @param context
+   * @param idRaw
+   * @return
+   */
+  public static int getIdContact(final Context context, String idRaw) {
+    Cursor cursor = null;
+    int id = 0;
+    try {
+      cursor = context.getContentResolver().query(
+          RawContacts.CONTENT_URI,
+          new String[]{RawContacts.CONTACT_ID},
+          RawContacts._ID + "=?",
+          new String[]{idRaw}, null);
+        while (cursor.moveToNext()) {
+          id = cursor.getInt((cursor.getColumnIndex(RawContacts.CONTACT_ID)));
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        if (cursor != null) {
+            cursor.close();
+        }
+    }
+    return id;
+  }
   
 }

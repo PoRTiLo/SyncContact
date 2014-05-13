@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TimeZone;
@@ -188,16 +189,20 @@ public class ContactRow implements Parcelable {
     return groupMembers;
   }
   
-  public static SortedSet<String> fetchGroupMembersName(ContentResolver contentResolver, String groupId) {
-    SortedSet<String> groupMembers = new TreeSet<String>();
+  public static List<ContactRow> fetchGroupMembersName(ContentResolver contentResolver, String groupId) {
+    SortedSet<ContactRow> groupMembers = new TreeSet<ContactRow>(new ContactRowComparator());
     Cursor cursor = null;
     try {
       String where = CommonDataKinds.GroupMembership.GROUP_ROW_ID + "=" + groupId + " AND " + 
           CommonDataKinds.GroupMembership.MIMETYPE + "='" + CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE + "'";
-      String[] projection = new String[]{Data.DISPLAY_NAME};
+      String[] projection = new String[]{Data.DISPLAY_NAME, Data.CONTACT_ID};
       cursor = contentResolver.query(Data.CONTENT_URI, projection, where, null, Data.DISPLAY_NAME + " COLLATE LOCALIZED ASC");
       while (cursor.moveToNext()) {
-        groupMembers.add(cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME)));
+        ContactRow contactRow = new ContactRow();
+        contactRow.setName(cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME)));
+        contactRow.setId(cursor.getString(cursor.getColumnIndex(Data.CONTACT_ID)));
+        Log.i(TAG, contactRow.toString());
+        groupMembers.add(contactRow);
       }
     } catch(Exception ex) { 
       ex.printStackTrace();
@@ -210,8 +215,7 @@ public class ContactRow implements Parcelable {
         ex.printStackTrace();
       }
     }
-    
-    return groupMembers;
+    return new ArrayList<ContactRow>(groupMembers);
   }
   
   /**
@@ -235,17 +239,6 @@ public class ContactRow implements Parcelable {
               cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_TYPE))
               );
           contacts.add(contactShow);
-          /*boolean found = false;
-          for (ContactRow co : contacts) {
-            if ( co.getId().equals(contactShow.getId())) {
-              found = true;
-            } else {
-              
-            }
-          }
-          if( !found) {
-            contacts.add(contactShow);
-          }*/
         }
       } catch(Exception ex) { 
           ex.printStackTrace();
@@ -258,9 +251,6 @@ public class ContactRow implements Parcelable {
           ex.printStackTrace();
         }
       }
-    //}
-     
-    Log.i(TAG, "all user:" + contacts.size());
     return contacts;
   }
 
@@ -312,6 +302,10 @@ public class ContactRow implements Parcelable {
     this.timestamp = timestamp;
   }
   
+  /**
+   * Get new timestamp.
+   * @return The {@link String} representation timestamp. 
+   */
   @SuppressLint("SimpleDateFormat")
   public static String createTimestamp() {
     Calendar c = Calendar.getInstance();

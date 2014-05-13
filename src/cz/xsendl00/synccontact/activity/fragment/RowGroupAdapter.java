@@ -1,8 +1,11 @@
-package cz.xsendl00.synccontact;
+package cz.xsendl00.synccontact.activity.fragment;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import cz.xsendl00.synccontact.R;
+import cz.xsendl00.synccontact.R.id;
+import cz.xsendl00.synccontact.R.layout;
 import cz.xsendl00.synccontact.utils.GroupRow;
 
 import android.app.Activity;
@@ -17,12 +20,12 @@ import android.widget.TextView;
 public class RowGroupAdapter extends BaseAdapter {
   
   private Context context;
-  private ArrayList<GroupRow> data;
+  private List<GroupRow> data;
   ViewHolder holder;
   GroupFragment par;
   ContactFragment parC;
   
-  public RowGroupAdapter(Context context, ArrayList<GroupRow> data, GroupFragment par) {
+  public RowGroupAdapter(Context context, List<GroupRow> data, GroupFragment par) {
     super();
     this.par = par;
     this.data = data;

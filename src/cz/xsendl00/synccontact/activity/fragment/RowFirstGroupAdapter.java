@@ -1,6 +1,11 @@
-package cz.xsendl00.synccontact;
+package cz.xsendl00.synccontact.activity.fragment;
 
 import java.util.ArrayList;
+
+import cz.xsendl00.synccontact.R;
+import cz.xsendl00.synccontact.R.id;
+import cz.xsendl00.synccontact.R.layout;
+import cz.xsendl00.synccontact.utils.GroupRow;
 
 import android.app.Activity;
 import android.content.Context;
@@ -9,23 +14,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
-import android.widget.Filter;
-import android.widget.Filterable;
 import android.widget.TextView;
 
-import cz.xsendl00.synccontact.R;
-
-import cz.xsendl00.synccontact.utils.ContactRow;
-
-public class RowLDAPContactAdapter extends BaseAdapter {
+public class RowFirstGroupAdapter extends BaseAdapter {
   
   private Context context;
-  private ArrayList<ContactRow> data;
+  private ArrayList<GroupRow> data;
   ViewHolder holder;
-  ContactLDAPFragment par;
-  GroupFragment parG;
+  GroupFragment par;
+  ContactFragment parC;
   
-  public RowLDAPContactAdapter(Context context, ArrayList<ContactRow> data, ContactLDAPFragment par) {
+  public RowFirstGroupAdapter(Context context, ArrayList<GroupRow> data, GroupFragment par) {
     super();
     this.par = par;
     this.data = data;
@@ -46,32 +45,32 @@ public class RowLDAPContactAdapter extends BaseAdapter {
   
   /*private view holder class*/
   private class ViewHolder {
-    TextView contactName;
-    TextView contactGroup;
+    TextView groupName;
+    TextView groupSize;
     CheckBox checkSync;
   }
-  
+
   public View getView(int position, View convertView, ViewGroup parent) {
     holder = null;
     
     LayoutInflater inflater = (LayoutInflater)context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
     
     if (convertView == null) {
-      convertView = inflater.inflate(R.layout.row_contact, null);
+      convertView = inflater.inflate(R.layout.row_group, null);
       holder = new ViewHolder();
-      holder.contactName = (TextView)convertView.findViewById(R.id.row_contact_name);
-      holder.contactGroup = (TextView)convertView.findViewById(R.id.row_conatct_in_group);
-      holder.checkSync = (CheckBox)convertView.findViewById(R.id.row_contact_sync);
+      holder.groupName = (TextView)convertView.findViewById(R.id.row_group_name);
+      holder.groupSize = (TextView)convertView.findViewById(R.id.row_group_size);
+      holder.checkSync = (CheckBox)convertView.findViewById(R.id.row_group_sync);
       convertView.setTag(holder);
     } else {
       holder = (ViewHolder) convertView.getTag();
     }
     holder.checkSync.setTag(position);
-    holder.checkSync.setOnCheckedChangeListener( (ContactLDAPFragment) par);
-    ContactRow contact = (ContactRow) getItem(position);
-    holder.contactName.setText(contact.getName());
-    //holder.groupSize.setText("Number of contact: " + group.getSize());
-    holder.checkSync.setChecked(contact.isSync());
+    holder.checkSync.setOnCheckedChangeListener( (GroupFragment) par);
+    GroupRow group = (GroupRow) getItem(position);
+    holder.groupName.setText(group.getName());
+    holder.groupSize.setText("Number of contact: " + group.getSize());
+    holder.checkSync.setChecked(group.isSync());
     return convertView;
   }
 }
