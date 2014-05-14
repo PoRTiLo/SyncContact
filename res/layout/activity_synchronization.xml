@@ -58,7 +58,7 @@
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <TextView
-                android:id="@+id/sync_time"
+                android:id="@+id/synchronization_time"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:background="@color/grey"

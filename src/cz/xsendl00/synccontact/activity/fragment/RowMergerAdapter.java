@@ -2,6 +2,8 @@ package cz.xsendl00.synccontact.activity.fragment;
 
 import java.util.List;
 
+import cz.xsendl00.synccontact.ContactMergeActivity;
+
 import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -11,7 +13,6 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 import cz.xsendl00.synccontact.R;
-import cz.xsendl00.synccontact.activity.first.ContactMergeActivity;
 import cz.xsendl00.synccontact.utils.ContactRow;
 
 /**

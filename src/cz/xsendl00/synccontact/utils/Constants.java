@@ -2,13 +2,13 @@ package cz.xsendl00.synccontact.utils;
 
 
 public class Constants {
-  
+
   /* Name of setting file */
   public static final String PREFS_NAME = "SyncContactSetting";
   public static final String PREFS_SET_SYNC_CONTACT = "SetSyncContact";
   public static final String PREFS_SHOW_INFO = "ShowInfo";
   public static final String PREFS_START_FIRST = "StartFirst";
-  
+
   public static final String ACCOUNT_TYPE = "cz.xsendl00.synccontact";
   public static final String ACCOUNT_NAME = "syncContact@synccontact.xsendl00.cz";
 
@@ -21,12 +21,12 @@ public class Constants {
    * SD card LDAPSync folder.
    */
   public static final String SDCARD_FOLDER = "/SyncContact";
-  
+
   /**
    * SD card LDAPSync folder.
    */
   public static final String CERT_NAME = "/LDAP_CERT";
-  
+
   /** Activity text **/
   public static final String AC_LOADING = "Loading ...";
   public static final String AC_LOADING_TEXT_DB = "Loading data from database.";
@@ -40,23 +40,23 @@ public class Constants {
 
   public static final Integer SSL_TLS_INT = 2;
   public static final Integer STARTTLS_INT = 3;
-  
+
   public static final Integer TRUST_YES = 1;
   public static final Integer TRUST_NO = 2;
-  
-  
+
+
   /** ldap mapping **/
-  public static final String ADDITIONAL_NAME = "additionalName"; 
+  public static final String ADDITIONAL_NAME = "additionalName";
   public static final String NICKNAME = "nickname";
   public static final String SHORT_NAME = "shortName";
   public static final String MAIDEN_NAME = "maidenName";
-  public static final String GENDER = "gender";  
+  public static final String GENDER = "gender";
   public static final String WORK_PHONE = "workPhone";
   public static final String HOME_EXTENDED_ADDRESS = "homeExtendedAddress";
   public static final String WORK_POSTAL_ADDRESS = "workPostalAddress";
   public static final String WORK_EXTENDED_ADDRESS = "workExtendeAddress";
   public static final String WEBSITE = "website";
-  
+
   /** ---------->USED----------------------**/
   public static final String WORK_SIP = "workSip";
   public static final String HOME_SIP = "homeSip";
@@ -203,8 +203,8 @@ public class Constants {
   public static final String OTHER_COUNTRY = "otherCountry";
   public static final String OTHER_FORMATTED_ADDRESS = "otherFormattedAddress";
   public static final String UUID = "uuid";
-  
-  
+
+
   /* Person */
   public static final String SN = "sn";
   public static final String CN = "cn";
@@ -212,7 +212,7 @@ public class Constants {
   public static final String TELEPHONE_NUMBER = "telephoneNumber";
   public static final String SEE_ALSO = "seeAlso";
   public static final String DESCRIPTION = "description";
-  
+
   /* OrganizationalPerson */
   public static final String TITLE = "title";
   public static final String X12_ADDRESS = "x121Address";
@@ -222,7 +222,7 @@ public class Constants {
   public static final String FASCIMILE_TELEPHONE_NUMBER = "facsimileTelephoneNumber";
   public static final String PREFERRED_DELIVERY_METHOD = "preferredDeliveryMethod";
   public static final String TELEX_NUMBER = "telexNumber";
-  
+
   public static final String POST_OFFICE_BOX = "postOfficeBox";
   public static final String POSTAL_CODE = "postalCode";
   public static final String POSTAL_ADDRESS = "postalAddress";
@@ -230,15 +230,15 @@ public class Constants {
   public static final String OU = "ou";
   public static final String ST = "st";
   public static final String L = "l";
-  
+
   /* InetOrgPerson */
   public static final String AUDIO = "audio";
   public static final String BUSSINES_CATEGORY = "businessCategory";
   public static final String INITIALS = "initials";
-  
+
   public static final String CAR_LICENCE = "carLicense";
   public static final String DEPARTMENT_NUMBER = "departmentNumber";
-  
+
   public static final String EMPLOYEE_NUMBER = "employeeNumber";
   public static final String EMPLOYEE_TYPE = "employeeType";
   public static final String JPEG_PHOTO = "jpegPhoto";
@@ -259,8 +259,12 @@ public class Constants {
   public static final String UID = "uid";
   public static final String USER_CERTIFICATE = "userCertificate";
   public static final String X500_UNIQUE_IDENTIFIER = "x500uniqueIdentifier";
-  
-  
+
+
+  /* GROUP_OF_NAME --- ldap class */
+  public static final String GROUP_DESCRIPTION = "description";
+  public static final String GROUP_MEMBER = "member";
+
   /* AddserverActivity */
   public static final String PAR_CONFIRMCREDENTIALS = "confirmCredentials";
   public static final String PAR_USERNAME = "username";
@@ -274,16 +278,17 @@ public class Constants {
   public static final String PAR_SEARCHFILTER = "searchFilter";
   public static final String PAR_BASEDN = "baseDN";
   public static final String PAR_MAPPING = "map_";
-  
+
   /**/
   public static final String DN = "dn";
   public static final String OBJECT_CLASS = "objectClass";
   public static final String OBJECT_CLASS_GOOGLE = "googleContact";
+  public static final String OBJECT_CLASS_GROUP_OF_NAME = "groupofnames";
   public static final String OBJECT_CLASS_INET = "inetOrgPerson";
   public static final String OBJECT_CLASS_ORG ="organizationalPerson";
   public static final String OBJECT_CLASS_PERSON ="person";
   public static final String OBJECT_CLASS_TOP = "top";
-  
+
   /** LDAP serach **/
   public static final String LDAP_MODIFY_TIME_STAMP = "modifyTimestamp";
 }

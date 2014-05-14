@@ -4,35 +4,46 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.googlecode.androidannotations.annotations.EBean;
+
 import android.util.Log;
-import cz.xsendl00.synccontact.activity.fragment.RowContactAdapter;
-import cz.xsendl00.synccontact.contact.GoogleContact;
 
 /**
  * Utilities for all.
  * @author portilo
  *
  */
+@EBean
 public class Utils {
-  
+
   private static final String TAG = "Utils";
-  
-  private static Long last;
-  private static Long now;
-  
-  public static String startTime() {
+
+  private Long last;
+  private Long now;
+
+  /**
+   * Set time to 0, start run timer.
+   * @param tag TAG
+   * @param text text in log
+   */
+  public void startTime(String tag, String text) {
     last = System.currentTimeMillis();
-    return "0:0";
+    Log.i(tag, "start --" + text + ": 0.0");
   }
-  
-  public static String getTime() {
+
+  /**
+   * Stop running timer. Print time between start and stop.
+   * @param tag Tag
+   * @param text text in log
+   */
+  public void stopTime(String tag, String text) {
     now = System.currentTimeMillis();
     String str = String.valueOf(now - last);
-    return str;
+    Log.i(tag, "end --" + text + ": " + str);
   }
-  
+
   /**
-   * 
+   *
    * @param list1
    * @param map2
    * @return
@@ -40,7 +51,7 @@ public class Utils {
   public List<ContactRow> intersectionDifference(List<ContactRow> list1, final Map<String, ContactRow> map2) {
     Log.i(TAG, "intersection: " + list1.size() + " to " + map2.size());
     List<ContactRow> list = new ArrayList<ContactRow>();
-    
+
     for (int pozicion = 0; pozicion < list1.size(); ) {
       ContactRow contactRow= map2.get(list1.get(pozicion).getUuid());
       if(contactRow != null) {

@@ -21,17 +21,17 @@ import cz.xsendl00.synccontact.utils.Mapping;
 
 /**
  * Class for working with Android database like update contact, get contact ...
- * 
+ *
  * @author portilo
- * 
+ *
  */
 public class AndroidDB {
 
   private static final String TAG = "AndroidDB";
-  
+
   /**
    * Update Contacts
-   * 
+   *
    * @param context
    * @param differenceLDAP List of contact their attributes should be updated, added or removed from database.
    * @return
@@ -41,7 +41,7 @@ public class AndroidDB {
   public static boolean updateContactsDb(Context context,
       Map<String, GoogleContact> differenceLDAP) throws RemoteException,
       OperationApplicationException {
-    
+
     ArrayList<ContentProviderOperation> op = new ArrayList<ContentProviderOperation>();
 
     for (Map.Entry<String, GoogleContact> entry : differenceLDAP.entrySet()) {
@@ -74,7 +74,7 @@ public class AndroidDB {
        .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE)
        .build()
      );
-     
+
     try {
       ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
       for (ContentProviderResult cn : con) {
@@ -104,14 +104,12 @@ public class AndroidDB {
       //  Log.i(TAG, cn.toString());
      // }
     } catch (RemoteException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     } catch (OperationApplicationException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
   }
-  
+
   /**
    * Convert contact to default account from syncContact account
    * @param context context activity
@@ -128,7 +126,7 @@ public class AndroidDB {
        .withYieldAllowed(true)
        .build()
      );
-    
+
     try {
       ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
       for (ContentProviderResult cn : con) {
@@ -140,11 +138,11 @@ public class AndroidDB {
       e.printStackTrace();
     }
   }
-  
+
   /**
    * Convert contact to default account from syncContact account
    * @param context context activity
-   * @param contactRows 
+   * @param contactRows
    */
   public static void exportContactsFromSyncAccount(Context context, List<ContactRow> contactRows) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
@@ -159,8 +157,8 @@ public class AndroidDB {
         );
       Log.i(TAG,contactRow.getId() +  ", exportContactsFromSyncAccount: " + i++ + "/" + size + ", to:" + contactRow.getAccouNamePrevious());
     }
-    
-    
+
+
     try {
       ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
 //      for (ContentProviderResult cn : con) {
@@ -172,8 +170,8 @@ public class AndroidDB {
       e.printStackTrace();
     }
   }
-  
-  
+
+
   /**
    * get contact Id by raw id.
    * @param context
@@ -201,5 +199,5 @@ public class AndroidDB {
     }
     return id;
   }
-  
+
 }

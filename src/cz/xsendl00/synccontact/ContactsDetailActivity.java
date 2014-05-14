@@ -2,8 +2,8 @@ package cz.xsendl00.synccontact;
 
 import java.util.List;
 
-import cz.xsendl00.synccontact.utils.ContactRow;
-import android.app.Activity;
+import com.googlecode.androidannotations.annotations.EActivity;
+
 import android.app.ListActivity;
 import android.content.ContentUris;
 import android.content.Intent;
@@ -18,35 +18,38 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import cz.xsendl00.synccontact.utils.ContactRow;
 
 /**
  * Show contacts of group.
- * 
+ *
  * @author portilo
- * 
+ *
  */
+@EActivity
 public class ContactsDetailActivity extends ListActivity {
 
   private static final String TAG = "ContactsDetailActivity";
-  private String id;
-  private List<ContactRow> list;
+  private String groupId;
+  private List<ContactRow> contactRows;
 
+  @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getActionBar().setDisplayHomeAsUpEnabled(true);
     Intent intent = getIntent();
-    id = intent.getStringExtra("ID");
+    groupId = intent.getStringExtra("ID");
     String name = intent.getStringExtra("NAME");
     this.setTitle(name);
     init();
   }
 
   private void init() {
-    new Load(id, ContactsDetailActivity.this).execute();
+    new Load().execute();
   }
 
   private void onTaskCompleted(List<ContactRow> list) {
-    this.list = list;
+    this.contactRows = list;
     String[] values = new String[list.size()];
     int i = 0;
     for (ContactRow contactRow : list) {
@@ -59,24 +62,18 @@ public class ContactsDetailActivity extends ListActivity {
 
   private class Load extends AsyncTask<Void, Void, List<ContactRow>> {
 
-    private String id;
-    private Activity activity;
-
-    public Load(String id, Activity activ) {
-      this.id = id;
-      this.activity = activ;
-    }
-
     @Override
     protected List<ContactRow> doInBackground(Void... params) {
       return ContactRow
-          .fetchGroupMembersName(activity.getContentResolver(), id);
+          .fetchGroupMembersName(getApplicationContext().getContentResolver(), groupId);
     }
 
+    @Override
     protected void onPostExecute(List<ContactRow> contacts) {
-      ((ContactsDetailActivity) activity).onTaskCompleted(contacts);
+      ((ContactsDetailActivity) getApplicationContext()).onTaskCompleted(contacts);
     }
 
+    @Override
     protected void onPreExecute() {
       super.onPreExecute();
     }
@@ -94,11 +91,11 @@ public class ContactsDetailActivity extends ListActivity {
     Intent intent = null;
     switch (item.getItemId()) {
     case R.id.action_help:
-      intent = new Intent(this, HelpActivity.class);
+      intent = new Intent(this, HelpActivity_.class);
       startActivity(intent);
       break;
     case R.id.action_settings:
-      intent = new Intent(this, SettingsActivity.class);
+      intent = new Intent(this, SettingsActivity_.class);
       startActivity(intent);
       break;
     case android.R.id.home:
@@ -112,7 +109,7 @@ public class ContactsDetailActivity extends ListActivity {
 
   @Override
   protected void onListItemClick(ListView l, View v, int position, long id) {
-    ContactRow contactRow = list.get(position);
+    ContactRow contactRow = contactRows.get(position);
     Uri contactUri = ContentUris.withAppendedId(
         ContactsContract.Contacts.CONTENT_URI,
         Integer.valueOf(contactRow.getId()));

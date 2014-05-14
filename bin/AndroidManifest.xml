@@ -55,145 +55,145 @@
     
     
     <activity
-      android:name="cz.xsendl00.synccontact.AddServerActivity"
+      android:name=".AddServerActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName="cz.xsendl00.synccontact.ServerActivity"
+      android:parentActivityName=".ServerActivity_"
       android:label="@string/app_name_edit" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value="cz.xsendl00.synccontact.ServerActivity" />
+        android:value=".ServerActivity_" />
     </activity>
     
     <activity
-      android:name="cz.xsendl00.synccontact.ServerActivity"
+      android:name=".ServerActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName="cz.xsendl00.synccontact.MainActivity"
+      android:parentActivityName=".MainActivity_"
       android:label="@string/app_name_server" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value="cz.xsendl00.synccontact.MainActivity" />
+        android:value=".MainActivity_" />
     </activity>
     
     <activity
-      android:name="cz.xsendl00.synccontact.LDAPContactActivity"
+      android:name=".LDAPContactActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName="cz.xsendl00.synccontact.MainActivity"
+      android:parentActivityName=".MainActivity_"
       android:label="@string/app_name_ldap_contact" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value="cz.xsendl00.synccontact.MainActivity" />
+        android:value=".MainActivity_" />
     </activity>
     
     <activity
-      android:name="cz.xsendl00.synccontact.ContactsDetailActivity"
+      android:name=".ContactsDetailActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName="cz.xsendl00.synccontact.ContactsActivity"
+      android:parentActivityName=".ContactsActivity_"
       android:label="@string/app_name_server" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value="cz.xsendl00.synccontact.SelectContactListActivity" />
+        android:value=".ContactsActivity_" />
     </activity>
     
     <activity
-      android:name="cz.xsendl00.synccontact.RemoveServerActivity"
+      android:name=".RemoveServerActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName="cz.xsendl00.synccontact.ServerActivity"
+      android:parentActivityName=".ServerActivity_"
       android:label="@string/app_name_remove" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value="cz.xsendl00.synccontact.ServerActivity" />
+        android:value=".ServerActivity_" />
     </activity>
     
     <activity
-      android:name="cz.xsendl00.synccontact.SynchronizationActivity"
+      android:name=".SynchronizationActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName="cz.xsendl00.synccontact.MainActivity"
+      android:parentActivityName=".MainActivity_"
       android:label="@string/app_name_sync" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value="cz.xsendl00.synccontact.MainActivity" />
+        android:value=".MainActivity_" />
     </activity>
     
     <activity
-      android:name="cz.xsendl00.synccontact.SettingsActivity"
+      android:name=".SettingsActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName="cz.xsendl00.synccontact.MainActivity"
+      android:parentActivityName=".MainActivity_"
       android:label="@string/app_name_settings" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value="cz.xsendl00.synccontact.MainActivity" />
+        android:value=".MainActivity_" />
     </activity>
     
     <activity
-      android:name="cz.xsendl00.synccontact.ContactsActivity"
+      android:name=".ContactsActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName="cz.xsendl00.synccontact.MainActivity"
+      android:parentActivityName=".MainActivity_"
       android:label="@string/app_name_contact" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value="cz.xsendl00.synccontact.MainActivity" />
+        android:value=".MainActivity_" />
     </activity>
     
     <activity
-      android:name="cz.xsendl00.synccontact.activity.first.WelcomeActivity"
+      android:name=".WelcomeActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName="cz.xsendl00.synccontact.MainActivity"
+      android:parentActivityName=".MainActivity_"
       android:label="@string/app_name" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value="cz.xsendl00.synccontact.MainActivity" />
+        android:value=".MainActivity_" />
     </activity>
     
     <activity
-      android:name="cz.xsendl00.synccontact.activity.first.ContactMergeActivity"
+      android:name=".ContactMergeActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName="cz.xsendl00.synccontact.InfoMergeActivity"
+      android:parentActivityName=".InfoMergeActivity_"
       android:label="@string/app_name" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value="cz.xsendl00.synccontact.InfoMergeActivity" />
+        android:value=".InfoMergeActivity_" />
     </activity>
     
     <activity
-      android:name="cz.xsendl00.synccontact.activity.first.InfoSyncActivity"
+      android:name=".InfoSyncActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName="cz.xsendl00.synccontact.MainActivity"
+      android:parentActivityName=".MainActivity_"
       android:label="@string/app_name" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value="cz.xsendl00.synccontact.MainActivity" />
+        android:value=".MainActivity_" />
     </activity>
 
     
     <activity
-      android:name="cz.xsendl00.synccontact.activity.first.InfoMergeActivity"
+      android:name=".InfoMergeActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName="cz.xsendl00.synccontact.AddServerActivity"
+      android:parentActivityName=".AddServerActivity_"
       android:label="@string/app_name_info_merge" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value="cz.xsendl00.synccontact.AddServerActivity" />
+        android:value=".AddServerActivity_" />
     </activity>
     
         
     <activity
-      android:name="cz.xsendl00.synccontact.HelpActivity"
+      android:name=".HelpActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName="cz.xsendl00.synccontact.MainActivity"
+      android:parentActivityName=".MainActivity_"
       android:label="@string/app_name_help" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value="cz.xsendl00.synccontact.MainActivity" />
+        android:value=".MainActivity_" />
     </activity>
     
     <activity
-      android:name="cz.xsendl00.synccontact.activity.first.InfoLDAPActivity"
+      android:name=".InfoLDAPActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName="cz.xsendl00.synccontact.AddServerActivity"
+      android:parentActivityName=".AddServerActivity_"
       android:label="@string/app_name_info_ldap" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value="cz.xsendl00.synccontact.AddServerActivity" />
+        android:value=".AddServerActivity_" />
     </activity>
     
     <activity android:theme="@android:style/Theme.Dialog" 
@@ -202,7 +202,7 @@
     </activity>
     
     <activity
-      android:name="cz.xsendl00.synccontact.MainActivity"
+      android:name="MainActivity_"
       android:screenOrientation="portrait"
       android:label="@string/app_name" >
       <intent-filter>

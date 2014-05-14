@@ -1,8 +1,8 @@
-package cz.xsendl00.synccontact.activity.first;
+package cz.xsendl00.synccontact;
 
-import cz.xsendl00.synccontact.HelpActivity;
-import cz.xsendl00.synccontact.R;
-import cz.xsendl00.synccontact.SettingsActivity;
+
+import com.googlecode.androidannotations.annotations.EActivity;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,45 +12,46 @@ import android.view.MenuItem;
 import android.view.View;
 
 /**
- * Activity before merge activity. Show base info.
+ * Info LDAp import data.
  * @author portilo
  *
  */
-public class InfoMergeActivity extends Activity {
-  
+@EActivity(R.layout.activity_info)
+public class InfoLDAPActivity extends Activity {
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_info);
     getActionBar().setDisplayHomeAsUpEnabled(true);
   }
 
   /**
-   * 
-   * @param view
+   * Go to import activity.
+   * @param view unused
    */
-  public void selectActivity(View view) {
-    Intent intent = new Intent(this, ContactMergeActivity.class);
+  public void selectActivity(@SuppressWarnings("unused") View view) {
+    Intent intent = new Intent(this, LDAPContactActivity_.class);
+    intent.putExtra("FIRST", true);
     startActivity(intent);
   }
-  
+
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.sync_menu, menu);
     return true;
   }
-  
+
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     Intent intent = null;
     switch (item.getItemId()) {
     case R.id.action_help:
-      intent = new Intent(this, HelpActivity.class);
+      intent = new Intent(this, HelpActivity_.class);
       startActivity(intent);
       break;
     case R.id.action_settings:
-      intent = new Intent(this, SettingsActivity.class);
+      intent = new Intent(this, SettingsActivity_.class);
       startActivity(intent);
       break;
     case android.R.id.home:

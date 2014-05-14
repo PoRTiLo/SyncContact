@@ -1,9 +1,7 @@
 package cz.xsendl00.synccontact;
 
-import cz.xsendl00.synccontact.R;
+import com.googlecode.androidannotations.annotations.EActivity;
 
-import cz.xsendl00.synccontact.activity.first.WelcomeActivity;
-import cz.xsendl00.synccontact.utils.Constants;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,12 +13,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
+import cz.xsendl00.synccontact.utils.Constants;
 
 /**
- * 
+ *
  * @author portilo
  *
  */
+@EActivity(R.layout.activity_main)
 public class MainActivity extends Activity {
 
   private Button map;
@@ -33,7 +33,6 @@ public class MainActivity extends Activity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
     loadPreferences();
   }
 
@@ -46,7 +45,7 @@ public class MainActivity extends Activity {
   @Override
   public void onWindowFocusChanged(boolean hasFocus) {
     super.onWindowFocusChanged(hasFocus);
-    if (hasFocus == true) {
+    if (hasFocus) {
       conf();
     }
   }
@@ -59,7 +58,7 @@ public class MainActivity extends Activity {
     Log.i(TAG, "Load preferens: startFirst = " + startFirst);
     if (startFirst) {
       // load first route
-      Intent intent = new Intent(this, WelcomeActivity.class);
+      Intent intent = new Intent(this, WelcomeActivity_.class);
       startActivity(intent);
       this.finish();
     }
@@ -67,8 +66,8 @@ public class MainActivity extends Activity {
 
   private void conf() {
     RelativeLayout f = (RelativeLayout) findViewById(R.id.main_activity);
-    int x = (int) f.getRight() / 2;
-    int y = (int) (f.getBottom()) / 5;
+    int x = f.getRight() / 2;
+    int y = (f.getBottom()) / 5;
     map = (Button) findViewById(R.id.button_map);
     map.getLayoutParams().height = y * 3;
     map.getLayoutParams().width = x;
@@ -92,47 +91,47 @@ public class MainActivity extends Activity {
 
   /**
    * Called when the user clicks on the Server button.
-   * 
-   * @param view
+   *
+   * @param view unused
    */
-  public void startServerActivity(View view) {
+  public void startServerActivity(@SuppressWarnings("unused") View view) {
     SharedPreferences settings = getSharedPreferences(Constants.PREFS_NAME,
         MODE_PRIVATE);
     boolean startFirst = settings.getBoolean(Constants.PREFS_START_FIRST, true);
     if (startFirst) {
-      Intent intent = new Intent(this, WelcomeActivity.class);
+      Intent intent = new Intent(this, WelcomeActivity_.class);
       startActivity(intent);
     } else {
-      Intent intent = new Intent(this, ServerActivity.class);
+      Intent intent = new Intent(this, ServerActivity_.class);
       startActivity(intent);
     }
   }
 
   /**
-   * Open contact activity. Call from main activity. 
-   * @param view
+   * Open contact activity. Call from main activity.
+   * @param view unused
    */
-  public void startContactActivity(View view) {
-    Intent intent = new Intent(this, ContactsActivity.class);
+  public void startContactActivity(@SuppressWarnings("unused") View view) {
+    Intent intent = new Intent(this, ContactsActivity_.class);
     startActivity(intent);
   }
 
   /**
    * Open help activity. Call from main activity.
-   * @param view
+   * @param view unused
    */
-  public void startHelpActivity(View view) {
+  public void startHelpActivity(@SuppressWarnings("unused") View view) {
     //Intent intent = new Intent(this, HelpActivity.class);
-    Intent intent = new Intent(this, LDAPContactActivity.class);
+    Intent intent = new Intent(this, LDAPContactActivity_.class);
     startActivity(intent);
   }
 
   /**
    * Open sync activity. Call from main activity.
-   * @param view
+   * @param view unused
    */
-  public void startSyncActivity(View view) {
-    Intent intent = new Intent(this, SynchronizationActivity.class);
+  public void startSyncActivity(@SuppressWarnings("unused") View view) {
+    Intent intent = new Intent(this, SynchronizationActivity_.class);
     startActivity(intent);
   }
 
@@ -148,11 +147,11 @@ public class MainActivity extends Activity {
     Intent intent = null;
     switch (item.getItemId()) {
     case R.id.action_help:
-      intent = new Intent(this, HelpActivity.class);
+      intent = new Intent(this, HelpActivity_.class);
       startActivity(intent);
       break;
     case R.id.action_settings:
-      intent = new Intent(this, SettingsActivity.class);
+      intent = new Intent(this, SettingsActivity_.class);
       startActivity(intent);
       break;
     case android.R.id.home:

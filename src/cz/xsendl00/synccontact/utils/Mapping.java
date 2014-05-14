@@ -5,16 +5,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.googlecode.androidannotations.annotations.EBean;
 import com.unboundid.ldap.sdk.AddRequest;
 import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldap.sdk.Modification;
 import com.unboundid.ldap.sdk.ModificationType;
 import com.unboundid.ldap.sdk.ModifyRequest;
 import com.unboundid.ldap.sdk.ReadOnlyEntry;
+
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
-import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Event;
 import android.provider.ContactsContract.CommonDataKinds.GroupMembership;
@@ -30,8 +31,10 @@ import android.provider.ContactsContract.CommonDataKinds.SipAddress;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.CommonDataKinds.Website;
+import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
+import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.contact.EmailSync;
 import cz.xsendl00.synccontact.contact.EventSync;
 import cz.xsendl00.synccontact.contact.GoogleContact;
@@ -49,7 +52,11 @@ import cz.xsendl00.synccontact.contact.StructuredPostalSync;
 import cz.xsendl00.synccontact.contact.WebsiteSync;
 import cz.xsendl00.synccontact.database.HelperSQL;
 
+@EBean
 public class Mapping {
+
+  public Mapping() {
+  }
 
   private static final String TAG = "Mapping";
 
@@ -73,7 +80,7 @@ public class Mapping {
     }
     return dirtyContactsId;
   }
-  
+
   /**
    * Fetch contact selected like modified. In database SYNC = 1;
    * @param context
@@ -97,7 +104,7 @@ public class Mapping {
           cursor.close();
         }
       }
-    } catch(Exception ex) { 
+    } catch(Exception ex) {
       ex.printStackTrace();
     } finally {
       try {
@@ -110,7 +117,7 @@ public class Mapping {
     }
     return dirtyContacts;
   }
-  
+
   /**
    * Create attribute for mapping data from LDAP server.
    * @return array of name LDAP attributes.
@@ -119,12 +126,12 @@ public class Mapping {
     ArrayList<String> ldapAttributes = new ArrayList<String>();
     ldapAttributes.add(Constants.DISPLAY_NAME);
     ldapAttributes.add(Constants.UUID);
-    
+
     String[] ldapArray = new String[ldapAttributes.size()];
     ldapArray = ldapAttributes.toArray(ldapArray);
     return ldapArray;
   }
-  
+
   public static final String[] createAttributes() {
     ArrayList<String> ldapAttributes = new ArrayList<String>();
     ldapAttributes.add(Constants.WORK_SIP);
@@ -272,20 +279,20 @@ public class Mapping {
     ldapAttributes.add(Constants.OTHER_COUNTRY);
     ldapAttributes.add(Constants.OTHER_FORMATTED_ADDRESS);
     ldapAttributes.add(Constants.UUID);
-    
+
     String[] ldapArray = new String[ldapAttributes.size()];
     ldapArray = ldapAttributes.toArray(ldapArray);
     return ldapArray;
   }
-  
+
   public static AddRequest mappingRequest(ContentResolver cr, String id, String baseDn, String rdn) {
     Cursor cursor = new ContactDetail().fetchAllDataOfContact(cr, id);
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-    
+
     attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GOOGLE));
     attributes.add(new Attribute("uuid", rdn));
-    
-    
+
+
     while (cursor.moveToNext()) {
       attributes.addAll(fill(cursor));
     }
@@ -296,15 +303,20 @@ public class Mapping {
     Log.i(TAG, addRequest.toLDIFString());
     return addRequest;
   }
-  
-  
-  public static AddRequest mappingAddRequest(GoogleContact gc, String baseDn) {
-  
+
+  /**
+   *
+   * @param gc
+   * @param baseDn
+   * @return
+   */
+  public AddRequest mappingAddRequest(GoogleContact gc, String baseDn) {
+
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-    
+
     attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GOOGLE));
     attributes.add(new Attribute("uuid",  gc.getUuid()));
-    
+
     ArrayList<Attribute> attributesTemp = fillAttribute(gc);
     if (attributesTemp != null && !attributesTemp.isEmpty()) {
       attributes.addAll(attributesTemp);
@@ -317,7 +329,33 @@ public class Mapping {
       return null;
     }
   }
-  
+
+  /**
+  * Create Add request for group.
+  * @param groupRow group
+  * @param baseDn base DN
+  * @return list of add request.
+  */
+ public AddRequest createGroupAddRequest(GroupRow groupRow, String baseDn, Context context) {
+
+   ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+
+   attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GROUP_OF_NAME));
+   attributes.add(new Attribute("uuid",  groupRow.getUuid()));
+
+   ArrayList<Attribute> attributesTemp = fillAttribute(groupRow, baseDn, context);
+   if (attributesTemp != null && !attributesTemp.isEmpty()) {
+     attributes.addAll(attributesTemp);
+   }
+   if (attributes != null && attributes.size() > 2) {
+     AddRequest addRequest = new AddRequest("cn=" + groupRow.getUuid() + ",ou=groups," + baseDn, attributes);
+     Log.i(TAG, "AddRequest : " + addRequest.toLDIFString());
+     return addRequest;
+   } else {
+     return null;
+   }
+ }
+
   public static ModifyRequest mappingRequest(GoogleContact gc, String baseDn) {
     List<Modification> mod;
     mod = fillModification(gc);
@@ -329,13 +367,31 @@ public class Mapping {
       return null;
     }
   }
-  
+
+  /**
+   * Create group LDAP request. Get all member of group and create attributes member.
+   * @param groupRow group
+   * @return list of request
+   */
+  private static ArrayList<Attribute> fillAttribute(GroupRow groupRow, String baseDn, Context context) {
+    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+
+    ContactManager contactManager = ContactManager.getInstance(context);
+    Map<String, List<ContactRow>> map = contactManager.getGroupsContacts();
+    List<ContactRow> list = map.get(groupRow.getId());
+    for (ContactRow contactRow : list) {
+      attributes.add(new Attribute(Constants.GROUP_MEMBER, contactRow.getUuid() + "ou=users" + baseDn));
+    }
+    attributes.add(new Attribute(Constants.GROUP_DESCRIPTION, groupRow.getName()));
+    return attributes;
+  }
+
   private static ArrayList<Attribute> fillAttribute(GoogleContact gc) {
 
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 
     //Log.i(TAG, "fillAttribute : " + gc.toString());
-    
+
     EmailSync e = gc.getEmail();
     if (e != null) {
       if (e.getHomeMail() != null) {
@@ -910,13 +966,13 @@ public class Mapping {
     }
     return attributes;
   }
-  
+
   /**
-   * 
+   *
    * @param contentResolver
    * @param id
-   * @param uuid 
-   * @return 
+   * @param uuid
+   * @return
    */
   public GoogleContact mappingContactFromDB(ContentResolver contentResolver, String id, String uuid) {
     Cursor cursor = null;
@@ -929,7 +985,7 @@ public class Mapping {
       while (cursor.moveToNext()) {
         fillContact(cursor, contact);
       }
-    } catch(Exception ex) { 
+    } catch(Exception ex) {
       ex.printStackTrace();
     } finally {
       try {
@@ -940,10 +996,10 @@ public class Mapping {
         ex.printStackTrace();
       }
     }
-    
+
     return contact;
   }
-  
+
   public static GoogleContact mappingContactFromLDAP(ReadOnlyEntry user) {
     GoogleContact c = GoogleContact.defaultValue();
     c.setUuid(user.hasAttribute(Constants.UUID) ? user.getAttributeValue(Constants.UUID) : null);
@@ -1062,7 +1118,7 @@ public class Mapping {
     c.getStructuredName().setPhoneticFamilyName(user.hasAttribute(c.getStructuredName().getPhoneticFamilyName()) ? user.getAttributeValue(c.getStructuredName().getPhoneticFamilyName()) : null);
     c.getStructuredName().setPhoneticGivenName(user.hasAttribute(c.getStructuredName().getPhoneticGivenName()) ? user.getAttributeValue(c.getStructuredName().getPhoneticGivenName()) : null);
     c.getStructuredName().setPhoneticMiddleName(user.hasAttribute(c.getStructuredName().getPhoneticMiddleName()) ? user.getAttributeValue(c.getStructuredName().getPhoneticMiddleName()) : null);
-    // structured postal 
+    // structured postal
     c.getStructuredPostal().setHomeCity(user.hasAttribute(c.getStructuredPostal().getHomeCity()) ? user.getAttributeValue(c.getStructuredPostal().getHomeCity()) : null);
     c.getStructuredPostal().setHomeCountry(user.hasAttribute(c.getStructuredPostal().getHomeCountry()) ? user.getAttributeValue(c.getStructuredPostal().getHomeCountry()) : null);
     c.getStructuredPostal().setHomeFormattedAddress(user.hasAttribute(c.getStructuredPostal().getHomeFormattedAddress()) ? user.getAttributeValue(c.getStructuredPostal().getHomeFormattedAddress()) : null);
@@ -1095,14 +1151,14 @@ public class Mapping {
     c.getWebsite().setWebsiteOther(user.hasAttribute(c.getWebsite().getWebsiteOther()) ? user.getAttributeValue(c.getWebsite().getWebsiteOther()) : null);
     c.getWebsite().setWebsiteProfile(user.hasAttribute(c.getWebsite().getWebsiteProfile()) ? user.getAttributeValue(c.getWebsite().getWebsiteProfile()) : null);
     c.getWebsite().setWebsiteWork(user.hasAttribute(c.getWebsite().getWebsiteWork()) ? user.getAttributeValue(c.getWebsite().getWebsiteWork()) : null);
-    
+
     return c;
   }
-  
+
   private static List<Modification> fillModification(GoogleContact gc) {
     List<Modification> mod = new ArrayList<Modification>();
-    
-    EmailSync e = gc.getEmail(); 
+
+    EmailSync e = gc.getEmail();
     if ( e != null) {
       if (e.getHomeMail() != null) {
         mod.add(new Modification(ModificationType.REPLACE, Constants.HOME_MAIL, e.getHomeMail()));
@@ -1117,7 +1173,7 @@ public class Mapping {
         mod.add(new Modification(ModificationType.REPLACE, Constants.WORK_MAIL, e.getWorkMail()));
       }
     }
-    
+
     EventSync ev = gc.getEvent();
     if (ev != null) {
       if (ev.getEventAnniversary() != null) {
@@ -1130,7 +1186,7 @@ public class Mapping {
         mod.add(new Modification(ModificationType.REPLACE, Constants.EVENT_OTHER, ev.getEventOther()));
       }
     }
-    
+
     IdentitySync id = gc.getIdentity();
     if (id != null) {
       if (id.getIdentityNamespace() != null) {
@@ -1140,7 +1196,7 @@ public class Mapping {
         mod.add(new Modification(ModificationType.REPLACE, Constants.IDENTITY_TEXT, id.getIdentityText()));
       }
     }
-    
+
     ImSync im = gc.getImSync();
     if (im != null) {
       if (im.getImHomeAim() != null) {
@@ -1170,7 +1226,7 @@ public class Mapping {
       if (im.getImHomeYahoo() != null) {
         mod.add(new Modification(ModificationType.REPLACE, Constants.IM_HOME_YAHOO, im.getImHomeYahoo()));
       }
-      
+
       if (im.getImWorkAim() != null) {
         mod.add(new Modification(ModificationType.REPLACE, Constants.IM_WORK_AIM, im.getImWorkAim()));
       }
@@ -1198,7 +1254,7 @@ public class Mapping {
       if (im.getImWorkYahoo() != null) {
         mod.add(new Modification(ModificationType.REPLACE, Constants.IM_WORK_YAHOO, im.getImWorkYahoo()));
       }
-      
+
       if (im.getImOtherAim() != null) {
         mod.add(new Modification(ModificationType.REPLACE, Constants.IM_OTHER_AIM, im.getImOtherAim()));
       }
@@ -1227,7 +1283,7 @@ public class Mapping {
         mod.add(new Modification(ModificationType.REPLACE, Constants.IM_OTHER_YAHOO, im.getImOtherYahoo()));
       }
     }
-    
+
     NicknameSync ni = gc.getNickname();
     if (ni != null) {
       if (ni.getNicknameDefault() != null) {
@@ -1246,11 +1302,11 @@ public class Mapping {
         mod.add(new Modification(ModificationType.REPLACE, Constants.NICKNAME_SHORT, ni.getNicknameShort()));
       }
     }
-    
+
     if( gc.getNote().getNotes() != null) {
       mod.add(new Modification(ModificationType.REPLACE, Constants.NOTES, gc.getNote().getNotes()));
     }
-    
+
     OrganizationSync or = gc.getOrganization();
     if (or!= null) {
       if (or.getOrganizationOtherCompany() != null) {
@@ -1277,7 +1333,7 @@ public class Mapping {
       if (or.getOrganizationOtherTitle() != null) {
         mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_OTHER_TITLE, or.getOrganizationOtherTitle()));
       }
-      
+
       if (or.getOrganizationWorkCompany() != null) {
         mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_WORK_COMPANY, or.getOrganizationWorkCompany()));
       }
@@ -1303,7 +1359,7 @@ public class Mapping {
         mod.add(new Modification(ModificationType.REPLACE, Constants.ORGANIZATION_WORK_TITLE, or.getOrganizationWorkTitle()));
       }
     }
-    
+
     PhoneSync ph = gc.getPhone();
     if (ph != null) {
       if (ph.getPhoneAssistant() != null) {
@@ -1367,7 +1423,7 @@ public class Mapping {
         mod.add(new Modification(ModificationType.REPLACE, Constants.PHONE_WORK_PAGER, ph.getPhoneWorkPager()));
       }
     }
-    
+
     RelationSync re = gc.getRelation();
     if (re != null) {
       if (re.getRelationAssistant() != null) {
@@ -1413,7 +1469,7 @@ public class Mapping {
         mod.add(new Modification(ModificationType.REPLACE, Constants.RELATION_SPOUSE, re.getRelationSpouse()));
       }
     }
-    
+
     SipAddressSync si = gc.getSipAddress();
     if (si != null) {
       if (si.getHomeSip() != null) {
@@ -1426,7 +1482,7 @@ public class Mapping {
         mod.add(new Modification(ModificationType.REPLACE, Constants.WORK_SIP, si.getWorkSip()));
       }
     }
-    
+
     StructuredNameSync sn = gc.getStructuredName();
     if (sn != null) {
       if (sn.getDisplayName() != null) {
@@ -1457,7 +1513,7 @@ public class Mapping {
         mod.add(new Modification(ModificationType.REPLACE, Constants.PHONETIC_MIDDLE_NAME, sn.getPhoneticFamilyName()));
       }
     }
-    
+
     StructuredPostalSync sp = gc.getStructuredPostal();
     if (sp != null) {
       if (sp.getHomeCity() != null) {
@@ -1533,7 +1589,7 @@ public class Mapping {
         mod.add(new Modification(ModificationType.REPLACE, Constants.OTHER_STREET, sp.getOtherStreet()));
       }
     }
-    
+
     WebsiteSync we = gc.getWebsite();
     if (we != null) {
       if (we.getWebsiteBlog() != null) {
@@ -1560,15 +1616,15 @@ public class Mapping {
     }
     return mod;
   }
-  
+
 //TODO: vnd.com.google.cursor.item/contact_misc add by google?
   //todo groupmempber
   private static ArrayList<Attribute> fill(Cursor cursor) {
-   
+
    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-   
+
    String str = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
-   
+
    if (str.equals(StructuredName.CONTENT_ITEM_TYPE)) {
      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1)) && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
        attributes.add(new Attribute(Constants.DISPLAY_NAME, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
@@ -1661,7 +1717,7 @@ public class Mapping {
        Log.i("NOT SUPPORTED TYPE EMAIL", "NOT SUPPORTED TYPE EMAIL");
      }
    } else if (str.equals(Photo.CONTENT_ITEM_TYPE)) {
-     
+
    } else if (str.equals(Organization.CONTENT_ITEM_TYPE)) {
      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
      if (type == Organization.TYPE_WORK) {
@@ -1715,9 +1771,9 @@ public class Mapping {
          attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_PHONETIC_NAME_STYLE, cursor.getString(cursor.getColumnIndex(Data.DATA10))));
        }
      } else if (type == Organization.TYPE_CUSTOM) {
-       // TODO:      String  LABEL DATA3 
+       // TODO:      String  LABEL DATA3
      } else {
-       
+
      }
    } else if (str.equals(Im.CONTENT_ITEM_TYPE)) {
      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
@@ -1933,9 +1989,9 @@ public class Mapping {
          attributes.add(new Attribute(Constants.OTHER_COUNTRY, cursor.getString(cursor.getColumnIndex(Data.DATA10))));
        }
      } else {
-       
+
      }
-      
+
    } else if (str.equals(GroupMembership.CONTENT_ITEM_TYPE)) {
      // TODO:
      //long  GROUP_ROW_ID  DATA1
@@ -1943,7 +1999,7 @@ public class Mapping {
    } else if (str.equals(Website.CONTENT_ITEM_TYPE)) {
      Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
      if (type == Website.TYPE_CUSTOM) {
-       //TODO:String  LABEL DATA3,TYPE_CUSTOM. Put the actual type in LABEL. 
+       //TODO:String  LABEL DATA3,TYPE_CUSTOM. Put the actual type in LABEL.
      } else if (type == Website.TYPE_BLOG) {
        attributes.add(new Attribute(Constants.WEBSITE_BLOG, cursor.getString(cursor.getColumnIndex(Data.DATA1))));
      } else if (type == Website.TYPE_FTP) {
@@ -2033,14 +2089,14 @@ public class Mapping {
    } else {
      Log.i("NOT SUPPORTED TYPE MIME", "NOT SUPPORTED TYPE MIME");
    }
-   
+
    return attributes;
   }
-  
+
   private void fillContact(Cursor cursor, GoogleContact contact) {
-    
+
     String str = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
-    
+
     //Log.i(TAG, contact.toString());
     if (str.equals(StructuredName.CONTENT_ITEM_TYPE)) {
       contact.initStructuredName();
@@ -2432,7 +2488,7 @@ public class Mapping {
       } else {
         Log.d("NOT SUPPORTED TYPE StructuredPostal", "NOT SUPPORTED ELSE");
       }
-       
+
     } else if (str.equals(GroupMembership.CONTENT_ITEM_TYPE)) {
       // TODO:
       //long  GROUP_ROW_ID  DATA1
@@ -2443,7 +2499,7 @@ public class Mapping {
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getWebsite().getID().add(new ID(type.toString(), null, cursor.getString(cursor.getColumnIndex(Data._ID))));
       if (type == Website.TYPE_CUSTOM) {
-        //TODO:String  LABEL DATA3,TYPE_CUSTOM. Put the actual type in LABEL. 
+        //TODO:String  LABEL DATA3,TYPE_CUSTOM. Put the actual type in LABEL.
         Log.d("NOT SUPPORTED TYPE Website", "NOT SUPPORTED TYPE_CUSTOM ");
       } else if (type == Website.TYPE_BLOG) {
         contact.getWebsite().setWebsiteBlog(cursor.getString(cursor.getColumnIndex(Data.DATA1)));

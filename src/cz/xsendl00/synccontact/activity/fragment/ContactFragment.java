@@ -3,16 +3,8 @@ package cz.xsendl00.synccontact.activity.fragment;
 import java.util.ArrayList;
 import java.util.List;
 
-import cz.xsendl00.synccontact.ContactsActivity;
-import cz.xsendl00.synccontact.HelpActivity;
-import cz.xsendl00.synccontact.R;
-import cz.xsendl00.synccontact.SettingsActivity;
+import com.googlecode.androidannotations.annotations.EFragment;
 
-import cz.xsendl00.synccontact.client.ContactManager;
-import cz.xsendl00.synccontact.database.AndroidDB;
-import cz.xsendl00.synccontact.database.HelperSQL;
-import cz.xsendl00.synccontact.utils.ContactRow;
-import cz.xsendl00.synccontact.utils.GroupRow;
 import android.app.Fragment;
 import android.content.ContentUris;
 import android.content.Intent;
@@ -25,16 +17,26 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CompoundButton;
 import android.widget.ListView;
-import android.widget.AdapterView.OnItemClickListener;
+import cz.xsendl00.synccontact.ContactsActivity;
+import cz.xsendl00.synccontact.HelpActivity;
+import cz.xsendl00.synccontact.R;
+import cz.xsendl00.synccontact.SettingsActivity;
+import cz.xsendl00.synccontact.client.ContactManager;
+import cz.xsendl00.synccontact.database.AndroidDB;
+import cz.xsendl00.synccontact.database.HelperSQL;
+import cz.xsendl00.synccontact.utils.ContactRow;
+import cz.xsendl00.synccontact.utils.GroupRow;
 
 /**
  * Fragment for contact data.
- * 
+ *
  * @author portilo
- * 
+ *
  */
+@EFragment
 public class ContactFragment extends Fragment implements
     android.widget.CompoundButton.OnCheckedChangeListener {
 
@@ -52,7 +54,7 @@ public class ContactFragment extends Fragment implements
     activity = (ContactsActivity) getActivity();
     first = activity.isFirst();
     contactManager = ContactManager.getInstance(activity);
-    selectAll = isSelectedAll();
+
   }
 
   @Override
@@ -69,29 +71,34 @@ public class ContactFragment extends Fragment implements
     return rootView;
   }
 
+  @Override
   public void onResume() {
     super.onResume();
+    isSelectedAll();
     listRow = (ListView) getActivity().findViewById(R.id.list_contact);
     adapter = new RowContactAdapter(getActivity().getApplicationContext(),
-        contactManager.getContactList(), this);
+        contactManager.getContactsLocal(), this);
     listRow.setAdapter(adapter);
 
     if (listRow != null) {
       listRow.setOnItemClickListener(new OnItemClickListener() {
+        @Override
         public void onItemClick(AdapterView<?> parent, View view, int position,
             long id) {
-          int idContact = AndroidDB.getIdContact(getActivity(), contactManager.getContactList().get(position).getId());
+          int idContact = AndroidDB.getIdContact(getActivity(),
+              contactManager.getContactsLocal().get(position).getId());
           Uri contactUri = ContentUris.withAppendedId(
               ContactsContract.Contacts.CONTENT_URI, idContact);
           Intent i = new Intent(Intent.ACTION_VIEW);
           i.setData(contactUri);
           startActivity(i);
-          
+
         }
       });
     }
   }
 
+  @Override
   public void onPrepareOptionsMenu(Menu menu) {
     MenuItem item = menu.findItem(R.id.action_select);
     String newText = !selectAll ? "Select all" : "No select";
@@ -99,15 +106,16 @@ public class ContactFragment extends Fragment implements
     super.onPrepareOptionsMenu(menu);
   }
 
+
   /**
-   * On selecting action bar icons
-   * */
+   * {@inheritDoc}
+   */
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     Intent intent = null;
     switch (item.getItemId()) {
     case R.id.action_refresh:
-      ((ContactsActivity) getActivity()).update();
+      ((ContactsActivity) getActivity()).reinitData();
       break;
     case R.id.action_add_group:
       break;
@@ -131,30 +139,30 @@ public class ContactFragment extends Fragment implements
     return super.onOptionsItemSelected(item);
   }
 
-  private boolean isSelectedAll() {
-    boolean selectAll = true;
-    for (ContactRow contactRow : contactManager.getContactList()) {
+  private void isSelectedAll() {
+    for (ContactRow contactRow : contactManager.getContactsLocal()) {
       if (!contactRow.isSync()) {
         selectAll = false;
         break;
       }
     }
-    return selectAll;
   }
 
   private void selectAll(final boolean result) {
     new Thread(new Runnable() {
+      @Override
       public void run() {
-        updateDB(contactManager.getContactList(), result);
+        updateDB(contactManager.getContactsLocal(), result);
       }
     }).start();
-    for (ContactRow contactRow : contactManager.getContactList()) {
+    for (ContactRow contactRow : contactManager.getContactsLocal()) {
       contactRow.setSync(result);
     }
     adapter.notifyDataSetChanged();
     new Thread(new Runnable() {
+      @Override
       public void run() {
-        for (GroupRow groupRow : contactManager.getGroupsList()) {
+        for (GroupRow groupRow : contactManager.getGroupsLocal()) {
           groupRow.setSync(result);
           HelperSQL db = new HelperSQL(getActivity());
           db.updateGroupSync(groupRow);
@@ -166,6 +174,7 @@ public class ContactFragment extends Fragment implements
   private void updateDB(final List<ContactRow> contacts,
       final boolean result) {
     new Thread(new Runnable() {
+      @Override
       public void run() {
         HelperSQL db = new HelperSQL(getActivity());
         db.updateContactsSync(contacts, result);
@@ -178,7 +187,7 @@ public class ContactFragment extends Fragment implements
       final boolean isChecked) {
     final int pos = (Integer) buttonView.getTag();
     if (pos != ListView.INVALID_POSITION) {
-      ContactRow p = contactManager.getContactList().get(pos);
+      ContactRow p = contactManager.getContactsLocal().get(pos);
       if (p.isSync() != isChecked) {
         p.setSync(isChecked);
         ArrayList<ContactRow> contacts = new ArrayList<ContactRow>();

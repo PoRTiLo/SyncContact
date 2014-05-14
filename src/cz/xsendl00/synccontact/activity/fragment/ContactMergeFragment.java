@@ -2,13 +2,6 @@ package cz.xsendl00.synccontact.activity.fragment;
 
 import java.util.List;
 
-import cz.xsendl00.synccontact.HelpActivity;
-import cz.xsendl00.synccontact.LDAPContactActivity;
-import cz.xsendl00.synccontact.R;
-import cz.xsendl00.synccontact.SettingsActivity;
-import cz.xsendl00.synccontact.client.ContactManager;
-import cz.xsendl00.synccontact.database.HelperSQL;
-import cz.xsendl00.synccontact.utils.ContactRow;
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
@@ -21,15 +14,22 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ListView;
+import cz.xsendl00.synccontact.HelpActivity;
+import cz.xsendl00.synccontact.LDAPContactActivity;
+import cz.xsendl00.synccontact.R;
+import cz.xsendl00.synccontact.SettingsActivity;
+import cz.xsendl00.synccontact.client.ContactManager;
+import cz.xsendl00.synccontact.database.HelperSQL;
+import cz.xsendl00.synccontact.utils.ContactRow;
 
 
 /**
- * Fragment for contact.
- * 
+ * ContactMergeFragment for contact.
+ *
  * @author portilo
  *
  */
-public class ContactLDAPFragment extends Fragment implements
+public class ContactMergeFragment extends Fragment implements
     android.widget.CompoundButton.OnCheckedChangeListener {
 
   private static final String TAG = "ContactLDAPFragment";
@@ -37,14 +37,14 @@ public class ContactLDAPFragment extends Fragment implements
   private ListView listRow;
   private RowLDAPContactAdapter adapter;
   private ContactManager contactManager;
-  
+
   private static boolean selectAll;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
-    
+
     activity = (LDAPContactActivity) getActivity();
     contactManager = ContactManager.getInstance(activity);
     selectAll = selected();
@@ -62,14 +62,15 @@ public class ContactLDAPFragment extends Fragment implements
     return rootView;
   }
 
+  @Override
   public void onResume() {
     super.onResume();
     listRow = (ListView) getActivity().findViewById(R.id.list_contact);
     Log.i(TAG, "size in ContactLDAPFragment :" + contactManager.getContactsServer().size());
-    adapter = new RowLDAPContactAdapter(getActivity().getApplicationContext(), contactManager.getContactsServer(), this);
+    //adapter = new RowLDAPContactAdapter(getActivity().getApplicationContext(), contactManager.getContactsServer(), this);
     listRow.setAdapter(adapter);
   }
-  
+
   private boolean selected() {
     HelperSQL db = new HelperSQL(activity);
     List<ContactRow> contactRowDb = db.getContactsSync();
@@ -93,25 +94,26 @@ public class ContactLDAPFragment extends Fragment implements
     }
     return selectAll = countSelect == contactManager.getContactsServer().size();
   }
-  
+
   private void selectAll(final boolean result) {
     for (ContactRow contactRow : contactManager.getContactsServer()) {
       contactRow.setSync(result);
     }
     adapter.notifyDataSetChanged();
   }
-  
+
   /**
-   * 
+   *
    */
+  @Override
   public void onPrepareOptionsMenu (Menu menu) {
     MenuItem item = menu.findItem(R.id.action_select);
     String newText = !selectAll ? "Select all" : "No select";
     item.setTitle(newText);
     super.onPrepareOptionsMenu(menu);
   }
-  
-  
+
+
   /**
    * On selecting action bar icons
    * */

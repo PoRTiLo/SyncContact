@@ -1,12 +1,5 @@
 package cz.xsendl00.synccontact.activity.fragment;
 
-import cz.xsendl00.synccontact.ContactsActivity;
-import cz.xsendl00.synccontact.HelpActivity;
-import cz.xsendl00.synccontact.LDAPContactActivity;
-import cz.xsendl00.synccontact.R;
-import cz.xsendl00.synccontact.SettingsActivity;
-import cz.xsendl00.synccontact.R.id;
-
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,6 +8,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.CompoundButton;
 import android.widget.ListView;
+import cz.xsendl00.synccontact.ContactsActivity;
+import cz.xsendl00.synccontact.HelpActivity;
+import cz.xsendl00.synccontact.LDAPContactActivity;
+import cz.xsendl00.synccontact.R;
+import cz.xsendl00.synccontact.SettingsActivity;
 
 public class GroupLDAPFragment extends Fragment implements
     android.widget.CompoundButton.OnCheckedChangeListener {
@@ -33,24 +31,25 @@ public class GroupLDAPFragment extends Fragment implements
     activity = (LDAPContactActivity) getActivity();
     //selectAll = isSelectedAll();
   }
-  
+
+  @Override
   public void onPrepareOptionsMenu (Menu menu) {
     MenuItem item = menu.findItem(R.id.action_select);
     String newText = !selectAll ? "Select all" : "No select";
     item.setTitle(newText);
     super.onPrepareOptionsMenu(menu);
   }
-  
+
   /**
    * On selecting action bar icons
    * */
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    
+
     Intent intent = null;
     switch (item.getItemId()) {
       case R.id.action_refresh:
-        ((ContactsActivity) getActivity()).update();
+        ((ContactsActivity) getActivity()).reinitData();
         break;
       case R.id.action_add_group:
         break;
@@ -74,14 +73,14 @@ public class GroupLDAPFragment extends Fragment implements
       default:
         break;
     }
-    
+
     return super.onOptionsItemSelected(item);
   }
 
   @Override
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
     // TODO Auto-generated method stub
-    
+
   }
- 
+
 }

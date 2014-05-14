@@ -1,25 +1,11 @@
 package cz.xsendl00.synccontact;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import cz.xsendl00.synccontact.R;
+import com.googlecode.androidannotations.annotations.EActivity;
 
-import cz.xsendl00.synccontact.activity.first.InfoMergeActivity;
-import cz.xsendl00.synccontact.activity.fragment.ContactLDAPFragment;
-import cz.xsendl00.synccontact.activity.fragment.GroupLDAPFragment;
-import cz.xsendl00.synccontact.authenticator.AccountData;
-import cz.xsendl00.synccontact.client.ContactManager;
-import cz.xsendl00.synccontact.contact.GoogleContact;
-import cz.xsendl00.synccontact.database.HelperSQL;
-import cz.xsendl00.synccontact.ldap.ServerInstance;
-import cz.xsendl00.synccontact.ldap.ServerUtilities;
-import cz.xsendl00.synccontact.utils.Constants;
-import cz.xsendl00.synccontact.utils.ContactRow;
-import cz.xsendl00.synccontact.utils.ContactRowComparator;
-import cz.xsendl00.synccontact.utils.Utils;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -30,14 +16,25 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.widget.ListView;
+import cz.xsendl00.synccontact.activity.fragment.ContactLDAPFragment;
+import cz.xsendl00.synccontact.activity.fragment.GroupLDAPFragment;
+import cz.xsendl00.synccontact.authenticator.AccountData;
+import cz.xsendl00.synccontact.client.ContactManager;
+import cz.xsendl00.synccontact.contact.GoogleContact;
+import cz.xsendl00.synccontact.database.HelperSQL;
+import cz.xsendl00.synccontact.ldap.ServerInstance;
+import cz.xsendl00.synccontact.ldap.ServerUtilities;
+import cz.xsendl00.synccontact.utils.Constants;
+import cz.xsendl00.synccontact.utils.ContactRow;
+import cz.xsendl00.synccontact.utils.Utils;
 
 /**
  * Activity for data from server.
- * 
+ *
  * @author portilo
- * 
+ *
  */
+@EActivity(R.layout.activity_ldap_contact)
 public class LDAPContactActivity extends Activity {
 
   private static final String TAG = "LDAPContactActivity";
@@ -54,14 +51,13 @@ public class LDAPContactActivity extends Activity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_ldap_contact);
     getActionBar().setDisplayHomeAsUpEnabled(true);
-    
+
     Intent intent = getIntent();
     first = intent.getBooleanExtra("FIRST", false);
-    
+
     contactManager = ContactManager.getInstance(getApplicationContext());
-    if (!contactManager.isContactsLDAPInit()) {
+    if (!contactManager.isContactsServerInit()) {
       progressDialog = ProgressDialog.show(LDAPContactActivity.this,
           Constants.AC_LOADING, Constants.AC_LOADING_TEXT_DB, true);
       new DownloadTask(LDAPContactActivity.this).execute();
@@ -98,14 +94,14 @@ public class LDAPContactActivity extends Activity {
                 ContactLDAPFragment.class))
         .setIcon(R.drawable.ic_action_person));
   }
-  
+
   public void onImportCompleted() {
-    Intent intent = new Intent(this, MainActivity.class);
+    Intent intent = new Intent(this, MainActivity_.class);
     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
         | Intent.FLAG_ACTIVITY_NEW_TASK);
     startActivity(intent);
   }
-  
+
   /**
    * Data from sever are loaded. Background task finished.
    */
@@ -123,10 +119,11 @@ public class LDAPContactActivity extends Activity {
 
     @Override
     protected Boolean doInBackground(Void... params) {
-      contactManager.initLDAP(handler);
+      contactManager.initContactLDAP(handler);
       return null;
     }
 
+    @Override
     protected void onPostExecute(Boolean p) {
       if (LDAPContactActivity.this.progressDialog != null) {
         LDAPContactActivity.this.progressDialog.dismiss();
@@ -135,6 +132,7 @@ public class LDAPContactActivity extends Activity {
       ((LDAPContactActivity) activity).onTaskCompleted();
     }
 
+    @Override
     protected void onPreExecute() {
       super.onPreExecute();
     }
@@ -146,13 +144,13 @@ public class LDAPContactActivity extends Activity {
   public void update() {
     new DownloadTask(LDAPContactActivity.this).execute();
   }
-  
+
   /**
    * Import selected contact form server to android.
    * @param view
    */
   public void mainActivity(View view) {
-    if (contactManager.getContactListLDAP().isEmpty()) {
+    if (contactManager.getContactsServer().isEmpty()) {
       onImportCompleted();
     } else {
       progressDialog = ProgressDialog.show(LDAPContactActivity.this,
@@ -160,9 +158,9 @@ public class LDAPContactActivity extends Activity {
       // import pair.getContactList() form server do db -> must be created new contact and data
       new ImportTask(LDAPContactActivity.this).execute();
     }
-    
+
   }
-  
+
   private class ImportTask extends AsyncTask<Void, Void, Boolean> {
     private Activity activity;
 
@@ -176,27 +174,32 @@ public class LDAPContactActivity extends Activity {
       Utils util = new Utils();
       Map<String, ContactRow> dbContact =  db.getAllContactsMap();
       ArrayList<ContactRow> contactRows = new ArrayList<ContactRow>();
-      contactRows.addAll(contactManager.getContactListLDAP());
+      contactRows.addAll(contactManager.getContactsServer());
       final List<ContactRow> intersection = util.intersectionDifference(contactRows, dbContact);
-      Log.i(TAG, "intersection:" + intersection.size() + ", contactRows:" + contactRows.size() + ", dbContact:" + dbContact.size());
-      
+      Log.i(TAG, "intersection:" + intersection.size() + ", contactRows:" + contactRows.size()
+          + ", dbContact:" + dbContact.size());
+
       // intersection-> must be sign as sync
       new Thread(new Runnable() {
+        @Override
         public void run() {
-          HelperSQL db = new HelperSQL(activity);
-          db.updateContactsSync(intersection, true);
+          HelperSQL database = new HelperSQL(activity);
+          database.updateContactsSync(intersection, true);
         }
       }).start();
-      
+
       for (ContactRow contactRow : contactRows) {
         if (contactRow.isSync()) {
-          GoogleContact googleContact =  new ServerUtilities().fetchLDAPContact(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext(), handler, contactRow.getUuid());
+          GoogleContact googleContact =  new ServerUtilities().fetchLDAPContact(
+              new ServerInstance(AccountData.getAccountData(getApplicationContext())),
+              getApplicationContext(), handler, contactRow.getUuid());
           Log.i(TAG, googleContact.getUuid());
         }
       }
       return null;
     }
 
+    @Override
     protected void onPostExecute(Boolean p) {
       if (LDAPContactActivity.this.progressDialog != null) {
         LDAPContactActivity.this.progressDialog.dismiss();
@@ -209,6 +212,7 @@ public class LDAPContactActivity extends Activity {
       }
     }
 
+    @Override
     protected void onPreExecute() {
       super.onPreExecute();
     }

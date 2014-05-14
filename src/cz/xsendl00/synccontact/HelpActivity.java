@@ -1,5 +1,8 @@
 package cz.xsendl00.synccontact;
 
+
+import com.googlecode.androidannotations.annotations.EActivity;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,16 +14,16 @@ import android.view.MenuItem;
 
 /**
  * Activity which show info.
- * 
+ *
  * @author portilo
- * 
+ *
  */
+@EActivity(R.layout.activity_help)
 public class HelpActivity extends Activity {
 
   @Override
   public void onCreate(Bundle bundle) {
     super.onCreate(bundle);
-    setContentView(R.layout.activity_help);
     getActionBar().setDisplayHomeAsUpEnabled(true);
   }
 
@@ -36,7 +39,7 @@ public class HelpActivity extends Activity {
     Intent intent = null;
     switch (item.getItemId()) {
     case R.id.action_settings:
-      intent = new Intent(this, SettingsActivity.class);
+      intent = new Intent(this, SettingsActivity_.class);
       startActivity(intent);
       break;
     case android.R.id.home:

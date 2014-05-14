@@ -18,7 +18,7 @@
     android:id="@+id/contact_merge_button"
     style="@style/CustomButton"
     android:gravity="center"
-    android:onClick="merge"
+    android:onClick="mergeContactLocalwithLDAP"
     android:text="@string/info_button" >
   </Button>
  

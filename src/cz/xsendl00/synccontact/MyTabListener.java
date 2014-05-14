@@ -1,28 +1,13 @@
 package cz.xsendl00.synccontact;
 
-import cz.xsendl00.synccontact.R;
-
-import android.app.ActionBar.Tab;
 import android.app.ActionBar;
+import android.app.ActionBar.Tab;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 
 public class MyTabListener<T extends Fragment> implements ActionBar.TabListener {
-  /*
-   * Fragment fragment;
-   * 
-   * public MyTabListener(Fragment fragment) { this.fragment = fragment; }
-   * 
-   * @Override public void onTabSelected(Tab tab, FragmentTransaction ft) {
-   * ft.replace(R.id.fragment_container, fragment); }
-   * 
-   * @Override public void onTabUnselected(Tab tab, FragmentTransaction ft) {
-   * ft.remove(fragment); }
-   * 
-   * @Override public void onTabReselected(Tab tab, FragmentTransaction ft) { //
-   * TODO Auto-generated method stub }
-   */
+
   private Fragment mFragment;
   private final Activity mActivity;
   private final String mTag;
@@ -51,7 +36,8 @@ public class MyTabListener<T extends Fragment> implements ActionBar.TabListener 
 
   @Override
   public void onTabUnselected(Tab tab, FragmentTransaction ft) {
-    if (mFragment != null)
+    if (mFragment != null) {
       ft.detach(mFragment);
+    }
   }
 }

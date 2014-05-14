@@ -9,25 +9,25 @@ import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.provider.ContactsContract;
-import android.util.Log;
 
 public class GroupRow implements Parcelable {
-  
+
   private String name;
   private String id;
   private Integer idTable;
   private Integer size;
   private Boolean sync;
+  private String uuid;
   private static ArrayList<GroupRow> groups = null;
-  
+
   public GroupRow() {
     this(null, null);
   }
-  
+
   public GroupRow(String name, String id) {
     this(name, id, null, false, null);
   }
-  
+
   public GroupRow(String name, String id, Integer size, boolean sync, Integer idTable) {
     this.setId(id);
     this.setName(name);
@@ -66,12 +66,12 @@ public class GroupRow implements Parcelable {
     this.id = id;
   }
 
-  
+
   public String toStringSync() {
     return "Id: "+id + ", sync: " + sync;
-    
+
   }
-  
+
   // TODO: list init only once, but what will be happen if add new group?
   public static ArrayList<GroupRow> fetchGroups(ContentResolver contentResolver) {
     Cursor cursor = null;
@@ -81,7 +81,7 @@ public class GroupRow implements Parcelable {
       groups = new ArrayList<GroupRow>();
       while (cursor.moveToNext()) {
         groups.add(new GroupRow(
-          cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.TITLE)), 
+          cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.TITLE)),
           cursor.getString(cursor.getColumnIndex(ContactsContract.Groups._ID))
           )
         );
@@ -97,7 +97,7 @@ public class GroupRow implements Parcelable {
         ex.printStackTrace();
       }
     }
-    
+
     Collections.sort(groups,new Comparator<GroupRow>() {
       @Override
       public int compare(GroupRow lhs, GroupRow rhs) {
@@ -141,12 +141,14 @@ public class GroupRow implements Parcelable {
       dest.writeInt(this.size);
     }
   }
-  
+
   public static final Parcelable.Creator<GroupRow> CREATOR = new Parcelable.Creator<GroupRow>() {
+    @Override
     public GroupRow createFromParcel(Parcel in) {
       return new GroupRow(in);
     }
 
+    @Override
     public GroupRow[] newArray(int size) {
       return new GroupRow[size];
     }
@@ -158,5 +160,22 @@ public class GroupRow implements Parcelable {
     this.sync = in.readInt() == 1;
     this.idTable = in.readInt();
     this.size = in.readInt();
+  }
+
+  /**
+   * @return Returns the UUID.
+   */
+  public String getUuid() {
+    if (uuid == null) {
+      uuid = ContactRow.generateUUID();
+    }
+    return uuid;
+  }
+
+  /**
+   * @param uuid The uuid to set.
+   */
+  public void setUuid(String uuid) {
+    this.uuid = uuid;
   }
 }

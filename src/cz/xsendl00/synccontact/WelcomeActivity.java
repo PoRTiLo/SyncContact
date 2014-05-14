@@ -1,9 +1,8 @@
-package cz.xsendl00.synccontact.activity.first;
+package cz.xsendl00.synccontact;
 
-import cz.xsendl00.synccontact.AddServerActivity;
-import cz.xsendl00.synccontact.HelpActivity;
-import cz.xsendl00.synccontact.R;
-import cz.xsendl00.synccontact.SettingsActivity;
+
+import com.googlecode.androidannotations.annotations.EActivity;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -17,6 +16,7 @@ import android.widget.Toast;
  * @author portilo
  *
  */
+@EActivity(R.layout.activity_welcome)
 public class WelcomeActivity extends Activity {
 
   private Toast toast;
@@ -25,16 +25,15 @@ public class WelcomeActivity extends Activity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_welcome);
     getActionBar().setDisplayHomeAsUpEnabled(true);
   }
 
   /**
    * Open activity for configuration connection to server LDAP.
-   * @param view
+   * @param view unused
    */
-  public void addServerActivity(View view) {
-    Intent intent = new Intent(this, AddServerActivity.class);
+  public void addServerActivity(@SuppressWarnings("unused") View view) {
+    Intent intent = new Intent(this, AddServerActivity_.class);
     startActivity(intent);
   }
 
@@ -64,11 +63,11 @@ public class WelcomeActivity extends Activity {
     Intent intent = null;
     switch (item.getItemId()) {
     case R.id.action_help:
-      intent = new Intent(this, HelpActivity.class);
+      intent = new Intent(this, HelpActivity_.class);
       startActivity(intent);
       break;
     case R.id.action_settings:
-      intent = new Intent(this, SettingsActivity.class);
+      intent = new Intent(this, SettingsActivity_.class);
       startActivity(intent);
       break;
     case android.R.id.home:

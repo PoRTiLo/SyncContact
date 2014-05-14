@@ -6,10 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import cz.xsendl00.synccontact.contact.GoogleContact;
-import cz.xsendl00.synccontact.utils.ContactRow;
-import cz.xsendl00.synccontact.utils.GroupRow;
-import cz.xsendl00.synccontact.utils.Utils;
+import com.googlecode.androidannotations.annotations.EBean;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -17,7 +15,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
+import cz.xsendl00.synccontact.client.ContactManager;
+import cz.xsendl00.synccontact.contact.GoogleContact;
+import cz.xsendl00.synccontact.utils.ContactRow;
+import cz.xsendl00.synccontact.utils.GroupRow;
 
+@EBean
 public class HelperSQL extends SQLiteOpenHelper {
 
   private static final String TAG = "HelperSQL";
@@ -26,11 +29,12 @@ public class HelperSQL extends SQLiteOpenHelper {
   private static final int DATABASE_VERSION = 1;
   private static final String GROUP_TABLE_NAME = "groupGoogle";
   // Contacts Table Columns names
-  private static final String GROUP_KEY_ID = "id";
-  private static final String GROUP_KEY_ID_GROUP = "group_id";
-  private static final String GROUP_KEY_GROUP = "groupName";
-  private static final String GROUP_KEY_SIZE = "groupSize";
-  private static final String GROUP_KEY_SYNC = "sync";
+  private static final String GROUP_KEY_ID = "id_";
+  private static final String GROUP_KEY_ID_GROUP = "group_id_";
+  private static final String GROUP_KEY_GROUP = "groupName_";
+  private static final String GROUP_KEY_SIZE = "groupSize_";
+  private static final String GROUP_KEY_SYNC = "sync_";
+  private static final String GROUP_KEY_UUID = "uuid_";
   private static final String CREATE_GROUP_TABLE = "CREATE TABLE IF NOT EXISTS "
       + GROUP_TABLE_NAME
       + " ("
@@ -41,19 +45,21 @@ public class HelperSQL extends SQLiteOpenHelper {
       + GROUP_KEY_SIZE
       + " INTEGER, "
       + GROUP_KEY_SYNC
-      + " INTEGER,"
+      + " INTEGER, "
+      + GROUP_KEY_UUID
+      + " INTEGER, "
       + GROUP_KEY_ID_GROUP + " TEXT " + ");";
 
   private static final String CONTACT_TABLE_NAME = "contactGoogle";
 
-  private static final String CONTACT_KEY_ID = "id";
-  private static final String CONTACT_KEY_ID_CONTACT = "contact_id";
-  private static final String CONTACT_KEY_NAME = "contactName";
-  private static final String CONTACT_KEY_SYNC = "sync";
-  private static final String CONTACT_KEY_ACCOUNT_NAME = "account_name_previous";
-  private static final String CONTACT_KEY_ACCOUNT_TYPE = "account_type_previous";
-  private static final String CONTACT_KEY_TIMESTAMP = "timestamp";
-  private static final String CONTACT_KEY_UUID = "uuid";
+  private static final String CONTACT_KEY_ID = "id_";
+  private static final String CONTACT_KEY_ID_CONTACT = "contact_id_";
+  private static final String CONTACT_KEY_NAME = "contactName_";
+  private static final String CONTACT_KEY_SYNC = "sync_";
+  private static final String CONTACT_KEY_ACCOUNT_NAME = "account_name_previous_";
+  private static final String CONTACT_KEY_ACCOUNT_TYPE = "account_type_previous_";
+  private static final String CONTACT_KEY_TIMESTAMP = "timestamp_";
+  private static final String CONTACT_KEY_UUID = "uuid_";
 
   private static final String CREATE_CONTACT_TABLE = "CREATE TABLE IF NOT EXISTS "
       + CONTACT_TABLE_NAME
@@ -76,19 +82,31 @@ public class HelperSQL extends SQLiteOpenHelper {
       + " TEXT " + ");";
 
   private Context context;
+  private ContactManager contactManager;
 
+  /**
+   * Create instance database.
+   * @param context context
+   */
   public HelperSQL(Context context) {
     super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    contactManager = ContactManager.getInstance(context);
     this.context = context;
   }
 
   /* Create table */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void onCreate(SQLiteDatabase db) {
     db.execSQL(CREATE_GROUP_TABLE);
     db.execSQL(CREATE_CONTACT_TABLE);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     // Drop older table if existed
@@ -100,8 +118,8 @@ public class HelperSQL extends SQLiteOpenHelper {
 
   /**
    * Adding new group.
-   * 
-   * @param group
+   *
+   * @param group new group
    */
   public void addGroup(GroupRow group) {
     SQLiteDatabase db = this.getWritableDatabase();
@@ -111,6 +129,7 @@ public class HelperSQL extends SQLiteOpenHelper {
       values.put(GROUP_KEY_SYNC, group.isSync());
       values.put(GROUP_KEY_ID_GROUP, group.getId());
       values.put(GROUP_KEY_SIZE, group.getSize());
+      values.put(GROUP_KEY_UUID, group.getUuid());
       // Inserting Row
       db.insert(GROUP_TABLE_NAME, null, values);
     } catch (Exception ex) {
@@ -126,7 +145,10 @@ public class HelperSQL extends SQLiteOpenHelper {
     }
   }
 
-  // Getting All Groups
+  /**
+   * Getting All Groups.
+   * @return List of group
+   */
   public List<GroupRow> getAllGroups() {
     List<GroupRow> groupList = new ArrayList<GroupRow>();
     String selectQuery = "SELECT  * FROM " + GROUP_TABLE_NAME;
@@ -139,7 +161,8 @@ public class HelperSQL extends SQLiteOpenHelper {
         group.setName(cursor.getString(1));
         group.setSize(cursor.getInt(2));
         group.setSync(cursor.getInt(3) > 0);
-        group.setId(cursor.getString(4));
+        group.setUuid(cursor.getString(4));
+        group.setId(cursor.getString(5));
         // Adding group to list
         groupList.add(group);
       } while (cursor.moveToNext());
@@ -149,7 +172,11 @@ public class HelperSQL extends SQLiteOpenHelper {
     return groupList;
   }
 
-  // Updating single group
+  /**
+   * Updating single group. Only SYNC
+   * @param group Group for update
+   * @return result of success.
+   */
   public int updateGroupSync(GroupRow group) {
     SQLiteDatabase db = this.getWritableDatabase();
     ContentValues values = new ContentValues();
@@ -160,7 +187,10 @@ public class HelperSQL extends SQLiteOpenHelper {
     return res;
   }
 
-  // Deleting single group
+  /**
+   * Deleting single group.
+   * @param group Deleted group
+   */
   public void deleteGroup(GroupRow group) {
     SQLiteDatabase db = this.getWritableDatabase();
     db.delete(GROUP_TABLE_NAME, GROUP_KEY_ID + " = ?",
@@ -168,7 +198,10 @@ public class HelperSQL extends SQLiteOpenHelper {
     db.close();
   }
 
-  // Insert data from db
+  /**
+   * Insert data from database..
+   * @param groups list of groups
+   */
   public void fillGroups(List<GroupRow> groups) {
     List<GroupRow> grTable = getAllGroups();
     for (GroupRow gr : groups) {
@@ -188,9 +221,9 @@ public class HelperSQL extends SQLiteOpenHelper {
   }
 
   /**
-   * Adding new contacts
-   * 
-   * @param contacts
+   * Adding new contacts.
+   *
+   * @param contacts new contact
    */
   public void addContacts(List<ContactRow> contacts) {
 
@@ -219,19 +252,12 @@ public class HelperSQL extends SQLiteOpenHelper {
       Log.i(TAG, "Insert entries: " + contacts.size() + " into "
           + CONTACT_TABLE_NAME);
       db.setTransactionSuccessful();
-      Log.i(TAG, "setTransactionSuccessful");
     } catch (Exception ex) {
       ex.printStackTrace();
     } finally {
-      try {
-        db.endTransaction();
-        Log.i(TAG, "endTransaction");
-        if (db.isOpen()) {
-          db.close(); // Closing database connection
-        }
-        Log.i(TAG, "close");
-      } catch (Exception ex) {
-        ex.printStackTrace();
+      db.endTransaction();
+      if (db.isOpen()) {
+        db.close(); // Closing database connection
       }
     }
   }
@@ -281,7 +307,7 @@ public class HelperSQL extends SQLiteOpenHelper {
 
   /**
    * Getting all ContactRow.
-   * 
+   *
    * @return map of contactRow.
    */
   public Map<String, ContactRow> getAllContactsMap() {
@@ -342,7 +368,7 @@ public class HelperSQL extends SQLiteOpenHelper {
 
   /**
    * Getting sync contact id.
-   * 
+   *
    * @return list of ContactRow
    */
   public List<ContactRow> getSyncContacts() {
@@ -385,7 +411,7 @@ public class HelperSQL extends SQLiteOpenHelper {
 
   /**
    * Updating synchronization in list of ContactRow.
-   * 
+   *
    * @param contacts
    *          List of contact for updating
    * @param sync
@@ -411,6 +437,8 @@ public class HelperSQL extends SQLiteOpenHelper {
       ex.printStackTrace();
     } finally {
       try {
+        ContactManager contactManager = ContactManager.getInstance(context);
+        contactManager.setContactsLocalReload(false);
         db.endTransaction();
         if (db.isOpen()) {
           db.close();
@@ -420,10 +448,10 @@ public class HelperSQL extends SQLiteOpenHelper {
       }
     }
   }
-  
+
   /**
    * Updating synchronization in list of ContactRow.
-   * 
+   *
    * @param contacts
    *          List of contact for updating
    * @param sync
@@ -462,7 +490,7 @@ public class HelperSQL extends SQLiteOpenHelper {
 
   /**
    * Updating synchronization in list of ContactRow.
-   * 
+   *
    * @param listId
    *          List of contact for updating
    * @param sync
@@ -501,7 +529,7 @@ public class HelperSQL extends SQLiteOpenHelper {
 
   /**
    * Update column SYNC and TIMESTAMP for all entries in map googleContacts.
-   * 
+   *
    * @param googleContacts
    * @param timestamp
    */
@@ -550,7 +578,7 @@ public class HelperSQL extends SQLiteOpenHelper {
 
   /**
    * Insert data to database.
-   * 
+   *
    * @param contacts
    */
   public void fillContacts(List<ContactRow> contacts) {
@@ -582,7 +610,7 @@ public class HelperSQL extends SQLiteOpenHelper {
 
   /**
    * Newer timestamp of last synchronization. Get from database.
-   * 
+   *
    * @return last timestamp.
    */
   public String newerTimestamp() {

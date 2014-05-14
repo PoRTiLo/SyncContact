@@ -27,4 +27,8 @@ libs/unboudid/
 libs/v4/
 libs/*properties
 
+.settings/
+
+.apt_generated/
+
 *~

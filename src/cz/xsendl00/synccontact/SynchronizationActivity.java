@@ -1,12 +1,10 @@
 package cz.xsendl00.synccontact;
 
-import cz.xsendl00.synccontact.authenticator.AccountData;
-import cz.xsendl00.synccontact.database.HelperSQL;
-import cz.xsendl00.synccontact.ldap.ServerInstance;
-import cz.xsendl00.synccontact.ldap.ServerUtilities;
-import cz.xsendl00.synccontact.ldap.Synchronization;
-import cz.xsendl00.synccontact.utils.Constants;
-import cz.xsendl00.synccontact.utils.ContactRow;
+
+import com.googlecode.androidannotations.annotations.AfterViews;
+import com.googlecode.androidannotations.annotations.EActivity;
+import com.googlecode.androidannotations.annotations.ViewById;
+
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -20,27 +18,41 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import cz.xsendl00.synccontact.authenticator.AccountData;
+import cz.xsendl00.synccontact.database.HelperSQL;
+import cz.xsendl00.synccontact.ldap.ServerInstance;
+import cz.xsendl00.synccontact.ldap.Synchronization;
+import cz.xsendl00.synccontact.utils.Constants;
+import cz.xsendl00.synccontact.utils.ContactRow;
 
+@EActivity(R.layout.activity_synchronization)
 public class SynchronizationActivity extends Activity {
 
-  private final String TAG = "SynchronizationActivity"; 
-  
-  private TextView editTextTime;
+  private static final String TAG = "SynchronizationActivity";
+
+  @ViewById(R.id.synchronization_time)
+  protected TextView editTextTime;
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_synchronization);
     getActionBar().setDisplayHomeAsUpEnabled(true);
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
     getLastSyncTime();
   }
 
-  private void getLastSyncTime () {
+  @AfterViews
+  protected void getLastSyncTime() {
     new Thread(new Runnable() {
+      @Override
       public void run() {
-        editTextTime = (TextView) findViewById(R.id.sync_time);
         HelperSQL db = new HelperSQL(getApplicationContext());
         final String str = db.newerTimestamp();
         editTextTime.post(new Runnable() {
+          @Override
           public void run() {
             editTextTime.setText(ContactRow.timestamptoDate(str));
             Log.i(TAG, "LastSync: " + editTextTime.getText());
@@ -49,62 +61,65 @@ public class SynchronizationActivity extends Activity {
       }
     }).start();
   }
-  
-  
-  
+
+
+
   /**
    * Run synchronization by user's request.
-   * @param view
+   * @param view unused
    */
+  @SuppressWarnings("unused")
   public void synchronizationActivity(View view) {
     SyncTask rt = new SyncTask();
     rt.execute();
   }
-  
+
   private class SyncTask extends AsyncTask<Void, Void, Boolean> {
-    
+
     private ProgressDialog progressDialog;
     @Override
     protected Boolean doInBackground(Void...params) {
       try {
-        Synchronization synchronization = new Synchronization();
-        synchronization.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext());
+        Synchronization synchronization = new Synchronization(getApplicationContext());
+        synchronization.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())),
+            getApplicationContext());
       } catch (RemoteException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       } catch (OperationApplicationException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
       return true;
     }
+    @Override
     protected void onPostExecute(Boolean bool) {
       progressDialog.dismiss();
     }
-    
+
+    @Override
     protected void onPreExecute() {
       super.onPreExecute();
-      progressDialog = ProgressDialog.show(SynchronizationActivity.this, Constants.AC_DOWNLOADING, Constants.AC_DOWNLOADING_DATA_SERVER, true);
+      progressDialog = ProgressDialog.show(SynchronizationActivity.this, Constants.AC_DOWNLOADING,
+          Constants.AC_DOWNLOADING_DATA_SERVER, true);
     }
   }
-  
+
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.sync_menu, menu);
     return true;
   }
-  
+
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     Intent intent = null;
     switch (item.getItemId()) {
       case R.id.action_help:
-        intent = new Intent(this, HelpActivity.class);
+        intent = new Intent(this, HelpActivity_.class);
         startActivity(intent);
         break;
       case R.id.action_settings:
-        intent = new Intent(this, SettingsActivity.class);
+        intent = new Intent(this, SettingsActivity_.class);
         startActivity(intent);
         break;
       case android.R.id.home:
@@ -116,5 +131,5 @@ public class SynchronizationActivity extends Activity {
 
     return true;
   }
- 
+
 }
