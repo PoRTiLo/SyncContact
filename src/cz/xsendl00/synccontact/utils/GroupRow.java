@@ -38,8 +38,8 @@ public class GroupRow implements Parcelable {
 
   @Override
   public String toString() {
-    return "GroupRow [name=" + name + ", id=" + id
-        + ", idTable=" + idTable + ", size=" + size + ", sync=" + sync + "]";
+    return "GroupRow [name=" + name + ", id=" + id + ", idTable=" + idTable + ", size=" + size
+        + ", sync=" + sync + "]";
   }
 
   public String getName() {
@@ -68,7 +68,7 @@ public class GroupRow implements Parcelable {
 
 
   public String toStringSync() {
-    return "Id: "+id + ", sync: " + sync;
+    return "Id: " + id + ", sync: " + sync;
 
   }
 
@@ -77,28 +77,28 @@ public class GroupRow implements Parcelable {
     Cursor cursor = null;
     try {
       String[] projection = new String[]{ContactsContract.Groups._ID, ContactsContract.Groups.TITLE};
-      cursor = contentResolver.query(ContactsContract.Groups.CONTENT_URI, projection, null, null, null);
+      cursor = contentResolver.query(ContactsContract.Groups.CONTENT_URI, projection, null, null,
+          null);
       groups = new ArrayList<GroupRow>();
       while (cursor.moveToNext()) {
         groups.add(new GroupRow(
-          cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.TITLE)),
-          cursor.getString(cursor.getColumnIndex(ContactsContract.Groups._ID))
-          )
-        );
+            cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.TITLE)),
+            cursor.getString(cursor.getColumnIndex(ContactsContract.Groups._ID))));
       }
-    } catch(Exception ex) {
-        ex.printStackTrace();
+    } catch (Exception ex) {
+      ex.printStackTrace();
     } finally {
       try {
-        if ( cursor != null && !cursor.isClosed() ) {
+        if (cursor != null && !cursor.isClosed()) {
           cursor.close();
         }
-      } catch(Exception ex) {
+      } catch (Exception ex) {
         ex.printStackTrace();
       }
     }
 
-    Collections.sort(groups,new Comparator<GroupRow>() {
+    Collections.sort(groups, new Comparator<GroupRow>() {
+
       @Override
       public int compare(GroupRow lhs, GroupRow rhs) {
         return rhs.getName().compareTo(lhs.getName()) < 0 ? 0 : -1;
@@ -143,6 +143,7 @@ public class GroupRow implements Parcelable {
   }
 
   public static final Parcelable.Creator<GroupRow> CREATOR = new Parcelable.Creator<GroupRow>() {
+
     @Override
     public GroupRow createFromParcel(Parcel in) {
       return new GroupRow(in);

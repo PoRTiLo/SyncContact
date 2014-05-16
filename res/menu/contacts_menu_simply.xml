@@ -9,16 +9,8 @@
         android:title="@string/menu_help">
     </item>
     <item
-        android:id="@+id/action_settings"
-        android:icon="@drawable/ic_action_settings"
-        android:orderInCategory="103"
-        android:showAsAction="ifRoom|withText"
-        android:title="@string/menu_settings">
-    </item>
-
-    <item
         android:id="@+id/action_select"
-        android:icon="@drawable/ic_action_help"
+        android:icon="@drawable/ic_action_select_all"
         android:orderInCategory="104"
         android:showAsAction="ifRoom|withText"
         android:title="@string/menu_select">

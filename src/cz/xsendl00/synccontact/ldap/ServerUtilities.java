@@ -6,7 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.googlecode.androidannotations.annotations.EBean;
+import org.androidannotations.annotations.EBean;
+
 import com.unboundid.ldap.sdk.AddRequest;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
@@ -29,10 +30,10 @@ import android.os.Handler;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.util.Log;
-import cz.xsendl00.synccontact.AddServerActivity;
 import cz.xsendl00.synccontact.InfoLDAPActivity_;
 import cz.xsendl00.synccontact.R;
 import cz.xsendl00.synccontact.ServerActivity;
+import cz.xsendl00.synccontact.ServerAddActivity;
 import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.Constants;
@@ -93,7 +94,7 @@ public class ServerUtilities {
         if (test) {
           ((ServerActivity) context).onAuthenticationResult(baseDNs, result, message);
         } else {
-          ((AddServerActivity) context).onAuthenticationResult(baseDNs, result, message);
+          ((ServerAddActivity) context).onAuthenticationResult(baseDNs, result, message);
         }
       }
     });
@@ -183,8 +184,8 @@ public class ServerUtilities {
     int size = 0;
     try {
       connection = ldapServer.getConnection(null, context);
-      String filter = "(objectClass=googleContact)";
-      size = connection.search("ou=users,dc=synccontact,dc=xsendl00,dc=cz", SearchScope.SUB, filter,
+      size = connection.search(Constants.ACCOUNT_OU_PEOPLE + ldapServer.getAccountdData().getBaseDn(), SearchScope.SUB,
+          Constants.ACCOUNT_FILTER_LDAP,
           Constants.UUID).getEntryCount();
     } catch (LDAPException e) {
       e.printStackTrace();
@@ -211,8 +212,12 @@ public class ServerUtilities {
     try {
 
       connection = ldapServer.getConnection(handler, context);
-      String filter = "(&(objectClass=googleContact)(" + Constants.UUID + "=" + uuid + "))";
-      SearchResult searchResult = connection.search("ou=users,dc=synccontact,dc=xsendl00,dc=cz", SearchScope.SUB, filter, Mapping.createAttributes());
+      String filter = "(&" + Constants.ACCOUNT_FILTER_LDAP + "(" + Constants.UUID + "=" + uuid + "))";
+      SearchResult searchResult = connection.search(
+          Constants.ACCOUNT_OU_PEOPLE + ldapServer.getAccountdData().getBaseDn(),
+          SearchScope.SUB,
+          filter,
+          Mapping.createAttributes());
 
       for (SearchResultEntry e : searchResult.getSearchEntries()) {
         Log.i(TAG, e.toString());
@@ -271,18 +276,22 @@ public class ServerUtilities {
 
   /**
    * Get all contact from server. Only display name and UUID attributes will be received.
-   * @param ldapServer
-   * @param context
+   * @param ldapServer Instance connection.
+   * @param context context of activity.
+   * @param handler handler of activity.
    * @return List of ContactRow
    */
-  public static List<ContactRow> fetchLDAPContactsNameUUID(final ServerInstance ldapServer, final Context context, final Handler handler) {
+  public static List<ContactRow> fetchLDAPContactsNameUUID(final ServerInstance ldapServer,
+      final Context context, final Handler handler) {
     List<ContactRow> contactsServer = new ArrayList<ContactRow>();
     LDAPConnection connection = null;
     try {
       connection = ldapServer.getConnection(handler, context);
-      String filter = "(objectClass=googleContact)";
-      SearchResult searchResult = connection.search("ou=users,dc=synccontact,dc=xsendl00,dc=cz", SearchScope.SUB,
-          filter, Mapping.createAttributesSimply());
+      SearchResult searchResult = connection.search(
+          Constants.ACCOUNT_OU_PEOPLE + ldapServer.getAccountdData().getBaseDn(),
+          SearchScope.SUB,
+          Constants.ACCOUNT_FILTER_LDAP,
+          Mapping.createAttributesSimply());
       for (SearchResultEntry e : searchResult.getSearchEntries()) {
         ContactRow contactRow = new ContactRow();
         contactRow.setUuid(e.getAttributeValue(Constants.UUID));
@@ -304,9 +313,11 @@ public class ServerUtilities {
     Map<String, GoogleContact> contactsServer = new HashMap<String, GoogleContact>();
     try {
       connection = ldapServer.getConnection(null, context);
-      String filter = "(&(objectClass=googleContact)(" + Constants.LDAP_MODIFY_TIME_STAMP + ">=" + timestamp + "))";
+      String filter = "(&" + Constants.ACCOUNT_FILTER_LDAP + "("
+          + Constants.LDAP_MODIFY_TIME_STAMP + ">=" + timestamp + "))";
       SearchResult searchResult = connection.search(
-          "ou=users,dc=synccontact,dc=xsendl00,dc=cz", SearchScope.SUB,
+          Constants.ACCOUNT_OU_PEOPLE + ldapServer.getAccountdData().getBaseDn(),
+          SearchScope.SUB,
           filter,
           Mapping.createAttributes());
       for (SearchResultEntry e : searchResult.getSearchEntries()) {
@@ -366,9 +377,10 @@ public class ServerUtilities {
     boolean  found = false;
     try {
       connection = ldapServer.getConnection(null, context);
-      String filter = "(&(objectClass=googleContact)(" + Constants.UUID + "=" + uuid + "))";
+      String filter = "(&" + Constants.ACCOUNT_FILTER_LDAP + "(" + Constants.UUID + "=" + uuid + "))";
       SearchResult searchResult = connection.search(
-          "ou=users,dc=synccontact,dc=xsendl00,dc=cz", SearchScope.SUB,
+          Constants.ACCOUNT_OU_PEOPLE + ldapServer.getAccountdData().getBaseDn(),
+          SearchScope.SUB,
           filter,
           Constants.UUID);
       for (SearchResultEntry e : searchResult.getSearchEntries()) {

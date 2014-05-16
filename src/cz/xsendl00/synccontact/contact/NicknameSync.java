@@ -5,18 +5,17 @@ import java.util.List;
 
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
-import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Nickname;
-import android.provider.ContactsContract.CommonDataKinds.Relation;
+import android.provider.ContactsContract.Data;
 import cz.xsendl00.synccontact.utils.Constants;
 
 /**
  * A data kind representing the contact's nickname. For example, for Bob Parr ("Mr. Incredible"):
- * @author portilo
  *
+ * @author portilo
  */
 public class NicknameSync extends AbstractType implements ContactInterface {
-  
+
   private String nicknameDefault;
   private String nicknameOther;
   private String nicknameMaiden;
@@ -25,54 +24,67 @@ public class NicknameSync extends AbstractType implements ContactInterface {
 
   public NicknameSync() {
   }
-  
-  public NicknameSync(String nicknameDefault, String nicknameOther, String nicknameMaiden, String nicknameShort, String nicknameInitials) {
+
+  public NicknameSync(String nicknameDefault,
+      String nicknameOther,
+      String nicknameMaiden,
+      String nicknameShort,
+      String nicknameInitials) {
     this.nicknameDefault = nicknameDefault;
     this.nicknameInitials = nicknameInitials;
     this.nicknameMaiden = nicknameMaiden;
     this.nicknameOther = nicknameOther;
     this.nicknameShort = nicknameShort;
   }
-  
+
   public String getNicknameDefault() {
     return nicknameDefault;
   }
+
   public void setNicknameDefault(String nicknameDefault) {
     this.nicknameDefault = nicknameDefault;
   }
+
   public String getNicknameOther() {
     return nicknameOther;
   }
+
   public void setNicknameOther(String nicknameOther) {
     this.nicknameOther = nicknameOther;
   }
+
   public String getNicknameMaiden() {
     return nicknameMaiden;
   }
+
   public void setNicknameMaiden(String nicknameMaiden) {
     this.nicknameMaiden = nicknameMaiden;
   }
+
   public String getNicknameShort() {
     return nicknameShort;
   }
+
   public void setNicknameShort(String nicknameShort) {
     this.nicknameShort = nicknameShort;
   }
+
   public String getNicknameInitials() {
     return nicknameInitials;
   }
+
   public void setNicknameInitials(String nicknameInitials) {
     this.nicknameInitials = nicknameInitials;
   }
 
   @Override
   public String toString() {
-    return "Nickname [nicknameDefault=" + nicknameDefault + ", nicknameOther="
-        + nicknameOther + ", nicknameMaiden=" + nicknameMaiden
-        + ", nicknameShort=" + nicknameShort + ", nicknameInitials="
-        + nicknameInitials + "]";
+    return "Nickname [nicknameDefault=" + nicknameDefault + ", nicknameOther=" + nicknameOther
+        + ", nicknameMaiden=" + nicknameMaiden + ", nicknameShort=" + nicknameShort
+        + ", nicknameInitials=" + nicknameInitials + "]";
   }
-  
+
+  @Override
   public void defaultValue() {
     nicknameDefault = Constants.NICKNAME_DEFAULT;
     nicknameOther = Constants.NICKNAME_OTHER;
@@ -80,7 +92,7 @@ public class NicknameSync extends AbstractType implements ContactInterface {
     nicknameShort = Constants.NICKNAME_SHORT;
     nicknameInitials = Constants.NICKNAME_INITIALS;
   }
-  
+
   public static ContentValues compare(NicknameSync obj1, NicknameSync obj2) {
     ContentValues values = new ContentValues();
     if (obj1 == null && obj2 != null) { // update from LDAP
@@ -100,7 +112,7 @@ public class NicknameSync extends AbstractType implements ContactInterface {
         values.put(Constants.NICKNAME_SHORT, obj2.getNicknameShort());
       }
     } else if (obj1 == null && obj2 == null) { // nothing
-      
+
     } else if (obj1 != null && obj2 == null) { // clear data in db
       if (obj1.getNicknameDefault() != null) {
         values.putNull(Constants.NICKNAME_DEFAULT);
@@ -146,13 +158,12 @@ public class NicknameSync extends AbstractType implements ContactInterface {
     }
     return values;
   }
-  
+
   /**
-   * 
-   * @param id        raw_contact id
-   * @param value     name of protocol
-   * @param protocol  like {@link Nickname.PROTOCOl_AIM}
-   * @param type      like Nickname.TYPE_HOME
+   * @param id raw_contact id
+   * @param value name of protocol
+   * @param protocol like {@link Nickname.PROTOCOl_AIM}
+   * @param type like Nickname.TYPE_HOME
    * @return
    */
   public static ContentProviderOperation add(int id, String value, int type, boolean create) {
@@ -161,18 +172,18 @@ public class NicknameSync extends AbstractType implements ContactInterface {
           .withValueBackReference(Data.RAW_CONTACT_ID, id)
           .withValue(Data.MIMETYPE, Nickname.CONTENT_ITEM_TYPE)
           .withValue(Nickname.TYPE, type)
-           .withValue(Nickname.DATA, value)
+          .withValue(Nickname.DATA, value)
           .build();
     } else {
-    return ContentProviderOperation.newInsert(Data.CONTENT_URI)
-    .withValue(Data.RAW_CONTACT_ID, id)
-    .withValue(Data.MIMETYPE, Nickname.CONTENT_ITEM_TYPE)
-    .withValue(Nickname.TYPE, type)
-    .withValue(Nickname.DATA, value)
-    .build();
+      return ContentProviderOperation.newInsert(Data.CONTENT_URI)
+          .withValue(Data.RAW_CONTACT_ID, id)
+          .withValue(Data.MIMETYPE, Nickname.CONTENT_ITEM_TYPE)
+          .withValue(Nickname.TYPE, type)
+          .withValue(Nickname.DATA, value)
+          .build();
     }
   }
-  
+
   public static ContentProviderOperation update(int id, String value, int type) {
     return ContentProviderOperation.newUpdate(Data.CONTENT_URI)
         .withSelection(Data._ID + "=?", new String[]{String.valueOf(id)})
@@ -180,9 +191,12 @@ public class NicknameSync extends AbstractType implements ContactInterface {
         .withValue(Nickname.DATA, value)
         .build();
   }
-  
 
-  public static ArrayList<ContentProviderOperation> operation(int id, NicknameSync em1, NicknameSync em2, boolean create) {
+
+  public static ArrayList<ContentProviderOperation> operation(int id,
+      NicknameSync em1,
+      NicknameSync em2,
+      boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       if (em2.getNicknameDefault() != null) {
@@ -201,55 +215,64 @@ public class NicknameSync extends AbstractType implements ContactInterface {
         ops.add(add(id, em2.getNicknameShort(), Nickname.TYPE_SHORT_NAME, create));
       }
     } else if (em1 == null && em2 == null) { // nothing
-      
+
     } else if (em1 != null && em2 == null) { // delete
-      if (em1.getNicknameDefault() != null ) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Nickname.TYPE_DEFAULT), null)));
+      if (em1.getNicknameDefault() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Nickname.TYPE_DEFAULT), null)));
       }
-      if (em1.getNicknameInitials() != null ) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Nickname.TYPE_INITIALS), null)));
+      if (em1.getNicknameInitials() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Nickname.TYPE_INITIALS), null)));
       }
-      if (em1.getNicknameMaiden() != null ) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Nickname.TYPE_MAIDEN_NAME), null)));
+      if (em1.getNicknameMaiden() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Nickname.TYPE_MAIDEN_NAME), null)));
       }
-      if (em1.getNicknameOther() != null ) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Nickname.TYPE_OTHER_NAME), null)));
+      if (em1.getNicknameOther() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Nickname.TYPE_OTHER_NAME), null)));
       }
-      if (em1.getNicknameShort() != null ) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Nickname.TYPE_SHORT_NAME), null)));
+      if (em1.getNicknameShort() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Nickname.TYPE_SHORT_NAME), null)));
       }
-      
+
     } else if (em1 != null && em2 != null) { // clear or update data in db
       ArrayList<ContentProviderOperation> op;
-      op = createOps(em1.getNicknameDefault(), em2.getNicknameDefault(), em1.getID(), Nickname.TYPE_DEFAULT, id, create);
+      op = createOps(em1.getNicknameDefault(), em2.getNicknameDefault(), em1.getID(),
+          Nickname.TYPE_DEFAULT, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      op = createOps(em1.getNicknameInitials(), em2.getNicknameInitials(), em1.getID(), Nickname.TYPE_INITIALS, id, create);
+      op = createOps(em1.getNicknameInitials(), em2.getNicknameInitials(), em1.getID(),
+          Nickname.TYPE_INITIALS, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      
-      op = createOps(em1.getNicknameMaiden(), em2.getNicknameMaiden(), em1.getID(), Nickname.TYPE_MAIDEN_NAME, id, create);
+
+      op = createOps(em1.getNicknameMaiden(), em2.getNicknameMaiden(), em1.getID(),
+          Nickname.TYPE_MAIDEN_NAME, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      
-      op = createOps(em1.getNicknameOther(), em2.getNicknameOther(), em1.getID(), Nickname.TYPE_OTHER_NAME, id, create);
+
+      op = createOps(em1.getNicknameOther(), em2.getNicknameOther(), em1.getID(),
+          Nickname.TYPE_OTHER_NAME, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      
-      op = createOps(em1.getNicknameShort(), em2.getNicknameShort(), em1.getID(), Nickname.TYPE_SHORT_NAME, id, create);
+
+      op = createOps(em1.getNicknameShort(), em2.getNicknameShort(), em1.getID(),
+          Nickname.TYPE_SHORT_NAME, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
     }
     return ops.size() > 0 ? ops : null;
   }
-  
+
   /**
-   * 
    * @param value1
    * @param value2
    * @param ids
@@ -257,15 +280,20 @@ public class NicknameSync extends AbstractType implements ContactInterface {
    * @param id
    * @return
    */
-  private static ArrayList<ContentProviderOperation> createOps(String value1, String value2, List<ID> ids, int type, int id, boolean create) {
+  private static ArrayList<ContentProviderOperation> createOps(String value1,
+      String value2,
+      List<ID> ids,
+      int type,
+      int id,
+      boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
-    if(value2 != null || value2 != null) {
+    if (value2 != null || value2 != null) {
       String i = ID.getIdByValue(ids, String.valueOf(type), null);
       if (i == null && value2 != null) {
         ops.add(add(id, value2, type, create));
-      } else if ( i != null && value2 == null) {
+      } else if (i != null && value2 == null) {
         ops.add(GoogleContact.delete(i));
-      } else if (i != null && value2 != null && !value2.equals(value1)) { 
+      } else if (i != null && value2 != null && !value2.equals(value1)) {
         ops.add(update(id, value2, type));
       }
     }

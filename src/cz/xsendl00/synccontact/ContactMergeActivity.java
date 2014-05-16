@@ -3,14 +3,14 @@ package cz.xsendl00.synccontact;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.googlecode.androidannotations.annotations.Background;
-import com.googlecode.androidannotations.annotations.Bean;
-import com.googlecode.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.Background;
+import org.androidannotations.annotations.Bean;
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.UiThread;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -25,7 +25,6 @@ import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
-import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.Mapping;
 import cz.xsendl00.synccontact.utils.Utils;
@@ -39,8 +38,11 @@ import cz.xsendl00.synccontact.utils.Utils;
 public class ContactMergeActivity extends Activity implements
 android.widget.CompoundButton.OnCheckedChangeListener {
 
+  /**
+   * Bean for print info about duration function.
+   */
   @Bean
-  Utils util;
+  protected Utils util;
 
   private static final String TAG = "ContactMergeActivity";
 
@@ -54,7 +56,6 @@ android.widget.CompoundButton.OnCheckedChangeListener {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_contact_merge);
     getActionBar().setDisplayHomeAsUpEnabled(true);
     contactManager = ContactManager.getInstance(getApplicationContext());
   }
@@ -71,25 +72,19 @@ android.widget.CompoundButton.OnCheckedChangeListener {
   private void mustInit() {
     if (!contactManager.isContactsServerInit()) {
       progressDialog = ProgressDialog.show(ContactMergeActivity.this,
-        Constants.AC_LOADING, Constants.AC_LOADING_TEXT_DB, true);
-      new InitTask(ContactMergeActivity.this).execute();
+        getText(R.string.progress_downloading), getText(R.string.progress_downloading_text), true);
+      //new InitTask(ContactMergeActivity.this).execute();
+      initTask();
     } else {
       init();
     }
   }
 
   /**
-   * Call after finish background thread.
-   */
-  public void onLoadCompleted() {
-    Log.i(TAG, "InitTask is completed");
-    init();
-  }
-
-  /**
    * Initialize GUI. Set adapter, listRow and name button based on run application first or size contact in listView.
    */
-  private void init() {
+  @UiThread
+  protected void init() {
     listRow = (ListView) findViewById(R.id.list_merge);
     if (contactRows != null) {
       if (contactRows.isEmpty()) {
@@ -119,49 +114,103 @@ android.widget.CompoundButton.OnCheckedChangeListener {
   }
 
   /**
+   * Initialize data for list in GUI.
+   */
+  @Background
+  public void initTask() {
+   Thread serverThread =  new Thread(new Runnable() {
+      @Override
+      public void run() {
+        contactManager.initContactsServer(handler);
+      }
+    });
+   serverThread.start();
+
+   Thread contactThread =  new Thread(new Runnable() {
+     @Override
+     public void run() {
+       contactManager.reloadContact();
+     }
+   });
+   contactThread.start();
+
+   try {
+    serverThread.join();
+    contactThread.join();
+  } catch (InterruptedException e) {
+    e.printStackTrace();
+  }
+
+
+   new Thread(new Runnable() {
+     @Override
+     public void run() {
+       for (ContactRow contactRow : contactManager.getContactsServer()) {
+         int pos = 0;
+         for (ContactRow contactRowLocal : contactManager.getContactsLocal()) {
+           if (contactRow.getName().equals(contactRowLocal.getName())) {
+             Log.i(TAG, contactRowLocal.getName() + ":" + contactRowLocal.getUuid() + contactRow.getUuid());
+             if (contactRowLocal.isSync() && !contactRowLocal.getUuid().equals(contactRow.getUuid())) {
+               contactRow.setIdTable(pos);
+               contactRow.setId(contactRowLocal.getId());
+               contactRows.add(contactRow);
+               break;
+             }
+           }
+           pos++;
+         }
+       }
+     }
+   }).start();
+   if (ContactMergeActivity.this.progressDialog != null) {
+     ContactMergeActivity.this.progressDialog.dismiss();
+   }
+   init();
+  }
+
+  /**
    * Load contact from LDAP server, only name.
    * @author portilo
    *
    */
-  private class InitTask extends AsyncTask<Void, Void, Boolean> {
-
-    private Activity activity;
-    public InitTask(Activity ac) {
-      activity = ac;
-    }
-
-    @Override
-    protected Boolean doInBackground(Void... params) {
-      contactManager.initContactLDAP(handler);
-      // read contact from local database
-      contactManager.reloadContact();
-
-      for (ContactRow contactRow : contactManager.getContactsServer()) {
-        int pos = 0;
-        for (ContactRow contactRowLocal : contactManager.getContactsLocal()) {
-          if (contactRow.getName().equals(contactRowLocal.getName())) {
-            Log.i(TAG, contactRowLocal.getName() + ":" + contactRowLocal.getUuid() + contactRow.getUuid());
-            if (contactRowLocal.isSync() && !contactRowLocal.getUuid().equals(contactRow.getUuid())) {
-              contactRow.setIdTable(pos);
-              contactRow.setId(contactRowLocal.getId());
-              contactRows.add(contactRow);
-              break;
-            }
-          }
-          pos++;
-        }
-      }
-      return null;
-    }
-
-    @Override
-    protected void onPostExecute(Boolean bool) {
-      if (ContactMergeActivity.this.progressDialog != null) {
-        ContactMergeActivity.this.progressDialog.dismiss();
-      }
-      ((ContactMergeActivity) activity).onLoadCompleted();
-    }
-  }
+//  private class InitTask extends AsyncTask<Void, Void, Boolean> {
+//
+//    private Activity activity;
+//    public InitTask(Activity ac) {
+//      activity = ac;
+//    }
+//
+//    @Override
+//    protected Boolean doInBackground(Void... params) {
+//      contactManager.initContacsServer(handler);
+//      // read contact from local database
+//      contactManager.reloadContact();
+//      for (ContactRow contactRow : contactManager.getContactsServer()) {
+//        int pos = 0;
+//        for (ContactRow contactRowLocal : contactManager.getContactsLocal()) {
+//          if (contactRow.getName().equals(contactRowLocal.getName())) {
+//            Log.i(TAG, contactRowLocal.getName() + ":" + contactRowLocal.getUuid() + contactRow.getUuid());
+//            if (contactRowLocal.isSync() && !contactRowLocal.getUuid().equals(contactRow.getUuid())) {
+//              contactRow.setIdTable(pos);
+//              contactRow.setId(contactRowLocal.getId());
+//              contactRows.add(contactRow);
+//              break;
+//            }
+//          }
+//          pos++;
+//        }
+//      }
+//      return null;
+//    }
+//
+//    @Override
+//    protected void onPostExecute(Boolean bool) {
+//      if (ContactMergeActivity.this.progressDialog != null) {
+//        ContactMergeActivity.this.progressDialog.dismiss();
+//      }
+//      ((ContactMergeActivity) activity).onLoadCompleted();
+//    }
+//  }
 
   /**
    * Go to next activity. Go to {@link InfoLDAPActivity}. The next activity show info about LDAP import contact.
@@ -232,7 +281,7 @@ android.widget.CompoundButton.OnCheckedChangeListener {
       }
     }
     util.stopTime(TAG, "importContacts2Server");
-    contactManager.initContactLDAP(handler);
+    contactManager.initContactsServer(handler);
     contactManager.reloadContact();
   }
   @Background

@@ -7,8 +7,8 @@ import java.util.Map;
 
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
-import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
+import android.provider.ContactsContract.Data;
 import cz.xsendl00.synccontact.utils.Constants;
 
 public class StructuredNameSync extends AbstractType implements ContactInterface {
@@ -26,68 +26,84 @@ public class StructuredNameSync extends AbstractType implements ContactInterface
   public String getFamilyName() {
     return familyName;
   }
+
   public void setFamilyName(String familyName) {
     this.familyName = familyName;
   }
+
   public String getMiddleName() {
     return middleName;
   }
+
   public void setMiddleName(String middleName) {
     this.middleName = middleName;
   }
+
   public String getDisplayName() {
     return displayName;
   }
+
   public void setDisplayName(String displayName) {
     this.displayName = displayName;
   }
+
   public String getGivenName() {
     return givenName;
   }
+
   public void setGivenName(String givenName) {
     this.givenName = givenName;
   }
+
   public String getNamePrefix() {
     return namePrefix;
   }
+
   public void setNamePrefix(String namePrefix) {
     this.namePrefix = namePrefix;
   }
+
   public String getNameSuffix() {
     return nameSuffix;
   }
+
   public void setNameSuffix(String nameSuffix) {
     this.nameSuffix = nameSuffix;
   }
-  
+
   public String getPhoneticMiddleName() {
     return phoneticMiddleName;
   }
+
   public void setPhoneticMiddleName(String phoneticMiddleName) {
     this.phoneticMiddleName = phoneticMiddleName;
   }
+
   public String getPhoneticGivenName() {
     return phoneticGivenName;
   }
+
   public void setPhoneticGivenName(String phoneticGivenName) {
     this.phoneticGivenName = phoneticGivenName;
   }
+
   public String getPhoneticFamilyName() {
     return phoneticFamilyName;
   }
+
   public void setPhoneticFamilyName(String phoneticFamilyName) {
     this.phoneticFamilyName = phoneticFamilyName;
   }
 
   @Override
   public String toString() {
-    return "StructuredNameSync [phoneticMiddleName=" + phoneticMiddleName
-        + ", phoneticGivenName=" + phoneticGivenName + ", phoneticFamilyName="
-        + phoneticFamilyName + ", familyName=" + familyName + ", middleName="
-        + middleName + ", displayName=" + displayName + ", givenName="
-        + givenName + ", namePrefix=" + namePrefix + ", nameSuffix="
-        + nameSuffix + "]";
+    return "StructuredNameSync [phoneticMiddleName=" + phoneticMiddleName + ", phoneticGivenName="
+        + phoneticGivenName + ", phoneticFamilyName=" + phoneticFamilyName + ", familyName="
+        + familyName + ", middleName=" + middleName + ", displayName=" + displayName
+        + ", givenName=" + givenName + ", namePrefix=" + namePrefix + ", nameSuffix=" + nameSuffix
+        + "]";
   }
+
   @Override
   public void defaultValue() {
     phoneticMiddleName = Constants.PHONETIC_MIDDLE_NAME;
@@ -99,9 +115,9 @@ public class StructuredNameSync extends AbstractType implements ContactInterface
     givenName = Constants.GIVEN_NAME;
     namePrefix = Constants.NAME_PREFIX;
     nameSuffix = Constants.NAME_SUFFIX;
-    
+
   }
-  
+
   public static ContentValues compare(StructuredNameSync obj1, StructuredNameSync obj2) {
     ContentValues values = new ContentValues();
     if (obj1 == null && obj2 != null) { // update from LDAP
@@ -133,7 +149,7 @@ public class StructuredNameSync extends AbstractType implements ContactInterface
         values.put(Constants.PHONETIC_MIDDLE_NAME, obj2.getPhoneticMiddleName());
       }
     } else if (obj1 == null && obj2 == null) { // nothing
-      
+
     } else if (obj1 != null && obj2 == null) { // clear data in db
       if (obj1.getDisplayName() != null) {
         values.putNull(Constants.DISPLAY_NAME);
@@ -216,62 +232,68 @@ public class StructuredNameSync extends AbstractType implements ContactInterface
   public static ContentProviderOperation add(int id, Map<String, String> values, boolean create) {
     ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newInsert(Data.CONTENT_URI);
     if (create) {
-      operationBuilder
-      .withValueBackReference(Data.RAW_CONTACT_ID, id)
-      .withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE);
+      operationBuilder.withValueBackReference(Data.RAW_CONTACT_ID, id).withValue(Data.MIMETYPE,
+          StructuredName.CONTENT_ITEM_TYPE);
     } else {
-      operationBuilder.withValue(Data.RAW_CONTACT_ID, id).withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE);
+      operationBuilder.withValue(Data.RAW_CONTACT_ID, id).withValue(Data.MIMETYPE,
+          StructuredName.CONTENT_ITEM_TYPE);
     }
     Iterator<String> iter = values.keySet().iterator();
-    while(iter.hasNext()) {
-      String key = (String)iter.next();
-      String val = (String)values.get(key);
+    while (iter.hasNext()) {
+      String key = iter.next();
+      String val = values.get(key);
       operationBuilder.withValue(key, val);
     }
     return operationBuilder.build();
   }
-  
+
   public static ContentProviderOperation update(String id, Map<String, String> values) {
     ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(Data.CONTENT_URI);
-    operationBuilder.withSelection(Data._ID + "=?",
-        new String[] {id}).withValue(Data.MIMETYPE,
+    operationBuilder.withSelection(Data._ID + "=?", new String[]{id}).withValue(Data.MIMETYPE,
         StructuredName.CONTENT_ITEM_TYPE);
-    
+
     Iterator<String> iter = values.keySet().iterator();
-    while(iter.hasNext()) {
-      String key = (String)iter.next();
-      String val = (String)values.get(key);
+    while (iter.hasNext()) {
+      String key = iter.next();
+      String val = values.get(key);
       operationBuilder.withValue(key, val);
     }
     return operationBuilder.build();
   }
-  
 
-  public static ArrayList<ContentProviderOperation> operation(int id, StructuredNameSync em1, StructuredNameSync em2, boolean create) {
+
+  public static ArrayList<ContentProviderOperation> operation(int id,
+      StructuredNameSync em1,
+      StructuredNameSync em2,
+      boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       Map<String, String> value = op(em2);
       if (value.size() > 0) {
-        ops.add(add(id,value, create));
+        ops.add(add(id, value, create));
       }
     } else if (em1 == null && em2 == null) { // nothing
-      
+
     } else if (em1 != null && em2 == null) { // clear or update data in db
-      if (em1.getDisplayName() != null || em1.getFamilyName() != null || em1.getGivenName() != null || em1.getMiddleName() != null
-          || em1.getNamePrefix() != null || em1.getNameSuffix() != null || em1.getPhoneticFamilyName() != null 
+      if (em1.getDisplayName() != null || em1.getFamilyName() != null || em1.getGivenName() != null
+          || em1.getMiddleName() != null || em1.getNamePrefix() != null
+          || em1.getNameSuffix() != null || em1.getPhoneticFamilyName() != null
           || em1.getPhoneticGivenName() != null || em1.getPhoneticMiddleName() != null) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(StructuredName.CONTENT_ITEM_TYPE), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(StructuredName.CONTENT_ITEM_TYPE), null)));
       }
     } else if (em1 != null && em2 != null) { // merge
       Map<String, String> value = op(em2);
-      
+
       if (value.size() > 0) {
-        ops.add(update(ID.getIdByValue(em1.getID(), String.valueOf(StructuredName.CONTENT_ITEM_TYPE), null), value));
+        ops.add(update(
+            ID.getIdByValue(em1.getID(), String.valueOf(StructuredName.CONTENT_ITEM_TYPE), null),
+            value));
       }
     }
     return ops.size() > 0 ? ops : null;
   }
-  
+
   private static Map<String, String> op(StructuredNameSync em2) {
     Map<String, String> value = new HashMap<String, String>();
     if (em2.getDisplayName() != null) {

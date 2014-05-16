@@ -4,9 +4,6 @@ import java.io.Serializable;
 
 import javax.net.SocketFactory;
 
-import android.content.Context;
-import android.os.Handler;
-import android.util.Log;
 import com.unboundid.ldap.sdk.ExtendedResult;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPConnectionOptions;
@@ -15,11 +12,14 @@ import com.unboundid.ldap.sdk.ResultCode;
 import com.unboundid.ldap.sdk.extensions.StartTLSExtendedRequest;
 import com.unboundid.util.ssl.SSLUtil;
 
+import android.content.Context;
+import android.os.Handler;
+import android.util.Log;
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.utils.Constants;
 
 /**
- * Connection to server instance
+ * Connection to server instance.
  * @author portilo
  *
  */
@@ -28,23 +28,23 @@ public class ServerInstance implements Serializable {
   private static final String TAG = "ServerInstance";
 
   private static final long serialVersionUID = -7633400003887348205L;
-  
+
   private AccountData accountData;
 
   /**
-   * ServerInstance
+   * ServerInstance.
    * @param accountData
    */
   public ServerInstance(final AccountData accountData) {
     this.accountData = new AccountData(accountData);
     this.accountData.setName(((accountData.getName() == null) || (accountData.getName().length() == 0) ? null : accountData.getName()));
     this.accountData.setPassword(((accountData.getPassword() == null) || (accountData.getPassword().length() == 0) ? null : accountData.getPassword()));
-    
+
     this.accountData.setBaseDn(accountData.getBaseDn());
     this.accountData.setPort(accountData.getPort());
     this.accountData.setEncryption(accountData.getEncryption());
   }
-  
+
   /**
    * Account Data
    * @return account data.
@@ -52,7 +52,7 @@ public class ServerInstance implements Serializable {
   public AccountData getAccountdData() {
     return this.accountData;
   }
-  
+
   /**
    * Create LDAP Connection.
    * @param socketFactory
@@ -67,17 +67,17 @@ public class ServerInstance implements Serializable {
     options.setMaxMessageSize(0);
     return new LDAPConnection(socketFactory, options, accountData.getHost(), accountData.getPort());
   }
-  
+
   /**
    * Get server connection.
-   * @param handler 
-   * @param context 
+   * @param handler
+   * @param context
    * @return return LDAP connection
    * @throws LDAPException
    */
   public LDAPConnection getConnection(final Handler handler, final Context context) throws LDAPException {
     SocketFactory socketFactory = null;
-    
+
     if (accountData.getEncryption() == Constants.SSL_TLS_INT) {
       Log.d(TAG, "Trying to connect with: SSL/TLS");
       final SSLUtil sslUtil = new SSLUtil(new MyTrustManager(context.getFilesDir().getPath().toString() + Constants.CERT_NAME, handler, context));

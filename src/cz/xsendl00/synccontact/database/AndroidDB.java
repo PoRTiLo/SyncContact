@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.androidannotations.annotations.EBean;
+
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
 import android.content.ContentUris;
@@ -25,6 +27,7 @@ import cz.xsendl00.synccontact.utils.Mapping;
  * @author portilo
  *
  */
+@EBean
 public class AndroidDB {
 
   private static final String TAG = "AndroidDB";
@@ -140,30 +143,29 @@ public class AndroidDB {
   }
 
   /**
-   * Convert contact to default account from syncContact account
+   * Convert contact to default account from syncContact account.
    * @param context context activity
-   * @param contactRows
+   * @param contactRows list of contacts for exporting to previous account.
    */
-  public static void exportContactsFromSyncAccount(Context context, List<ContactRow> contactRows) {
+  public void exportContactsFromSyncAccount(Context context, List<ContactRow> contactRows) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     int size = contactRows.size();
     int i = 1;
     for (ContactRow contactRow : contactRows) {
-      ops.add(ContentProviderOperation.newUpdate(ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, Integer.valueOf(contactRow.getId())))
+      ops.add(ContentProviderOperation.newUpdate(
+          ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, Integer.valueOf(contactRow.getId())))
           .withValue(RawContacts.ACCOUNT_NAME, contactRow.getAccouNamePrevious())
           .withValue(RawContacts.ACCOUNT_TYPE, contactRow.getAccouTypePrevious())
-          //.withYieldAllowed(true)
           .build()
         );
-      Log.i(TAG,contactRow.getId() +  ", exportContactsFromSyncAccount: " + i++ + "/" + size + ", to:" + contactRow.getAccouNamePrevious());
+      Log.i(TAG, contactRow.getId() +  ", exportContactsFromSyncAccount: " + i++ + "/"
+        + size + ", to:" + contactRow.getAccouNamePrevious());
     }
 
 
     try {
-      ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-//      for (ContentProviderResult cn : con) {
-//        Log.i(TAG, cn.toString());
-//      }
+      context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+      Log.i(TAG, "Contacts exported");
     } catch (RemoteException e) {
       e.printStackTrace();
     } catch (OperationApplicationException e) {

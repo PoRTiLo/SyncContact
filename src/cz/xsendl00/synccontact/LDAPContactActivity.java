@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.googlecode.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.EActivity;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -54,7 +54,7 @@ public class LDAPContactActivity extends Activity {
     getActionBar().setDisplayHomeAsUpEnabled(true);
 
     Intent intent = getIntent();
-    first = intent.getBooleanExtra("FIRST", false);
+    first = intent.getBooleanExtra(Constants.INTENT_FIRST, false);
 
     contactManager = ContactManager.getInstance(getApplicationContext());
     if (!contactManager.isContactsServerInit()) {
@@ -119,7 +119,7 @@ public class LDAPContactActivity extends Activity {
 
     @Override
     protected Boolean doInBackground(Void... params) {
-      contactManager.initContactLDAP(handler);
+      contactManager.initContactsServer(handler);
       return null;
     }
 

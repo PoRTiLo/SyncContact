@@ -1,14 +1,17 @@
 package cz.xsendl00.synccontact;
 
 
-import com.googlecode.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Background;
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.UiThread;
+import org.androidannotations.annotations.ViewById;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -19,17 +22,31 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 import cz.xsendl00.synccontact.authenticator.AccountData;
+import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
-import cz.xsendl00.synccontact.utils.Constants;
 
+/**
+ * Show info about server connection.
+ */
 @EActivity(R.layout.activity_server)
 public class ServerActivity extends Activity {
 
+  @ViewById(R.id.server_name)
+  TextView name;
+  @ViewById(R.id.server_address)
+  TextView address;
+  @ViewById(R.id.server_port)
+  TextView port;
+  @ViewById(R.id.server_security)
+  TextView encry;
+
   private static final String TAG = "ServerActivity";
-  private static final int PICK_CONTACT_REQUEST = 1;  // The request code
-  private AccountData accountData;
+  private static final int SERVER_DELETED = 1;  // The request code
+  private static final int SERVER_CHANGED = 2;  // The request code
+  private ContactManager contactManager;
   private boolean removed = false;
+  private boolean edited = false;
   private final Handler handler = new Handler();
   private ProgressDialog progressBar;
 
@@ -37,16 +54,75 @@ public class ServerActivity extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getActionBar().setDisplayHomeAsUpEnabled(true);
+    contactManager = ContactManager.getInstance(getApplicationContext());
   }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    if (removed) { // go in this activity from remove activity
+      finish();
+    } else if (edited) { // from edited
+      initActivity();
+    } else { // from other activity
+      if (contactManager.getAccountData() == null) {
+        initActivity();
+      }
+    }
+  }
+
+  /**
+   * Load server's data from account.
+   */
+  @Background
+  public void initActivity() {
+    contactManager.initAccountData();
+    init();
+  }
+
+  /**
+   * Initialize activity. Call it after initialize {@link AccountData} in {@link ContactManager}.
+   */
+  @AfterViews
+  @UiThread
+  public void init() {
+    if (contactManager.getAccountData() != null && contactManager.getAccountData().getHost() != null) {
+
+      name.setText(contactManager.getAccountData().getHost());
+      address.setText(contactManager.getAccountData().getBaseDn());
+      port.setText(contactManager.getAccountData().getPort().toString());
+
+      encry.setText(security(contactManager.getAccountData().getEncryption()));
+      Log.i(TAG, "Init, get value from account");
+    } else {
+      // repaitn activity to add new seerver
+    }
+  }
+
+
+  /**
+   * Edit connection, edit account.
+   * @param view unused
+   */
+  public void editActivity(@SuppressWarnings("unused") View view) {
+    Intent intent = new Intent(this, ServerAddActivity_.class);
+    startActivityForResult(intent, SERVER_CHANGED);
+  }
+
 
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     // Check which request we're responding to
-    if (requestCode == PICK_CONTACT_REQUEST) {
+    if (requestCode == SERVER_DELETED) {
       // Make sure the request was successful
       if (resultCode == RESULT_OK) {
-        Log.i(TAG, "onActivityResult ...");
+        Log.i(TAG, "Back from ServerRemoveActivity");
         removed = data.getBooleanExtra("REMOVED", false);
+      }
+    } else if (requestCode == SERVER_CHANGED) {
+      if (resultCode == RESULT_OK) {
+        Log.i(TAG, "Back from ServerAddActivity");
+        edited  = data.getBooleanExtra("EDITED", false);
       }
     }
   }
@@ -56,119 +132,17 @@ public class ServerActivity extends Activity {
    * @param view unused
    */
   public void removeActivity(@SuppressWarnings("unused") View view) {
-    Intent intent = new Intent(this, RemoveServerActivity_.class);
-    startActivityForResult(intent, PICK_CONTACT_REQUEST);
+    Intent intent = new Intent(this, ServerRemoveActivity_.class);
+    startActivityForResult(intent, SERVER_DELETED);
   }
 
-
-  /**
-   * Edit connection, edit account
-   * @param view unused
-   */
-  public void editActivity(@SuppressWarnings("unused") View view) {
-    if (accountData == null) {
-      new ButtonTask(ServerActivity.this).execute();
-    } else {
-      onTaskCompletedButton(accountData);
-    }
-  }
-
-  @Override
-  protected void onResume() {
-    super.onResume();
-    if (removed) {
-      finish();
-    } else {
-      initActivity();
-    }
-  }
-
-  /**
-   * Load server's data from account.
-   */
-  private void initActivity() {
-    new LoadTask(ServerActivity.this).execute();
-  }
-
-  private class LoadTask extends AsyncTask<Void, Void, AccountData> {
-    private Activity activity;
-
-    public LoadTask(Activity activity) {
-      this.activity = activity;
-    }
-    @Override
-    protected AccountData doInBackground(Void... params) {
-      return AccountData.getAccountData(activity);
-    }
-    @Override
-    protected void onPostExecute(AccountData p) {
-      ((ServerActivity) activity).onTaskCompleted(p);
-    }
-    @Override
-    protected void onPreExecute() {
-      super.onPreExecute();
-    }
-  }
-
-  private class ButtonTask extends AsyncTask<Void, Void, AccountData> {
-    private Activity activity;
-
-    public ButtonTask(Activity activity) {
-      this.activity = activity;
-    }
-    @Override
-    protected AccountData doInBackground(Void... params) {
-      return AccountData.getAccountData(activity);
-    }
-    @Override
-    protected void onPostExecute(AccountData p) {
-      ((ServerActivity) activity).onTaskCompletedButton(p);
-    }
-    @Override
-    protected void onPreExecute() {
-      super.onPreExecute();
-    }
-  }
-
-  public void onTaskCompletedButton(AccountData ad) {
-    this.accountData = ad;
-    Intent intent = new Intent(this, AddServerActivity_.class);
-    intent.putExtra(Constants.PAR_PORT, ad.getPort());
-    intent.putExtra(Constants.PAR_HOST, ad.getHost());
-    intent.putExtra(Constants.PAR_BASEDN, ad.getBaseDn());
-    intent.putExtra(Constants.PAR_USERNAME, ad.getName());
-    intent.putExtra(Constants.PAR_PASSWORD, ad.getPassword());
-    intent.putExtra(Constants.PAR_ENCRYPTION, ad.getEncryption());
-    intent.putExtra(Constants.PAR_IS_ADDING_NEW_ACCOUNT, false);
-
-    startActivity(intent);
-  }
-
-  public void onTaskCompleted(AccountData ad) {
-    this.accountData = ad;
-    if (ad != null && ad.getHost() != null) {
-      TextView name = (TextView) findViewById(R.id.server_name);
-      TextView address = (TextView) findViewById(R.id.server_address);
-      TextView port = (TextView) findViewById(R.id.server_port);
-      TextView encry = (TextView) findViewById(R.id.server_security);
-
-      name.setText(ad.getHost());
-      address.setText(ad.getBaseDn());
-      port.setText(ad.getPort().toString());
-
-      encry.setText(security(ad.getEncryption()));
-      Log.i(TAG, "Init, get value from account");
-    } else {
-      // repaitn activity to add new seerver
-    }
-  }
 
   private String security(Integer i) {
     String str = null;
     if (i == 0) {
       str = "Default";
     } else if (i == 1) {
-      str = "encryption";
+      str = "No ecryption";
     } else if (i == 2) {
       str = "SSL/TLS";
     } else if (i == 3) {
@@ -193,7 +167,8 @@ public class ServerActivity extends Activity {
     switch (item.getItemId()) {
     case R.id.action_reconect:
       showProgressBar();
-      ServerUtilities.attemptAuth(new ServerInstance(accountData), handler, ServerActivity.this, true);
+      ServerUtilities.attemptAuth(
+          new ServerInstance(contactManager.getAccountData()), handler, ServerActivity.this, true);
       break;
     case R.id.action_help:
       intent = new Intent(this, HelpActivity_.class);
@@ -216,7 +191,7 @@ public class ServerActivity extends Activity {
   private void showProgressBar() {
     progressBar = new ProgressDialog(ServerActivity.this);
     progressBar.setCancelable(true);
-    progressBar.setMessage("Autentication...");
+    progressBar.setMessage("Test connection ...");
     progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
     progressBar.show();
   }

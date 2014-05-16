@@ -1,7 +1,6 @@
 package cz.xsendl00.synccontact;
 
-
-import com.googlecode.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.EActivity;
 
 import android.app.Activity;
 import android.content.Intent;

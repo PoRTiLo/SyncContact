@@ -1,7 +1,5 @@
 package cz.xsendl00.synccontact;
-
-
-import com.googlecode.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.EActivity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -10,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import cz.xsendl00.synccontact.utils.Constants;
 
 /**
  * Info LDAp import data.
@@ -31,7 +30,7 @@ public class InfoLDAPActivity extends Activity {
    */
   public void selectActivity(@SuppressWarnings("unused") View view) {
     Intent intent = new Intent(this, LDAPContactActivity_.class);
-    intent.putExtra("FIRST", true);
+    intent.putExtra(Constants.INTENT_FIRST, true);
     startActivity(intent);
   }
 

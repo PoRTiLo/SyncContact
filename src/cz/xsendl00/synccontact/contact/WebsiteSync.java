@@ -4,9 +4,8 @@ import java.util.ArrayList;
 
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
-import android.provider.ContactsContract.Data;
-import android.provider.ContactsContract.CommonDataKinds.Relation;
 import android.provider.ContactsContract.CommonDataKinds.Website;
+import android.provider.ContactsContract.Data;
 import cz.xsendl00.synccontact.utils.Constants;
 
 public class WebsiteSync extends AbstractType implements ContactInterface {
@@ -22,53 +21,66 @@ public class WebsiteSync extends AbstractType implements ContactInterface {
   public String getWebsiteHomepage() {
     return websiteHomepage;
   }
+
   public void setWebsiteHomepage(String websiteHomepage) {
     this.websiteHomepage = websiteHomepage;
   }
+
   public String getWebsiteBlog() {
     return websiteBlog;
   }
+
   public void setWebsiteBlog(String websiteBlog) {
     this.websiteBlog = websiteBlog;
   }
+
   public String getWebsiteProfile() {
     return websiteProfile;
   }
+
   public void setWebsiteProfile(String websiteProfile) {
     this.websiteProfile = websiteProfile;
   }
+
   public String getWebsiteHome() {
     return websiteHome;
   }
+
   public void setWebsiteHome(String websiteHome) {
     this.websiteHome = websiteHome;
   }
+
   public String getWebsiteWork() {
     return websiteWork;
   }
+
   public void setWebsiteWork(String websiteWork) {
     this.websiteWork = websiteWork;
   }
+
   public String getWebsiteFtp() {
     return websiteFtp;
   }
+
   public void setWebsiteFtp(String websiteFtp) {
     this.websiteFtp = websiteFtp;
   }
+
   public String getWebsiteOther() {
     return websiteOther;
   }
+
   public void setWebsiteOther(String websiteOther) {
     this.websiteOther = websiteOther;
   }
 
   @Override
   public String toString() {
-    return "Website [websiteHomepage=" + websiteHomepage + ", websiteBlog="
-        + websiteBlog + ", websiteProfile=" + websiteProfile + ", websiteHome="
-        + websiteHome + ", websiteWork=" + websiteWork + ", websiteFtp="
-        + websiteFtp + ", websiteOther=" + websiteOther + "]";
+    return "Website [websiteHomepage=" + websiteHomepage + ", websiteBlog=" + websiteBlog
+        + ", websiteProfile=" + websiteProfile + ", websiteHome=" + websiteHome + ", websiteWork="
+        + websiteWork + ", websiteFtp=" + websiteFtp + ", websiteOther=" + websiteOther + "]";
   }
+
   @Override
   public void defaultValue() {
     websiteHomepage = Constants.WEBSITE_HOMEPAGE;
@@ -79,7 +91,7 @@ public class WebsiteSync extends AbstractType implements ContactInterface {
     websiteFtp = Constants.WEBSITE_FTP;
     websiteOther = Constants.WEBSITE_OTHER;
   }
-  
+
   public static ContentValues compare(WebsiteSync obj1, WebsiteSync obj2) {
     ContentValues values = new ContentValues();
     if (obj1 == null && obj2 != null) { // update from LDAP
@@ -105,7 +117,7 @@ public class WebsiteSync extends AbstractType implements ContactInterface {
         values.put(Constants.WEBSITE_WORK, obj2.getWebsiteWork());
       }
     } else if (obj1 == null && obj2 == null) { // nothing
-      
+
     } else if (obj1 != null && obj2 == null) { // clear data in db
       if (obj1.getWebsiteBlog() != null) {
         values.putNull(Constants.WEBSITE_BLOG);
@@ -167,13 +179,12 @@ public class WebsiteSync extends AbstractType implements ContactInterface {
     }
     return values;
   }
-  
+
   /**
-   * 
-   * @param id        raw_contact id
-   * @param value     name of protocol
-   * @param protocol  like {@link Website.PROTOCOl_AIM}
-   * @param type      like Website.TYPE_HOME
+   * @param id raw_contact id
+   * @param value name of protocol
+   * @param protocol like {@link Website.PROTOCOl_AIM}
+   * @param type like Website.TYPE_HOME
    * @return
    */
   public static ContentProviderOperation add(int id, String value, int type, boolean create) {
@@ -185,15 +196,15 @@ public class WebsiteSync extends AbstractType implements ContactInterface {
           .withValue(Website.DATA, value)
           .build();
     } else {
-    return ContentProviderOperation.newInsert(Data.CONTENT_URI)
-    .withValue(Data.RAW_CONTACT_ID, id)
-    .withValue(Data.MIMETYPE, Website.CONTENT_ITEM_TYPE)
-    .withValue(Website.TYPE, type)
-    .withValue(Website.DATA, value)
-    .build();
+      return ContentProviderOperation.newInsert(Data.CONTENT_URI)
+          .withValue(Data.RAW_CONTACT_ID, id)
+          .withValue(Data.MIMETYPE, Website.CONTENT_ITEM_TYPE)
+          .withValue(Website.TYPE, type)
+          .withValue(Website.DATA, value)
+          .build();
     }
   }
-  
+
   public static ContentProviderOperation update(String id, String value, int type) {
     return ContentProviderOperation.newUpdate(Data.CONTENT_URI)
         .withSelection(Data._ID + "=?", new String[]{String.valueOf(id)})
@@ -201,9 +212,12 @@ public class WebsiteSync extends AbstractType implements ContactInterface {
         .withValue(Website.DATA, value)
         .build();
   }
-  
 
-  public static ArrayList<ContentProviderOperation> operation(int id, WebsiteSync em1, WebsiteSync em2, boolean create) {
+
+  public static ArrayList<ContentProviderOperation> operation(int id,
+      WebsiteSync em1,
+      WebsiteSync em2,
+      boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       if (em2.getWebsiteBlog() != null) {
@@ -228,65 +242,79 @@ public class WebsiteSync extends AbstractType implements ContactInterface {
         ops.add(add(id, em2.getWebsiteWork(), Website.TYPE_WORK, create));
       }
     } else if (em1 == null && em2 == null) { // nothing
-      
+
     } else if (em1 != null && em2 == null) { // delete
-      if (em1.getWebsiteBlog() != null ) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_BLOG), null)));
+      if (em1.getWebsiteBlog() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Website.TYPE_BLOG), null)));
       }
-      if (em1.getWebsiteFtp() != null ) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_FTP), null)));
+      if (em1.getWebsiteFtp() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_FTP),
+            null)));
       }
-      if (em1.getWebsiteHome() != null ) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_HOMEPAGE), null)));
+      if (em1.getWebsiteHome() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Website.TYPE_HOMEPAGE), null)));
       }
-      if (em1.getWebsiteOther() != null ) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_OTHER), null)));
+      if (em1.getWebsiteOther() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Website.TYPE_OTHER), null)));
       }
-      if (em1.getWebsiteHomepage() != null ) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_HOMEPAGE), null)));
+      if (em1.getWebsiteHomepage() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Website.TYPE_HOMEPAGE), null)));
       }
-      if (em1.getWebsiteProfile() != null ) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_PROFILE), null)));
+      if (em1.getWebsiteProfile() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Website.TYPE_PROFILE), null)));
       }
-      if (em1.getWebsiteWork() != null ) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_WORK), null)));
+      if (em1.getWebsiteWork() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Website.TYPE_WORK), null)));
       }
-      
+
     } else if (em1 != null && em2 != null) { // clear or update data in db
       if (em2.getWebsiteBlog() != null) {
         ops.add(add(id, em2.getWebsiteBlog(), Website.TYPE_BLOG, create));
       } else {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_BLOG), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Website.TYPE_BLOG), null)));
       }
       if (em2.getWebsiteFtp() != null) {
         ops.add(add(id, em2.getWebsiteFtp(), Website.TYPE_FTP, create));
       } else {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_FTP), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_FTP),
+            null)));
       }
       if (em2.getWebsiteHome() != null) {
         ops.add(add(id, em2.getWebsiteHome(), Website.TYPE_HOME, create));
       } else {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_HOMEPAGE), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Website.TYPE_HOMEPAGE), null)));
       }
       if (em2.getWebsiteOther() != null) {
         ops.add(add(id, em2.getWebsiteOther(), Website.TYPE_OTHER, create));
       } else {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_OTHER), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Website.TYPE_OTHER), null)));
       }
       if (em2.getWebsiteHomepage() != null) {
         ops.add(add(id, em2.getWebsiteHomepage(), Website.TYPE_HOMEPAGE, create));
       } else {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_HOMEPAGE), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Website.TYPE_HOMEPAGE), null)));
       }
       if (em2.getWebsiteProfile() != null) {
         ops.add(add(id, em2.getWebsiteProfile(), Website.TYPE_PROFILE, create));
       } else {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_PROFILE), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Website.TYPE_PROFILE), null)));
       }
       if (em2.getWebsiteWork() != null) {
         ops.add(add(id, em2.getWebsiteWork(), Website.TYPE_WORK, create));
       } else {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Website.TYPE_WORK), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Website.TYPE_WORK), null)));
       }
     }
     return ops.size() > 0 ? ops : null;

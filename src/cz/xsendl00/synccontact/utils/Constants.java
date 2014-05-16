@@ -1,7 +1,13 @@
 package cz.xsendl00.synccontact.utils;
 
+/**
+ * Constants.
+ */
+public final class Constants {
 
-public class Constants {
+  private Constants() {
+
+  }
 
   /* Name of setting file */
   public static final String PREFS_NAME = "SyncContactSetting";
@@ -11,6 +17,9 @@ public class Constants {
 
   public static final String ACCOUNT_TYPE = "cz.xsendl00.synccontact";
   public static final String ACCOUNT_NAME = "syncContact@synccontact.xsendl00.cz";
+  public static final String ACCOUNT_FILTER_LDAP = "(objectClass=googleContact)";
+  public static final String ACCOUNT_OU_PEOPLE = "ou=people,";
+  public static final String ACCOUNT_OU_GROUPS = "ou=groups,";
 
   /**
    * Authtoken type string.
@@ -32,6 +41,11 @@ public class Constants {
   public static final String AC_LOADING_TEXT_DB = "Loading data from database.";
   public static final String AC_DOWNLOADING = "Downloading ...";
   public static final String AC_DOWNLOADING_DATA_SERVER = "Downloading data from server";
+
+  public static final String INTENT_FIRST = "FIRST";
+  public static final String INTENT_ID = "ID";
+  public static final String INTENT_NAME = "NAME";
+
   /**
    * LDAP port to server.
    */
@@ -57,7 +71,7 @@ public class Constants {
   public static final String WORK_EXTENDED_ADDRESS = "workExtendeAddress";
   public static final String WEBSITE = "website";
 
-  /** ---------->USED----------------------**/
+  /** ---------->USED---------------------- **/
   public static final String WORK_SIP = "workSip";
   public static final String HOME_SIP = "homeSip";
   public static final String OTHER_SIP = "otherSip";
@@ -116,15 +130,14 @@ public class Constants {
   public static final String IM_OTHER_QQ = "imOtherQq";
   public static final String IM_OTHER_SKYPE = "imOtherSkype";
   public static final String IM_OTHER_YAHOO = "imOtherYahoo";
-  /*public static final String IM_NULL_AIM = "imNullAim";
-  public static final String IM_NULL_GOOGLE_TALK = "imNullGoogleTalk";
-  public static final String IM_NULL_ICQ = "imNullIcq";
-  public static final String IM_NULL_JABBER = "imNullJabber";
-  public static final String IM_NULL_MSN = "imNullMsn";
-  public static final String IM_NULL_NETMEETING = "imNullNetmeeting";
-  public static final String IM_NULL_QQ = "imNullQq";
-  public static final String IM_NULL_SKYPE = "imNullSkype";
-  public static final String IM_NULL_YAHOO = "imNullYahoo";*/
+  /*
+   * public static final String IM_NULL_AIM = "imNullAim"; public static final String
+   * IM_NULL_GOOGLE_TALK = "imNullGoogleTalk"; public static final String IM_NULL_ICQ = "imNullIcq";
+   * public static final String IM_NULL_JABBER = "imNullJabber"; public static final String
+   * IM_NULL_MSN = "imNullMsn"; public static final String IM_NULL_NETMEETING = "imNullNetmeeting";
+   * public static final String IM_NULL_QQ = "imNullQq"; public static final String IM_NULL_SKYPE =
+   * "imNullSkype"; public static final String IM_NULL_YAHOO = "imNullYahoo";
+   */
   public static final String PHONETIC_MIDDLE_NAME = "phoneticMiddleName";
   public static final String PHONETIC_GIVEN_NAME = "phoneticGivenName";
   public static final String PHONETIC_FAMILY_NAME = "phoneticFamilyName";
@@ -274,7 +287,7 @@ public class Constants {
   public static final String PAR_ENCRYPTION = "encryption";
   public static final String PAR_AUTHTOKEN_TYPE = "authtokenType";
   public static final String PAR_ACCOUNT_TYPE = "accountType";
-  public static final String PAR_IS_ADDING_NEW_ACCOUNT= "newContact";
+  public static final String PAR_IS_ADDING_NEW_ACCOUNT = "newContact";
   public static final String PAR_SEARCHFILTER = "searchFilter";
   public static final String PAR_BASEDN = "baseDN";
   public static final String PAR_MAPPING = "map_";
@@ -285,8 +298,8 @@ public class Constants {
   public static final String OBJECT_CLASS_GOOGLE = "googleContact";
   public static final String OBJECT_CLASS_GROUP_OF_NAME = "groupofnames";
   public static final String OBJECT_CLASS_INET = "inetOrgPerson";
-  public static final String OBJECT_CLASS_ORG ="organizationalPerson";
-  public static final String OBJECT_CLASS_PERSON ="person";
+  public static final String OBJECT_CLASS_ORG = "organizationalPerson";
+  public static final String OBJECT_CLASS_PERSON = "person";
   public static final String OBJECT_CLASS_TOP = "top";
 
   /** LDAP serach **/

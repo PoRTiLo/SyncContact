@@ -30,13 +30,13 @@ import java.util.Locale;
 /**
  * FROM http://www.java2s.com/Code/Java/Collections-Data-Structure/NaturalOrderComparator.htm
  * Comparator for ContactRow. Compare by name.
- * 
+ *
  * @author portilo
- * 
+ *
  */
 public class ContactRowComparator implements Comparator<ContactRow> {
 
-  int compareRight(String a, String b) {
+  private int compareRight(String a, String b) {
     int bias = 0;
     int ia = 0;
     int ib = 0;
@@ -60,70 +60,75 @@ public class ContactRowComparator implements Comparator<ContactRow> {
           bias = -1;
         }
       } else if (ca > cb) {
-        if (bias == 0)
+        if (bias == 0) {
           bias = +1;
+        }
       } else if (ca == 0 && cb == 0) {
         return bias;
       }
     }
   }
 
+  @Override
   public int compare(ContactRow left, ContactRow right) {
     Locale locale  = new Locale("cs", "CZ");
-    String a = left.getName().toLowerCase(locale);
-    String b = right.getName().toLowerCase(locale);
+    String leftContact = left.getName().toLowerCase(locale);
+    String rightContact = right.getName().toLowerCase(locale);
 
-    int ia = 0, ib = 0;
-    int nza = 0, nzb = 0;
-    char ca, cb;
+    int ia = 0;
+    int ib = 0;
+    int nza = 0;
+    int nzb = 0;
+    char charLeft;
+    char charRight;
     int result;
 
     while (true) {
       // only count the number of zeroes leading the last number compared
       nza = nzb = 0;
 
-      ca = charAt(a, ia);
-      cb = charAt(b, ib);
+      charLeft = charAt(leftContact, ia);
+      charRight = charAt(rightContact, ib);
 
       // skip over leading spaces or zeros
-      while (Character.isSpaceChar(ca) || ca == '0') {
-        if (ca == '0') {
+      while (Character.isSpaceChar(charLeft) || charLeft == '0') {
+        if (charLeft == '0') {
           nza++;
         } else {
           // only count consecutive zeroes
           nza = 0;
         }
 
-        ca = charAt(a, ++ia);
+        charLeft = charAt(leftContact, ++ia);
       }
 
-      while (Character.isSpaceChar(cb) || cb == '0') {
-        if (cb == '0') {
+      while (Character.isSpaceChar(charRight) || charRight == '0') {
+        if (charRight == '0') {
           nzb++;
         } else {
           // only count consecutive zeroes
           nzb = 0;
         }
 
-        cb = charAt(b, ++ib);
+        charRight = charAt(rightContact, ++ib);
       }
 
       // process run of digits
-      if (Character.isDigit(ca) && Character.isDigit(cb)) {
-        if ((result = compareRight(a.substring(ia), b.substring(ib))) != 0) {
+      if (Character.isDigit(charLeft) && Character.isDigit(charRight)) {
+        result = compareRight(leftContact.substring(ia), rightContact.substring(ib));
+        if (result != 0) {
           return result;
         }
       }
-
-      if (ca == 0 && cb == 0) {
+      if (charLeft == 0 && charRight == 0) {
         // The strings compare the same. Perhaps the caller
         // will want to call strcmp to break the tie.
         return nza - nzb;
       }
 
-      if (ca < cb) {
+      if (charLeft < charRight) {
         return -1;
-      } else if (ca > cb) {
+      } else if (charLeft > charRight) {
         return +1;
       }
 
@@ -132,7 +137,7 @@ public class ContactRowComparator implements Comparator<ContactRow> {
     }
   }
 
-  static char charAt(String s, int i) {
+  private static char charAt(String s, int i) {
     if (i >= s.length()) {
       return 0;
     } else {

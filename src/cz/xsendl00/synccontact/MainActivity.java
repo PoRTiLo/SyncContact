@@ -1,6 +1,9 @@
 package cz.xsendl00.synccontact;
 
-import com.googlecode.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.UiThread;
+import org.androidannotations.annotations.ViewById;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -23,10 +26,14 @@ import cz.xsendl00.synccontact.utils.Constants;
 @EActivity(R.layout.activity_main)
 public class MainActivity extends Activity {
 
-  private Button map;
-  private Button add;
-  private Button show;
-  private Button help;
+  @ViewById(R.id.button_map)
+  protected Button map;
+  @ViewById(R.id.button_add_sight)
+  protected Button add;
+  @ViewById(R.id.button_show_sight)
+  protected Button show;
+  @ViewById(R.id.button_help)
+  protected Button help;
 
   private static final String TAG = "MainActivity";
 
@@ -35,13 +42,13 @@ public class MainActivity extends Activity {
     super.onCreate(savedInstanceState);
     loadPreferences();
   }
-
+/*
   @Override
   protected void onResume() {
     super.onResume();
     conf();
   }
-
+*/
   @Override
   public void onWindowFocusChanged(boolean hasFocus) {
     super.onWindowFocusChanged(hasFocus);
@@ -64,26 +71,27 @@ public class MainActivity extends Activity {
     }
   }
 
-  private void conf() {
+  /**
+   * Deign main window. Count size of elemnts.
+   */
+  @AfterViews
+  @UiThread
+  public void conf() {
     RelativeLayout f = (RelativeLayout) findViewById(R.id.main_activity);
     int x = f.getRight() / 2;
     int y = (f.getBottom()) / 5;
-    map = (Button) findViewById(R.id.button_map);
     map.getLayoutParams().height = y * 3;
     map.getLayoutParams().width = x;
     map.setLayoutParams(map.getLayoutParams());
 
-    show = (Button) findViewById(R.id.button_show_sight);
     show.getLayoutParams().height = y * 2;
     show.getLayoutParams().width = x;
     show.setLayoutParams(show.getLayoutParams());
 
-    help = (Button) findViewById(R.id.button_help);
     help.getLayoutParams().height = y * 2;
     help.getLayoutParams().width = x;
     help.setLayoutParams(help.getLayoutParams());
 
-    add = (Button) findViewById(R.id.button_add_sight);
     add.getLayoutParams().height = y * 3;
     add.getLayoutParams().width = x;
     add.setLayoutParams(add.getLayoutParams());
@@ -117,11 +125,10 @@ public class MainActivity extends Activity {
   }
 
   /**
-   * Open help activity. Call from main activity.
+   * Open server contact activity. Call from main activity.
    * @param view unused
    */
-  public void startHelpActivity(@SuppressWarnings("unused") View view) {
-    //Intent intent = new Intent(this, HelpActivity.class);
+  public void startLDAPContactsActivity(@SuppressWarnings("unused") View view) {
     Intent intent = new Intent(this, LDAPContactActivity_.class);
     startActivity(intent);
   }

@@ -13,10 +13,17 @@
     <string name="app_name_info_merge">Merge contact</string>
     <string name="app_name_settings">Settings</string>
     <string name="app_name_ldap_contact">LDAP contacts</string>
-    <string name="title_section1">Section 1</string>
-    <string name="title_section2">Section 2</string>
-    <string name="title_section3">Section 3</string>
 
+    <!-- Default text from activities -->
+    <string name="def_group">Groups</string>
+    <string name="def_contact">Contacts</string>
+    
+    <!-- ProgressBar -->
+    <string name="progress_loading">Loading (…, &#8230;)</string>
+    <string name="progress_loading_text">Loading data from database.</string>
+    <string name="progress_downloading">Downloading (…, &#8230;)</string>
+    <string name="progress_downloading_text">Downloading data from server.</string>
+    
     <!-- MainActivity -->
     <string name="main_contact">Contact list</string>
     <string name="main_sync">Synchronization</string>
@@ -69,6 +76,8 @@
     
     <!-- GroupFragmnet -->
     <string name="group_toast">Group is empty.</string>
+    <string name="group_select_all">Select All.</string>
+    <string name="group_select_no">Select nothing.</string>
     
     <!-- Menu -->
     <string name="menu_sync">Synchronization</string>

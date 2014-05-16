@@ -39,7 +39,7 @@
     android:paddingTop="32sp"
     android:drawablePadding="-15sp"
     android:drawableTop="@drawable/help"
-    android:onClick="startHelpActivity" 
+    android:onClick="startLDAPContactsActivity" 
     android:text="@string/main_help" 
     android:layout_below="@+id/button_map" 
     android:id="@+id/button_help"

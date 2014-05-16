@@ -29,11 +29,11 @@ public class GroupLDAPFragment extends Fragment implements
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
     activity = (LDAPContactActivity) getActivity();
-    //selectAll = isSelectedAll();
+    // selectAll = isSelectedAll();
   }
 
   @Override
-  public void onPrepareOptionsMenu (Menu menu) {
+  public void onPrepareOptionsMenu(Menu menu) {
     MenuItem item = menu.findItem(R.id.action_select);
     String newText = !selectAll ? "Select all" : "No select";
     item.setTitle(newText);
@@ -42,7 +42,7 @@ public class GroupLDAPFragment extends Fragment implements
 
   /**
    * On selecting action bar icons
-   * */
+   */
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
 
@@ -62,11 +62,11 @@ public class GroupLDAPFragment extends Fragment implements
         startActivity(intent);
         break;
       case R.id.action_select:
-        //String newText = selectAll ? "Select all" : "No select";
+        // String newText = selectAll ? "Select all" : "No select";
         Log.i(TAG, "jsem tuuuuuuuuuuuuuuuuuuuuu");
         selectAll = selectAll ? false : true;
-        //selectAll(selectAll);
-        //item.setTitle(newText);
+        // selectAll(selectAll);
+        // item.setTitle(newText);
         break;
       case android.R.id.home:
         break;

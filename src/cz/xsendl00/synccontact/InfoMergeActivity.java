@@ -1,7 +1,6 @@
 package cz.xsendl00.synccontact;
 
-
-import com.googlecode.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.EActivity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -10,11 +9,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import cz.xsendl00.synccontact.utils.Constants;
 
 /**
  * Activity before merge activity. Show base info.
- * @author portilo
  *
+ * @author portilo
  */
 @EActivity(R.layout.activity_info)
 public class InfoMergeActivity extends Activity {
@@ -26,7 +26,6 @@ public class InfoMergeActivity extends Activity {
   }
 
   /**
-   *
    * @param view unused
    */
   public void selectActivity(@SuppressWarnings("unused") View view) {
@@ -37,7 +36,7 @@ public class InfoMergeActivity extends Activity {
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.sync_menu, menu);
+    inflater.inflate(R.menu.settings_menu, menu);
     return true;
   }
 
@@ -45,21 +44,17 @@ public class InfoMergeActivity extends Activity {
   public boolean onOptionsItemSelected(MenuItem item) {
     Intent intent = null;
     switch (item.getItemId()) {
-    case R.id.action_help:
-      intent = new Intent(this, HelpActivity_.class);
-      startActivity(intent);
-      break;
-    case R.id.action_settings:
-      intent = new Intent(this, SettingsActivity_.class);
-      startActivity(intent);
-      break;
-    case android.R.id.home:
-      finish();
-      break;
-    default:
-      break;
+      case R.id.action_help:
+        intent = new Intent(this, HelpActivity_.class);
+        intent.putExtra(Constants.INTENT_FIRST, true);
+        startActivity(intent);
+        break;
+      case android.R.id.home:
+        finish();
+        break;
+      default:
+        break;
     }
-
     return true;
   }
 }

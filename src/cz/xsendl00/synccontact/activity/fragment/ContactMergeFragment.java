@@ -27,7 +27,6 @@ import cz.xsendl00.synccontact.utils.ContactRow;
  * ContactMergeFragment for contact.
  *
  * @author portilo
- *
  */
 public class ContactMergeFragment extends Fragment implements
     android.widget.CompoundButton.OnCheckedChangeListener {
@@ -49,6 +48,7 @@ public class ContactMergeFragment extends Fragment implements
     contactManager = ContactManager.getInstance(activity);
     selectAll = selected();
   }
+
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View rootView = null;
@@ -67,7 +67,8 @@ public class ContactMergeFragment extends Fragment implements
     super.onResume();
     listRow = (ListView) getActivity().findViewById(R.id.list_contact);
     Log.i(TAG, "size in ContactLDAPFragment :" + contactManager.getContactsServer().size());
-    //adapter = new RowLDAPContactAdapter(getActivity().getApplicationContext(), contactManager.getContactsServer(), this);
+    // adapter = new RowLDAPContactAdapter(getActivity().getApplicationContext(),
+    // contactManager.getContactsServer(), this);
     listRow.setAdapter(adapter);
   }
 
@@ -106,7 +107,7 @@ public class ContactMergeFragment extends Fragment implements
    *
    */
   @Override
-  public void onPrepareOptionsMenu (Menu menu) {
+  public void onPrepareOptionsMenu(Menu menu) {
     MenuItem item = menu.findItem(R.id.action_select);
     String newText = !selectAll ? "Select all" : "No select";
     item.setTitle(newText);
@@ -116,7 +117,7 @@ public class ContactMergeFragment extends Fragment implements
 
   /**
    * On selecting action bar icons
-   * */
+   */
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     Intent intent = null;

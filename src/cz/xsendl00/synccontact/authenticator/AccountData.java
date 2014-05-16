@@ -7,25 +7,32 @@ import android.accounts.AccountManager;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import cz.xsendl00.synccontact.utils.Constants;
 
 public class AccountData {
+
   private String name;
   private String password;
   private Integer port;
   private String host;
   private String baseDn;
-  private Integer encryption;
+  private Integer encryption = 0;
   private boolean newAccount = true;
   private String searchFilter = "(objectClass=googleContact)";
-  
+
   public AccountData() {
+    this(null, null, null, null, null, 0, true);
   }
-  
-  public AccountData(String name, String password, Integer port, String host, String baseDn, Integer encryption, boolean newAccount) {
+
+  public AccountData(String name,
+      String password,
+      Integer port,
+      String host,
+      String baseDn,
+      Integer encryption,
+      boolean newAccount) {
     this.name = name;
     this.port = port;
     this.host = host;
@@ -34,62 +41,63 @@ public class AccountData {
     this.encryption = encryption;
     this.newAccount = newAccount;
   }
-  
+
   public AccountData(AccountData aData) {
-    this(aData.getName(), aData.getPassword(), aData.getPort(), aData.getHost(), aData.getBaseDn(), aData.getEncryption(), aData.isNewAccount());
+    this(aData.getName(), aData.getPassword(), aData.getPort(), aData.getHost(), aData.getBaseDn(),
+        aData.getEncryption(), aData.isNewAccount());
   }
-  
+
   public void setHost(String host) {
     this.host = host;
   }
-  
+
   public void setPassword(String pass) {
     this.password = pass;
   }
-  
+
   public void setName(String name) {
     this.name = name;
   }
-  
+
   public void setEncryption(Integer enc) {
     this.encryption = enc;
   }
-  
+
   public void setPort(Integer port) {
     this.port = port;
   }
-  
+
   public String getHost() {
     return host;
   }
-  
+
   public void setBaseDNs(String[] baseDNs) {
     this.baseDn = "";
-    for(String str : baseDNs) {
-      this.baseDn += str; 
+    for (String str : baseDNs) {
+      this.baseDn += str;
     }
   }
-  
+
   public String getBaseDn() {
     return baseDn;
   }
-  
+
   public void setBaseDn(String base) {
     this.baseDn = base;
   }
-  
+
   public Integer getPort() {
     return port;
   }
-  
+
   public String getPassword() {
     return password;
   }
-  
+
   public String getName() {
     return name;
   }
-  
+
   public Integer getEncryption() {
     return encryption;
   }
@@ -109,44 +117,46 @@ public class AccountData {
   public void setSearchFilter(String searchFilter) {
     this.searchFilter = searchFilter;
   }
-  
+
+  @Override
   public String toString() {
-    return  "name: " + name + ", password: "+password+", port: " + port + ", host: " + host + ", baseDn: " + baseDn + 
-        ", encryption: " + encryption + ", newAccount: " + newAccount + ", filter: " + searchFilter;
+    return "name: " + name + ", password: " + password + ", port: " + port + ", host: " + host
+        + ", baseDn: " + baseDn + ", encryption: " + encryption + ", newAccount: " + newAccount
+        + ", filter: " + searchFilter;
   }
-  
+
   public static AccountData getAccountData(Context context) {
-  
+
     AccountData accountData = new AccountData();
     AccountManager manager = AccountManager.get(context);
     Account[] accounts = manager.getAccountsByType(Constants.ACCOUNT_TYPE);
     // TODO : mel by byt jen jeden, ale rasdsi poresit
     for (Account account : accounts) {
-        try {
-          accountData.setPassword(manager.blockingGetAuthToken(account,Constants.AUTHTOKEN_TYPE, true));
-          accountData.setHost(manager.getUserData(account, Constants.PAR_HOST));
-          accountData.setName(manager.getUserData(account, Constants.PAR_USERNAME));
-          accountData.setSearchFilter(manager.getUserData(account, Constants.PAR_SEARCHFILTER));
-          accountData.setBaseDn(manager.getUserData(account, Constants.PAR_BASEDN));
-          accountData.setPort(Integer.parseInt(manager.getUserData(account, Constants.PAR_PORT)));
-          accountData.setEncryption(Integer.parseInt(manager.getUserData(account, Constants.PAR_ENCRYPTION)));
-          break;
-        } catch (OperationCanceledException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        } catch (AuthenticatorException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        } catch (IOException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-       
+      try {
+        accountData.setPassword(manager.blockingGetAuthToken(account, Constants.AUTHTOKEN_TYPE,
+            true));
+        accountData.setHost(manager.getUserData(account, Constants.PAR_HOST));
+        accountData.setName(manager.getUserData(account, Constants.PAR_USERNAME));
+        accountData.setSearchFilter(manager.getUserData(account, Constants.PAR_SEARCHFILTER));
+        accountData.setBaseDn(manager.getUserData(account, Constants.PAR_BASEDN));
+        accountData.setPort(Integer.parseInt(manager.getUserData(account, Constants.PAR_PORT)));
+        accountData.setEncryption(Integer.parseInt(manager.getUserData(account,
+            Constants.PAR_ENCRYPTION)));
+        accountData.setNewAccount(false);
+        return accountData;
+      } catch (OperationCanceledException e) {
+        e.printStackTrace();
+      } catch (AuthenticatorException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
-    return accountData;
+    Log.i("AccountDATA", "Account is empty");
+    return null;
 
   }
-  
+
   public static Bundle toBundle(final AccountData ac) {
     Bundle userData = new Bundle();
     userData.putString(Constants.PAR_USERNAME, ac.getName());

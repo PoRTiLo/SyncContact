@@ -5,11 +5,11 @@ import java.util.List;
 
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
-import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Relation;
+import android.provider.ContactsContract.Data;
 import cz.xsendl00.synccontact.utils.Constants;
 
-public class RelationSync extends AbstractType implements ContactInterface{
+public class RelationSync extends AbstractType implements ContactInterface {
 
   private String relationAssistant;
   private String relationBrother;
@@ -25,106 +25,132 @@ public class RelationSync extends AbstractType implements ContactInterface{
   private String relationRelative;
   private String relationSister;
   private String relationSpouse;
-  
+
   public String getRelationAssistant() {
     return relationAssistant;
   }
+
   public void setRelationAssistant(String relationAssistant) {
     this.relationAssistant = relationAssistant;
   }
+
   public String getRelationBrother() {
     return relationBrother;
   }
+
   public void setRelationBrother(String relationBrother) {
     this.relationBrother = relationBrother;
   }
+
   public String getRelationChild() {
     return relationChild;
   }
+
   public void setRelationChild(String relationChild) {
     this.relationChild = relationChild;
   }
+
   public String getRelationDomesticPartner() {
     return relationDomesticPartner;
   }
+
   public void setRelationDomesticPartner(String relationDomesticPartner) {
     this.relationDomesticPartner = relationDomesticPartner;
   }
+
   public String getRelationFather() {
     return relationFather;
   }
+
   public void setRelationFather(String relationFather) {
     this.relationFather = relationFather;
   }
+
   public String getRelationFriend() {
     return relationFriend;
   }
+
   public void setRelationFriend(String relationFriend) {
     this.relationFriend = relationFriend;
   }
+
   public String getRelationManager() {
     return relationManager;
   }
+
   public void setRelationManager(String relationManager) {
     this.relationManager = relationManager;
   }
+
   public String getRelationMother() {
     return relationMother;
   }
+
   public void setRelationMother(String relationMother) {
     this.relationMother = relationMother;
   }
+
   public String getRelationParent() {
     return relationParent;
   }
+
   public void setRelationParent(String relationParent) {
     this.relationParent = relationParent;
   }
+
   public String getRelationPartner() {
     return relationPartner;
   }
+
   public void setRelationPartner(String relationPartner) {
     this.relationPartner = relationPartner;
   }
+
   public String getRelationRefferedBy() {
     return relationRefferedBy;
   }
+
   public void setRelationRefferedBy(String relationRefferedBy) {
     this.relationRefferedBy = relationRefferedBy;
   }
+
   public String getRelationRelative() {
     return relationRelative;
   }
+
   public void setRelationRelative(String relationRelative) {
     this.relationRelative = relationRelative;
   }
+
   public String getRelationSister() {
     return relationSister;
   }
+
   public void setRelationSister(String relationSister) {
     this.relationSister = relationSister;
   }
+
   public String getRelationSpouse() {
     return relationSpouse;
   }
+
   public void setRelationSpouse(String relationSpouse) {
     this.relationSpouse = relationSpouse;
   }
 
-  
+
   @Override
   public String toString() {
-  return "Relation [relationAssistant=" + relationAssistant
-      + ", relationBrother=" + relationBrother + ", relationChild="
-      + relationChild + ", relationDomesticPartner="
-      + relationDomesticPartner + ", relationFather=" + relationFather
-      + ", relationFriend=" + relationFriend + ", relationManager="
-      + relationManager + ", relationMother=" + relationMother
-      + ", relationParent=" + relationParent + ", relationPartner="
-      + relationPartner + ", relationRefferedBy=" + relationRefferedBy
-      + ", relationRelative=" + relationRelative + ", relationSister="
-      + relationSister + ", relationSpouse=" + relationSpouse + "]";
-}
+    return "Relation [relationAssistant=" + relationAssistant + ", relationBrother="
+        + relationBrother + ", relationChild=" + relationChild + ", relationDomesticPartner="
+        + relationDomesticPartner + ", relationFather=" + relationFather + ", relationFriend="
+        + relationFriend + ", relationManager=" + relationManager + ", relationMother="
+        + relationMother + ", relationParent=" + relationParent + ", relationPartner="
+        + relationPartner + ", relationRefferedBy=" + relationRefferedBy + ", relationRelative="
+        + relationRelative + ", relationSister=" + relationSister + ", relationSpouse="
+        + relationSpouse + "]";
+  }
+
   @Override
   public void defaultValue() {
     relationAssistant = Constants.RELATION_ASSISTANT;
@@ -141,9 +167,9 @@ public class RelationSync extends AbstractType implements ContactInterface{
     relationRelative = Constants.RELATION_RELATIVE;
     relationSister = Constants.RELATION_SISTER;
     relationSpouse = Constants.RELATION_SPOUSE;
-    
+
   }
-  
+
   public static ContentValues compare(RelationSync obj1, RelationSync obj2) {
     ContentValues values = new ContentValues();
     if (obj1 == null && obj2 != null) { // update from LDAP
@@ -190,7 +216,7 @@ public class RelationSync extends AbstractType implements ContactInterface{
         values.put(Constants.RELATION_SPOUSE, obj2.getRelationSpouse());
       }
     } else if (obj1 == null && obj2 == null) { // nothing
-      
+
     } else if (obj1 != null && obj2 == null) { // clear data in db
       if (obj1.getRelationAssistant() != null) {
         values.putNull(Constants.RELATION_ASSISTANT);
@@ -310,11 +336,10 @@ public class RelationSync extends AbstractType implements ContactInterface{
   }
 
   /**
-   * 
    * @param id
    * @param value
    * @param type
-   * @param create 
+   * @param create
    * @return
    */
   public static ContentProviderOperation add(int id, String value, int type, boolean create) {
@@ -327,14 +352,14 @@ public class RelationSync extends AbstractType implements ContactInterface{
           .build();
     } else {
       return ContentProviderOperation.newInsert(Data.CONTENT_URI)
-              .withValue(Data.RAW_CONTACT_ID, id)
-              .withValue(Data.MIMETYPE, Relation.CONTENT_ITEM_TYPE)
-              .withValue(Relation.TYPE, type)
-              .withValue(Relation.DATA, value)
-              .build();
+          .withValue(Data.RAW_CONTACT_ID, id)
+          .withValue(Data.MIMETYPE, Relation.CONTENT_ITEM_TYPE)
+          .withValue(Relation.TYPE, type)
+          .withValue(Relation.DATA, value)
+          .build();
     }
   }
-  
+
   public static ContentProviderOperation update(int id, String value, int type) {
     return ContentProviderOperation.newUpdate(Data.CONTENT_URI)
         .withSelection(Data._ID + "=?", new String[]{String.valueOf(id)})
@@ -342,15 +367,18 @@ public class RelationSync extends AbstractType implements ContactInterface{
         .withValue(Relation.DATA, value)
         .build();
   }
-  
 
-  public static ArrayList<ContentProviderOperation> operation(int id, RelationSync em1, RelationSync em2, boolean create) {
+
+  public static ArrayList<ContentProviderOperation> operation(int id,
+      RelationSync em1,
+      RelationSync em2,
+      boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     if (em1 == null && em2 != null) { // create new from LDAP and insert to db
       if (em2.getRelationAssistant() != null) {
         ops.add(add(id, em2.getRelationAssistant(), Relation.TYPE_ASSISTANT, create));
       }
-      if (em2.getRelationBrother()!= null) {
+      if (em2.getRelationBrother() != null) {
         ops.add(add(id, em2.getRelationBrother(), Relation.TYPE_BROTHER, create));
       }
       if (em2.getRelationChild() != null) {
@@ -390,121 +418,147 @@ public class RelationSync extends AbstractType implements ContactInterface{
         ops.add(add(id, em2.getRelationSpouse(), Relation.TYPE_SPOUSE, create));
       }
     } else if (em1 == null && em2 == null) { // nothing
-      
+
     } else if (em1 != null && em2 == null) { // delete
       if (em1.getRelationAssistant() != null) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_ASSISTANT), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Relation.TYPE_ASSISTANT), null)));
       }
       if (em1.getRelationBrother() != null) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_BROTHER), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Relation.TYPE_BROTHER), null)));
       }
       if (em1.getRelationChild() != null) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_CHILD), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Relation.TYPE_CHILD), null)));
       }
       if (em1.getRelationDomesticPartner() != null) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_DOMESTIC_PARTNER), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Relation.TYPE_DOMESTIC_PARTNER), null)));
       }
       if (em1.getRelationFather() != null) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_FATHER), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Relation.TYPE_FATHER), null)));
       }
       if (em1.getRelationFriend() != null) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_FRIEND), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Relation.TYPE_FRIEND), null)));
       }
-      if (em1.getRelationManager()  != null) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_MANAGER), null)));
+      if (em1.getRelationManager() != null) {
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Relation.TYPE_MANAGER), null)));
       }
       if (em1.getRelationMother() != null) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_MOTHER), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Relation.TYPE_MOTHER), null)));
       }
       if (em1.getRelationParent() != null) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_PARENT), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Relation.TYPE_PARENT), null)));
       }
       if (em1.getRelationPartner() != null) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_PARTNER), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Relation.TYPE_PARTNER), null)));
       }
       if (em1.getRelationRefferedBy() != null) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_REFERRED_BY), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Relation.TYPE_REFERRED_BY), null)));
       }
       if (em1.getRelationRelative() != null) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_RELATIVE), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Relation.TYPE_RELATIVE), null)));
       }
       if (em1.getRelationSister() != null) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_SISTER), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Relation.TYPE_SISTER), null)));
       }
       if (em1.getRelationSpouse() != null) {
-        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(), String.valueOf(Relation.TYPE_SPOUSE), null)));
+        ops.add(GoogleContact.delete(ID.getIdByValue(em1.getID(),
+            String.valueOf(Relation.TYPE_SPOUSE), null)));
       }
     } else if (em1 != null && em2 != null) { // clear or update data in db
       ArrayList<ContentProviderOperation> op;
-      op = createOps(em1.getRelationAssistant(), em2.getRelationAssistant(), em1.getID(), Relation.TYPE_ASSISTANT, id, create);
+      op = createOps(em1.getRelationAssistant(), em2.getRelationAssistant(), em1.getID(),
+          Relation.TYPE_ASSISTANT, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      op = createOps(em1.getRelationBrother(), em2.getRelationBrother(), em1.getID(), Relation.TYPE_BROTHER, id, create);
+      op = createOps(em1.getRelationBrother(), em2.getRelationBrother(), em1.getID(),
+          Relation.TYPE_BROTHER, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      
-      op = createOps(em1.getRelationDomesticPartner(), em2.getRelationDomesticPartner(), em1.getID(), Relation.TYPE_DOMESTIC_PARTNER, id, create);
+
+      op = createOps(em1.getRelationDomesticPartner(), em2.getRelationDomesticPartner(),
+          em1.getID(), Relation.TYPE_DOMESTIC_PARTNER, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      
-      op = createOps(em1.getRelationFather(), em2.getRelationFather(), em1.getID(), Relation.TYPE_FATHER, id, create);
+
+      op = createOps(em1.getRelationFather(), em2.getRelationFather(), em1.getID(),
+          Relation.TYPE_FATHER, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      
-      op = createOps(em1.getRelationFriend(), em2.getRelationFriend(), em1.getID(), Relation.TYPE_FRIEND, id, create);
+
+      op = createOps(em1.getRelationFriend(), em2.getRelationFriend(), em1.getID(),
+          Relation.TYPE_FRIEND, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      
-      op = createOps(em1.getRelationManager(), em2.getRelationManager(), em1.getID(), Relation.TYPE_MANAGER, id, create);
+
+      op = createOps(em1.getRelationManager(), em2.getRelationManager(), em1.getID(),
+          Relation.TYPE_MANAGER, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      
-      op = createOps(em1.getRelationMother(), em2.getRelationMother(), em1.getID(), Relation.TYPE_MOTHER, id, create);
+
+      op = createOps(em1.getRelationMother(), em2.getRelationMother(), em1.getID(),
+          Relation.TYPE_MOTHER, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      op = createOps(em1.getRelationParent(), em2.getRelationParent(), em1.getID(), Relation.TYPE_PARENT, id, create);
+      op = createOps(em1.getRelationParent(), em2.getRelationParent(), em1.getID(),
+          Relation.TYPE_PARENT, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      
-      op = createOps(em1.getRelationPartner() , em2.getRelationPartner(), em1.getID(), Relation.TYPE_PARTNER, id, create);
+
+      op = createOps(em1.getRelationPartner(), em2.getRelationPartner(), em1.getID(),
+          Relation.TYPE_PARTNER, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      
-      op = createOps(em1.getRelationRefferedBy(), em2.getRelationRefferedBy(), em1.getID(), Relation.TYPE_REFERRED_BY, id, create);
+
+      op = createOps(em1.getRelationRefferedBy(), em2.getRelationRefferedBy(), em1.getID(),
+          Relation.TYPE_REFERRED_BY, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      
-      op = createOps(em1.getRelationRelative(), em2.getRelationRelative(), em1.getID(), Relation.TYPE_RELATIVE, id, create);
+
+      op = createOps(em1.getRelationRelative(), em2.getRelationRelative(), em1.getID(),
+          Relation.TYPE_RELATIVE, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      
-      op = createOps(em1.getRelationSister(), em2.getRelationSister(), em1.getID(), Relation.TYPE_SISTER, id, create);
+
+      op = createOps(em1.getRelationSister(), em2.getRelationSister(), em1.getID(),
+          Relation.TYPE_SISTER, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      
-      op = createOps(em1.getRelationSpouse(), em2.getRelationSpouse(), em1.getID(), Relation.TYPE_SPOUSE, id, create);
+
+      op = createOps(em1.getRelationSpouse(), em2.getRelationSpouse(), em1.getID(),
+          Relation.TYPE_SPOUSE, id, create);
       if (op != null && op.size() > 0) {
         ops.addAll(op);
       }
-      
+
     }
     return ops.size() > 0 ? ops : null;
   }
-  
+
   /**
-   * 
    * @param value1
    * @param value2
    * @param ids
@@ -512,15 +566,20 @@ public class RelationSync extends AbstractType implements ContactInterface{
    * @param id
    * @return
    */
-  private static ArrayList<ContentProviderOperation> createOps(String value1, String value2, List<ID> ids, int type, int id, boolean create) {
+  private static ArrayList<ContentProviderOperation> createOps(String value1,
+      String value2,
+      List<ID> ids,
+      int type,
+      int id,
+      boolean create) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
-    if(value2 != null || value2 != null) {
+    if (value2 != null || value2 != null) {
       String i = ID.getIdByValue(ids, String.valueOf(type), null);
       if (i == null && value2 != null) {
         ops.add(add(id, value2, type, create));
-      } else if ( i != null && value2 == null) {
+      } else if (i != null && value2 == null) {
         ops.add(GoogleContact.delete(i));
-      } else if (i != null && value2 != null && !value2.equals(value1)) { 
+      } else if (i != null && value2 != null && !value2.equals(value1)) {
         ops.add(update(id, value2, type));
       }
     }

@@ -34,6 +34,7 @@ public class ContactManager {
 
   private static final String TAG = "ContactManager";
 
+  private AccountData accountData;
   private static ContactManager instance = null;
   private List<GroupRow> groupsLocal;
   private List<ContactRow> contactsLocal;
@@ -76,12 +77,27 @@ public class ContactManager {
   }
 
   /**
+   * Initialize {@link AccountData}. Load data from Accounts.
+   * @return true if account exist, other false
+   */
+  public boolean initAccountData() {
+    accountData = AccountData.getAccountData(context);
+    if (accountData == null) {
+      accountData = new AccountData();
+      return false;
+    }
+     return true;
+  }
+
+
+  /**
    * Initialize groups of contacts, groups and contacts.
    */
   public void initGroupsContacts() {
     Utils util = new Utils();
     util.startTime(TAG, "initGroupsContacts");
     groupsContacts = new HashMap<String, List<ContactRow>>();
+    // TODO: initGroup and initGroup in new thread andd it finish call
     initGroup();
     initContact();
 
@@ -199,9 +215,10 @@ public class ContactManager {
     for (GroupRow group : groupsLocal) {
       List<ContactRow> contacRows = new ContactRow().fetchGroupMembers(
           context.getContentResolver(), group.getId());
+      Collections.sort(contacRows, new ContactRowComparator());
       groupsContacts.put(group.getId(), contacRows);
       group.setSize(contacRows.size());
-      Log.i(TAG, "id:" + group.getId() + "group size:" + group.getSize());
+      Log.i(TAG, "id:" + group.getId() + "group size:" + group.getSize() + contacRows.toString());
     }
 
     HelperSQL db = new HelperSQL(context);
@@ -217,12 +234,12 @@ public class ContactManager {
    *
    * @param handler for check connection.
    */
-  public void initContactLDAP(Handler handler) {
+  public void initContactsServer(Handler handler) {
     Utils util = new Utils();
     util.startTime(TAG, "initLDAP");
     contactsServer = new ArrayList<ContactRow>();
     contactsServer.addAll(ServerUtilities.fetchLDAPContactsNameUUID(
-        new ServerInstance(AccountData.getAccountData(context)), context, handler));
+        new ServerInstance(accountData), context, handler));
     // sort contact by name
     Collections.sort(contactsServer, new ContactRowComparator());
     contactsServerInit = true;
@@ -348,5 +365,19 @@ public class ContactManager {
    */
   public void setContactsLocalReload(boolean contactsReloaded) {
     this.contactsLocalReload = contactsReloaded;
+  }
+
+  /**
+   * @return Returns the accountData.
+   */
+  public AccountData getAccountData() {
+    return accountData;
+  }
+
+  /**
+   * @param accountData The accountData to set.
+   */
+  public void setAccountData(AccountData accountData) {
+    this.accountData = accountData;
   }
 }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.googlecode.androidannotations.annotations.EBean;
+import org.androidannotations.annotations.EBean;
 
 import android.util.Log;
 
@@ -52,9 +52,9 @@ public class Utils {
     Log.i(TAG, "intersection: " + list1.size() + " to " + map2.size());
     List<ContactRow> list = new ArrayList<ContactRow>();
 
-    for (int pozicion = 0; pozicion < list1.size(); ) {
-      ContactRow contactRow= map2.get(list1.get(pozicion).getUuid());
-      if(contactRow != null) {
+    for (int pozicion = 0; pozicion < list1.size();) {
+      ContactRow contactRow = map2.get(list1.get(pozicion).getUuid());
+      if (contactRow != null) {
         if (list1.get(pozicion).isSync() && !contactRow.isSync()) {
           list.add(contactRow);
         }
