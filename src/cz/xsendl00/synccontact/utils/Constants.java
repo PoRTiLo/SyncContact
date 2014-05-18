@@ -18,6 +18,7 @@ public final class Constants {
   public static final String ACCOUNT_TYPE = "cz.xsendl00.synccontact";
   public static final String ACCOUNT_NAME = "syncContact@synccontact.xsendl00.cz";
   public static final String ACCOUNT_FILTER_LDAP = "(objectClass=googleContact)";
+  public static final String ACCOUNT_FILTER_LDAP_GROUP = "(objectClass=groupOfNames)";
   public static final String ACCOUNT_OU_PEOPLE = "ou=people,";
   public static final String ACCOUNT_OU_GROUPS = "ou=groups,";
 
@@ -296,11 +297,13 @@ public final class Constants {
   public static final String DN = "dn";
   public static final String OBJECT_CLASS = "objectClass";
   public static final String OBJECT_CLASS_GOOGLE = "googleContact";
-  public static final String OBJECT_CLASS_GROUP_OF_NAME = "groupofnames";
+  public static final String OBJECT_CLASS_GROUP_OF_NAME = "groupOfNames";
   public static final String OBJECT_CLASS_INET = "inetOrgPerson";
   public static final String OBJECT_CLASS_ORG = "organizationalPerson";
   public static final String OBJECT_CLASS_PERSON = "person";
   public static final String OBJECT_CLASS_TOP = "top";
+
+  public static final String OBJECT_ATTRIBUTE_MEMBER = "member";
 
   /** LDAP serach **/
   public static final String LDAP_MODIFY_TIME_STAMP = "modifyTimestamp";

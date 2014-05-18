@@ -19,8 +19,8 @@
             android:id="@+id/button1"
             style="@style/CustomButton"
             android:gravity="center"
-            android:onClick="addServerActivity"
-            android:text="@string/welcome_add_server" >
+            android:onClick="go2MergeActivity"
+            android:text="@string/info_merge_button" >
         </Button>
     </LinearLayout>
 
@@ -45,7 +45,7 @@
                 android:gravity="center"
                 android:paddingBottom="@dimen/margin_20"
                 android:paddingTop="@dimen/margin_20"
-                android:text="@string/welcome_welcome"
+                android:text="@string/info_merge_head"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
             <TextView
@@ -54,7 +54,7 @@
                 android:layout_height="fill_parent"
                 android:gravity="center"
                 android:paddingBottom="@dimen/margin_12"
-                android:text="@string/welcome_info"
+                android:text="@string/info_merge_text"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <TextView
@@ -62,8 +62,8 @@
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:gravity="center"
-                android:text="@string/welcome_first"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
+                android:text="@string/info_merge_text_2"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
         </LinearLayout>
     </ScrollView>
 

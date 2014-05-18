@@ -5,8 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.androidannotations.annotations.Bean;
+import org.androidannotations.annotations.EBean;
+
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.util.Log;
 import cz.xsendl00.synccontact.client.ContactManager;
@@ -16,12 +20,17 @@ import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.Mapping;
 
+@EBean
 public class Synchronization {
+
+  @Bean
+  protected AndroidDB androidDB;
 
   private static final String TAG = "Synchronization";
 
   private ContactManager contactManager;
   private Context context;
+  private final Handler handler = new Handler();
 
   public Synchronization(Context contextIn) {
     this.context = contextIn;
@@ -46,7 +55,7 @@ public class Synchronization {
     Log.i(TAG, timestamp);
     // get contact from server which was newer than timestamp
     Map<String, GoogleContact> contactsServer = ServerUtilities.fetchModifyContactsLDAP(ldapServer,
-        context, timestamp);
+        context, handler, timestamp);
     Log.i(TAG, "fetchModifyContactsLDAP: " + contactsServer.size());
     // for(GoogleContact c : contactsServer) {
     // Log.i(TAG, c.getStructuredName().getDisplayName());
@@ -63,9 +72,9 @@ public class Synchronization {
     // update db syncContact.db
 
     // update db contact.db
-    AndroidDB.updateContactsDb(context, differenceLDAP);
+    androidDB.updateContactsDb(context, differenceLDAP);
     // update server contact
-    new ServerUtilities().updateContactsLDAP(ldapServer, context, differenceLDAP); // differenceDirty
+    new ServerUtilities().updateContactsLDAP(ldapServer, context, handler, differenceLDAP); // differenceDirty
     // set new timestamp
     timestamp = ContactRow.createTimestamp();
     // set dirty flag to disable (0)

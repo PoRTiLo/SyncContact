@@ -118,6 +118,8 @@ public class ServerInstance implements Serializable {
         conn.close();
         throw le;
       }
+    } else {
+      Log.e(TAG, "getConnection + Accountdata is empty!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     }
 
     return conn;

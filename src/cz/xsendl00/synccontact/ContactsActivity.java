@@ -8,7 +8,6 @@ import org.androidannotations.annotations.ViewById;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -31,7 +30,7 @@ public class ContactsActivity extends Activity {
    * ProgressBar show by loading data.
    */
   @ViewById(R.id.activit_contacts_layout)
-  public LinearLayout linearLayoutProgress;
+  protected LinearLayout linearLayoutProgress;
   private ContactManager contactManager;
   private boolean first = false;
   private Menu mMenu;
@@ -69,7 +68,7 @@ public class ContactsActivity extends Activity {
    * @param refreshing true/false - show/hide
    */
   @UiThread
-  public void setRefreshActionButtonState(final boolean refreshing) {
+  protected void setRefreshActionButtonState(final boolean refreshing) {
     if (mMenu != null) {
       final MenuItem refreshItem = mMenu.findItem(R.id.action_refresh);
       if (refreshItem != null) {
@@ -86,7 +85,7 @@ public class ContactsActivity extends Activity {
    * Initialize tabs. Call it after data in {@link ContactManager} are loaded.
    */
   @UiThread
-  public void init() {
+  protected void init() {
     ActionBar actionBar = getActionBar();
     actionBar.removeAllTabs();
     actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
@@ -108,7 +107,7 @@ public class ContactsActivity extends Activity {
    * Do after data from database is loaded.
    */
   @Background
-  public void loadData() {
+  protected void loadData() {
     contactManager.initGroupsContacts();
     init();
   }
@@ -125,14 +124,11 @@ public class ContactsActivity extends Activity {
   }
 
   /**
-   * Call after clock on button.
+   * Call after clock on button. Got to next activity {@link InfoMergeActivity}.
    *
    * @param view unused
    */
-  public void mainActivity(@SuppressWarnings("unused") View view) {
-    Editor editor = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit();
-    editor.putBoolean(Constants.PREFS_START_FIRST, false);
-    editor.commit();
+  public void go2InfoMerge(@SuppressWarnings("unused") View view) {
     Intent intent = new Intent(this, InfoMergeActivity_.class);
     startActivity(intent);
   }
@@ -144,12 +140,5 @@ public class ContactsActivity extends Activity {
    */
   public boolean isFirst() {
     return first;
-  }
-
-  /**
-   * @param first run first
-   */
-  public void setFirst(boolean first) {
-    this.first = first;
   }
 }

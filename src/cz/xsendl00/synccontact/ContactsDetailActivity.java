@@ -3,6 +3,7 @@ package cz.xsendl00.synccontact;
 import java.util.List;
 
 import org.androidannotations.annotations.Background;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
@@ -34,14 +35,17 @@ import cz.xsendl00.synccontact.utils.ContactRow;
 @EActivity
 public class ContactsDetailActivity extends ListActivity {
 
+  @Bean
+  protected AndroidDB androidDB;
   /**
    * ProgressBar show by loading data.
    */
   @ViewById(R.id.activit_contacts_layout)
-  public LinearLayout llProgress;
+  protected LinearLayout linearLayoutProgress;
   private static final String TAG = "ContactsDetailActivity";
   private ContactManager contactManager;
   private String groupId;
+  private boolean first;
   private List<ContactRow> contactRows;
 
   @Override
@@ -50,6 +54,7 @@ public class ContactsDetailActivity extends ListActivity {
     getActionBar().setDisplayHomeAsUpEnabled(true);
     Intent intent = getIntent();
     groupId = intent.getStringExtra(Constants.INTENT_ID);
+    first = intent.getBooleanExtra(Constants.INTENT_FIRST, false);
     String groupName = intent.getStringExtra(Constants.INTENT_NAME);
     this.setTitle(groupName);
     contactManager = ContactManager.getInstance(ContactsDetailActivity.this);
@@ -58,7 +63,6 @@ public class ContactsDetailActivity extends ListActivity {
     } else {
       init();
     }
-
   }
 
   /**
@@ -88,7 +92,11 @@ public class ContactsDetailActivity extends ListActivity {
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.sync_menu, menu);
+    if (first) {
+      inflater.inflate(R.menu.settings_menu, menu);
+    } else {
+      inflater.inflate(R.menu.sync_menu, menu);
+    }
     return true;
   }
 
@@ -98,6 +106,9 @@ public class ContactsDetailActivity extends ListActivity {
     switch (item.getItemId()) {
       case R.id.action_help:
         intent = new Intent(this, HelpActivity_.class);
+        if (first) {
+          intent.putExtra(Constants.INTENT_FIRST, true);
+        }
         startActivity(intent);
         break;
       case R.id.action_settings:
@@ -116,7 +127,7 @@ public class ContactsDetailActivity extends ListActivity {
   @Override
   protected void onListItemClick(ListView l, View v, int position, long id) {
     ContactRow contactRow = contactRows.get(position);
-    int idContact = AndroidDB.getIdContact(ContactsDetailActivity.this,
+    int idContact = androidDB.getIdContact(ContactsDetailActivity.this,
         contactManager.getContactsLocal().get(position).getId());
     Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, idContact);
     Intent i = new Intent(Intent.ACTION_VIEW);

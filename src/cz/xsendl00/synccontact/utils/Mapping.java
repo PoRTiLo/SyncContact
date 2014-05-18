@@ -51,6 +51,7 @@ import cz.xsendl00.synccontact.contact.SipAddressSync;
 import cz.xsendl00.synccontact.contact.StructuredNameSync;
 import cz.xsendl00.synccontact.contact.StructuredPostalSync;
 import cz.xsendl00.synccontact.contact.WebsiteSync;
+import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.database.HelperSQL;
 
 @EBean
@@ -118,14 +119,30 @@ public class Mapping {
   }
 
   /**
-   * Create attribute for mapping data from LDAP server.
+   * Create attribute for mapping data {@link ContactRow} from LDAP server.
    *
    * @return array of name LDAP attributes.
    */
-  public static final String[] createAttributesSimply() {
+  public static final String[] createAttributesContactSimply() {
     ArrayList<String> ldapAttributes = new ArrayList<String>();
     ldapAttributes.add(Constants.DISPLAY_NAME);
     ldapAttributes.add(Constants.UUID);
+
+    String[] ldapArray = new String[ldapAttributes.size()];
+    ldapArray = ldapAttributes.toArray(ldapArray);
+    return ldapArray;
+  }
+
+  /**
+   * Create attribute for mapping data {@link GroupRow} from LDAP server.
+   *
+   * @return array of name LDAP attributes.
+   */
+  public static final String[] createAttributesGroup() {
+    ArrayList<String> ldapAttributes = new ArrayList<String>();
+    ldapAttributes.add(Constants.DESCRIPTION);
+    ldapAttributes.add(Constants.CN);
+    ldapAttributes.add(Constants.OBJECT_ATTRIBUTE_MEMBER);
 
     String[] ldapArray = new String[ldapAttributes.size()];
     ldapArray = ldapAttributes.toArray(ldapArray);
@@ -319,7 +336,8 @@ public class Mapping {
     if (attributesTemp != null && !attributesTemp.isEmpty()) {
       attributes.addAll(attributesTemp);
     }
-    if (attributes != null && attributes.size() > 2) {
+    //TODO:predtim 2
+    if (attributes != null && attributes.size() > 1) {
       AddRequest addRequest = new AddRequest(Constants.UUID + "=" + gc.getUuid().toString() + ","
           + Constants.ACCOUNT_OU_PEOPLE + baseDn, attributes);
       // Log.i(TAG, "AddRequest : " + addRequest.toLDIFString());
@@ -337,18 +355,22 @@ public class Mapping {
    * @param context context
    * @return list of add request.
    */
-  public AddRequest createGroupAddRequest(GroupRow groupRow, String baseDn, Context context) {
-
+  public AddRequest createGroupAddRequest(final GroupRow groupRow, final String baseDn, final Context context, List<Modification> mod) {
+    Log.i(TAG, "createGroupAddRequest START");
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 
     attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GROUP_OF_NAME));
-    attributes.add(new Attribute(Constants.UUID, groupRow.getUuid()));
+    attributes.add(new Attribute(Constants.CN, groupRow.getUuid()));
 
-    ArrayList<Attribute> attributesTemp = fillAttribute(groupRow, baseDn, context);
+
+
+    ArrayList<Attribute> attributesTemp = fillAttribute(groupRow, baseDn, context, mod);
+
+
     if (attributesTemp != null && !attributesTemp.isEmpty()) {
       attributes.addAll(attributesTemp);
     }
-    if (attributes != null && attributes.size() > 2) {
+    if (attributes != null && attributes.size() > 0 && attributesTemp != null) {
       AddRequest addRequest = new AddRequest(Constants.CN + "=" + groupRow.getUuid() + ","
           + Constants.ACCOUNT_OU_GROUPS + baseDn, attributes);
       Log.i(TAG, "AddRequest : " + addRequest.toLDIFString());
@@ -377,17 +399,26 @@ public class Mapping {
    * @param groupRow group
    * @return list of request
    */
-  private static ArrayList<Attribute> fillAttribute(GroupRow groupRow,
-      String baseDn,
-      Context context) {
+  private static ArrayList<Attribute> fillAttribute(final GroupRow groupRow, final String baseDn, Context context, List<Modification> mod) {
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 
     ContactManager contactManager = ContactManager.getInstance(context);
     Map<String, List<ContactRow>> map = contactManager.getGroupsContacts();
     List<ContactRow> list = map.get(groupRow.getId());
+    if (list.isEmpty()) {
+      return null;
+    }
+    boolean first = true;
     for (ContactRow contactRow : list) {
-      attributes.add(new Attribute(Constants.GROUP_MEMBER, contactRow.getUuid()
+      if (first) {
+        attributes.add(new Attribute(Constants.GROUP_MEMBER, Constants.UUID + "=" + contactRow.getUuid() + ","
+            + Constants.ACCOUNT_OU_PEOPLE + baseDn));
+        first = false;
+      } else {
+        mod.add(new Modification(ModificationType.ADD, Constants.GROUP_MEMBER,
+          Constants.UUID + "=" + contactRow.getUuid() + ","
           + Constants.ACCOUNT_OU_PEOPLE + baseDn));
+      }
     }
     attributes.add(new Attribute(Constants.GROUP_DESCRIPTION, groupRow.getName()));
     return attributes;
@@ -908,6 +939,12 @@ public class Mapping {
       }
     }
 
+    if (contact.getStructuredName() == null || contact.getStructuredName().getDisplayName() == null) {
+      if (contact.getStructuredName() == null) {
+        contact.initStructuredName();
+      }
+      contact.getStructuredName().setDisplayName(new AndroidDB().fetchContactName(contentResolver, id));
+    }
     return contact;
   }
 

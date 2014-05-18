@@ -74,7 +74,7 @@
     </activity>
     
     <activity
-      android:name=".LDAPContactActivity_"
+      android:name=".ContactsServerActivity_"
       android:screenOrientation="portrait"
       android:parentActivityName=".MainActivity_"
       android:label="@string/app_name_ldap_contact" >
@@ -134,20 +134,16 @@
     </activity>
     
     <activity
-      android:name=".WelcomeActivity_"
+      android:name=".InfoWelcomeActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName=".MainActivity_"
       android:label="@string/app_name" >
-      <meta-data
-        android:name="android.support.PARENT_ACTIVITY"
-        android:value=".MainActivity_" />
     </activity>
     
     <activity
-      android:name=".ContactMergeActivity_"
+      android:name=".ContactsMergeActivity_"
       android:screenOrientation="portrait"
       android:parentActivityName=".InfoMergeActivity_"
-      android:label="@string/app_name" >
+      android:label="@string/app_name_merge" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
         android:value=".InfoMergeActivity_" />
@@ -157,7 +153,7 @@
       android:name=".InfoSyncActivity_"
       android:screenOrientation="portrait"
       android:parentActivityName=".MainActivity_"
-      android:label="@string/app_name" >
+      android:label="@string/app_name_info_sync" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
         android:value=".MainActivity_" />
@@ -186,7 +182,7 @@
     </activity>
     
     <activity
-      android:name=".InfoLDAPActivity_"
+      android:name=".InfoServerContactsActivity_"
       android:screenOrientation="portrait"
       android:parentActivityName=".AddServerActivity_"
       android:label="@string/app_name_info_ldap" >

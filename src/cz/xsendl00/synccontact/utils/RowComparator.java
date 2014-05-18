@@ -34,7 +34,7 @@ import java.util.Locale;
  * @author portilo
  *
  */
-public class ContactRowComparator implements Comparator<ContactRow> {
+public class RowComparator implements Comparator<AbstractRow> {
 
   private int compareRight(String a, String b) {
     int bias = 0;
@@ -70,7 +70,12 @@ public class ContactRowComparator implements Comparator<ContactRow> {
   }
 
   @Override
-  public int compare(ContactRow left, ContactRow right) {
+  public int compare(AbstractRow left, AbstractRow right) {
+    if (left.getName() == null) {
+      return -1;
+    } else if (right.getName() == null) {
+      return 1;
+    }
     Locale locale  = new Locale("cs", "CZ");
     String leftContact = left.getName().toLowerCase(locale);
     String rightContact = right.getName().toLowerCase(locale);

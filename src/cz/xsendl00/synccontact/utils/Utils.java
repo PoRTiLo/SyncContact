@@ -65,4 +65,27 @@ public class Utils {
     }
     return list;
   }
+
+  /**
+  *
+  * @param list1
+  * @param map2
+  * @return
+  */
+ public List<GroupRow> intersection(final List<GroupRow> list1, final List<GroupRow> list2) {
+   List<GroupRow> list = new ArrayList<GroupRow>();
+   for (GroupRow groupRow : list1) {
+     boolean found = false;
+     for (AbstractRow abstractRow : list2) {
+       if (groupRow.getName().equals(abstractRow.getName())) {
+         found = true;
+         break;
+       }
+     }
+     if (!found) {
+       list.add(groupRow);
+     }
+   }
+   return list;
+ }
 }

@@ -2,6 +2,9 @@ package cz.xsendl00.synccontact.activity.fragment;
 
 import java.util.List;
 
+import org.androidannotations.annotations.Background;
+import org.androidannotations.annotations.EFragment;
+
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,15 +23,17 @@ import cz.xsendl00.synccontact.R;
 import cz.xsendl00.synccontact.SettingsActivity_;
 import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.database.HelperSQL;
+import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 
 
 /**
- * ContactMergeFragment for contact.
+ * Fragment for contact.
  *
  * @author portilo
  */
-public class ContactMergeFragment extends Fragment implements
+@EFragment
+public class ContactServerFragment extends Fragment implements
     android.widget.CompoundButton.OnCheckedChangeListener {
 
   private static final String TAG = "ContactServerFragment";
@@ -36,17 +41,15 @@ public class ContactMergeFragment extends Fragment implements
   private ListView listRow;
   private RowContactServerAdapter adapter;
   private ContactManager contactManager;
-
   private static boolean selectAll;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setHasOptionsMenu(true);
-
     activity = (ContactsServerActivity) getActivity();
     contactManager = ContactManager.getInstance(activity);
-    selectAll = selected();
+    selected();
   }
 
   @Override
@@ -66,13 +69,16 @@ public class ContactMergeFragment extends Fragment implements
   public void onResume() {
     super.onResume();
     listRow = (ListView) getActivity().findViewById(R.id.list_contact);
-    Log.i(TAG, "size in ContactServerFragment :" + contactManager.getContactsServer().size());
-    // adapter = new RowContactServerAdapter(getActivity().getApplicationContext(),
-    // contactManager.getContactsServer(), this);
+    adapter = new RowContactServerAdapter(getActivity().getApplicationContext(),
+        contactManager.getContactsServer(), this);
     listRow.setAdapter(adapter);
   }
 
-  private boolean selected() {
+  /**
+   * Check if all is selected.
+   */
+  @Background
+  protected void selected() {
     HelperSQL db = new HelperSQL(activity);
     List<ContactRow> contactRowDb = db.getContactsSync();
     int countSelect = 0;
@@ -80,7 +86,9 @@ public class ContactMergeFragment extends Fragment implements
       int i = 0;
       boolean found = false;
       for (ContactRow contactRow2 : contactRowDb) {
-        if (contactRow.getUuid().equals(contactRow2.getUuid())) {
+        Log.i(TAG, "contactRowdb:" + contactRow2.toString());
+        Log.i(TAG, "contactRowServer:" + contactRow.toString());
+        if (contactRow.getName().equals(contactRow2.getName())) {
           contactRow.setSync(true);
           contactRowDb.remove(i);
           found = true;
@@ -93,7 +101,7 @@ public class ContactMergeFragment extends Fragment implements
         contactRow.setSync(false);
       }
     }
-    return selectAll = countSelect == contactManager.getContactsServer().size();
+    selectAll = countSelect == contactManager.getContactsServer().size();
   }
 
   private void selectAll(final boolean result) {
@@ -103,31 +111,26 @@ public class ContactMergeFragment extends Fragment implements
     adapter.notifyDataSetChanged();
   }
 
-  /**
-   *
-   */
   @Override
   public void onPrepareOptionsMenu(Menu menu) {
     MenuItem item = menu.findItem(R.id.action_select);
-    String newText = !selectAll ? "Select all" : "No select";
+    String newText = !selectAll ? getString(R.string.group_select_all) : getString(R.string.group_select_no);
     item.setTitle(newText);
     super.onPrepareOptionsMenu(menu);
   }
 
-
-  /**
-   * On selecting action bar icons
-   */
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     Intent intent = null;
     switch (item.getItemId()) {
       case R.id.action_refresh:
-        //TODO:
-        //((ContactsServerActivity) getActivity()).update();
+        activity.reinitData();
         break;
       case R.id.action_help:
         intent = new Intent(getActivity(), HelpActivity_.class);
+        if (activity.isFirst()) {
+          intent.putExtra(Constants.INTENT_FIRST, true);
+        }
         startActivity(intent);
         break;
       case R.id.action_settings:

@@ -12,6 +12,7 @@ import com.unboundid.ldap.sdk.AddRequest;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.LDAPResult;
+import com.unboundid.ldap.sdk.Modification;
 import com.unboundid.ldap.sdk.ModifyRequest;
 import com.unboundid.ldap.sdk.RootDSE;
 import com.unboundid.ldap.sdk.SearchResult;
@@ -30,10 +31,10 @@ import android.os.Handler;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.util.Log;
-import cz.xsendl00.synccontact.InfoLDAPActivity_;
+import cz.xsendl00.synccontact.InfoServerContactsActivity_;
 import cz.xsendl00.synccontact.R;
-import cz.xsendl00.synccontact.ServerActivity;
-import cz.xsendl00.synccontact.ServerAddActivity;
+import cz.xsendl00.synccontact.ServerActivity_;
+import cz.xsendl00.synccontact.ServerAddActivity_;
 import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.Constants;
@@ -41,29 +42,26 @@ import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
 import cz.xsendl00.synccontact.utils.Mapping;
 
+/**
+ * Server utilities.
+ */
 @EBean
 public class ServerUtilities {
-
-  //@Bean
-  //protected Mapping mapping;
 
   private static final String TAG = "ServerUtilities";
 
   /**
    * New Thread.
    *
-   * @param runnable
-   * @return
+   * @param runnable runnable
+   * @return thread
    */
   public static Thread performOnBackgroundThread(final Runnable runnable) {
     final Thread t = new Thread() {
 
       @Override
       public void run() {
-        try {
-          runnable.run();
-        } finally {
-        }
+        runnable.run();
       }
     };
     t.start();
@@ -92,9 +90,9 @@ public class ServerUtilities {
       @Override
       public void run() {
         if (test) {
-          ((ServerActivity) context).onAuthenticationResult(baseDNs, result, message);
+          ((ServerActivity_) context).onAuthenticationResult(baseDNs, result, message);
         } else {
-          ((ServerAddActivity) context).onAuthenticationResult(baseDNs, result, message);
+          ((ServerAddActivity_) context).onAuthenticationResult(baseDNs, result, message);
         }
       }
     });
@@ -107,11 +105,11 @@ public class ServerUtilities {
    * @param context context
    * @param googleContact contact
    */
-  public void addContactToServer(final ServerInstance ldapServer, final Context context, GoogleContact googleContact) {
+  public void addContactToServer(final ServerInstance ldapServer, final Context context, final Handler handler, GoogleContact googleContact) {
     LDAPConnection connection = null;
 
     try {
-      connection = ldapServer.getConnection(null, context);
+      connection = ldapServer.getConnection(handler, context);
     } catch (LDAPException e1) {
       e1.printStackTrace();
     }
@@ -124,6 +122,10 @@ public class ServerUtilities {
       }
     } catch (LDAPException e) {
       e.printStackTrace();
+    } finally {
+      if (connection != null) {
+        connection.close();
+      }
     }
   }
 
@@ -131,26 +133,41 @@ public class ServerUtilities {
    * Add new group to server.
    * @param ldapServer server instance
    * @param context context
+   * @param handler handler
    * @param group group for add
    */
-  public void addGroup2Server(final ServerInstance ldapServer, final Context context, GroupRow group) {
+  public void addGroup2Server(final ServerInstance ldapServer, final Context context,
+      final Handler handler, final GroupRow group) {
     LDAPConnection connection = null;
-
     try {
-      connection = ldapServer.getConnection(null, context);
+      connection = ldapServer.getConnection(handler, context);
     } catch (LDAPException e1) {
       e1.printStackTrace();
     }
-
     try {
-      AddRequest addRequest = new Mapping().createGroupAddRequest(group, ldapServer.getAccountdData().getBaseDn(), context);
+      List<Modification> mod = new ArrayList<Modification>();
+      AddRequest addRequest = new Mapping().createGroupAddRequest(group,
+          ldapServer.getAccountdData().getBaseDn(), context, mod);
+      ModifyRequest modifyRequest = null;
+      if (!mod.isEmpty()) {
+        modifyRequest =  new ModifyRequest(Constants.CN + "=" + group.getUuid() + ","
+            + Constants.ACCOUNT_OU_GROUPS + ldapServer.getAccountdData().getBaseDn(), mod);
+      }
       if (addRequest != null) {
-        LDAPResult ldapResult = connection.add(addRequest);
+        LDAPResult ldapResult;
+        ldapResult = connection.add(addRequest);
         Log.i(TAG, "Add group to server : " + group.getUuid() + "---" + ldapResult.toString());
-        notification(context, group.getUuid());
+        //notification(context, group.getUuid());
+        if (modifyRequest != null) {
+          ldapResult = connection.modify(modifyRequest);
+        }
       }
     } catch (LDAPException e) {
       e.printStackTrace();
+    } finally {
+      if (connection != null) {
+        connection.close();
+      }
     }
   }
 
@@ -166,7 +183,7 @@ public class ServerUtilities {
     int icon = R.drawable.ic_launcher;
     CharSequence tickerText = "Error on LDAP Sync";
     Notification notification = new Notification(icon, tickerText, System.currentTimeMillis());
-    Intent notificationIntent = new Intent(context, InfoLDAPActivity_.class);
+    Intent notificationIntent = new Intent(context, InfoServerContactsActivity_.class);
     PendingIntent contentIntent = PendingIntent.getService(context, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
     notification.setLatestEventInfo(context, tickerText, text, contentIntent);
     notification.flags = Notification.FLAG_AUTO_CANCEL;
@@ -177,13 +194,14 @@ public class ServerUtilities {
    * retrieves a count of entries.
    * @param ldapServer instance of server
    * @param context context
+   * @param handler handler
    * @return entry count number of entry
    */
-  public static int getEntryCount(final ServerInstance ldapServer, final Context context) {
+  public static int getEntryCount(final ServerInstance ldapServer, final Context context, final Handler handler) {
     LDAPConnection connection = null;
     int size = 0;
     try {
-      connection = ldapServer.getConnection(null, context);
+      connection = ldapServer.getConnection(handler, context);
       size = connection.search(Constants.ACCOUNT_OU_PEOPLE + ldapServer.getAccountdData().getBaseDn(), SearchScope.SUB,
           Constants.ACCOUNT_FILTER_LDAP,
           Constants.UUID).getEntryCount();
@@ -200,13 +218,14 @@ public class ServerUtilities {
 
   /**
    * Get contact from LDAP server and import them in database.
-   * @param ldapServer
-   * @param context
-   * @param handler
-   * @param uuid The uuid of contact, which will be added to phone.
+   * @param ldapServer LDAP server instance
+   * @param context context
+   * @param handler handler
+   * @param uuid The UUID of contact, which will be added to phone.
    * @return the new {@link GoogleContact} contact.
    */
-  public GoogleContact fetchLDAPContact(final ServerInstance ldapServer, final Context context, final Handler handler, final String uuid) {
+  public GoogleContact fetchLDAPContact(final ServerInstance ldapServer,
+      final Context context, final Handler handler, final String uuid) {
     GoogleContact googleContactOut = null;
     LDAPConnection connection = null;
     try {
@@ -227,7 +246,8 @@ public class ServerUtilities {
           public void run() {
             try {
               String id = null;
-              ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, new GoogleContact().createOperationNew(new GoogleContact(), googleContact));
+              ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY,
+                  new GoogleContact().createOperationNew(new GoogleContact(), googleContact));
               for (ContentProviderResult a : contactUri) {
                 if (id == null) {
                   id = a.uri.getLastPathSegment();
@@ -237,7 +257,8 @@ public class ServerUtilities {
               }
               HelperSQL db = new HelperSQL(context);
               ContactRow contactRow = new ContactRow(id,
-                  googleContact.getStructuredName().getDisplayName(), true, null, Constants.ACCOUNT_NAME, Constants.ACCOUNT_TYPE, ContactRow.createTimestamp(), googleContact.getUuid());
+                  googleContact.getStructuredName().getDisplayName(), true, null, Constants.ACCOUNT_NAME,
+                  Constants.ACCOUNT_TYPE, ContactRow.createTimestamp(), googleContact.getUuid());
               List<ContactRow> contacts = new ArrayList<ContactRow>();
               contacts.add(contactRow);
               db.addContacts(contacts);
@@ -264,7 +285,7 @@ public class ServerUtilities {
       notification.setLatestEventInfo(context, tickerText, e.getMessage().replace("\\n", " "), contentIntent);
       notification.flags = Notification.FLAG_AUTO_CANCEL;
       mNotificationManager.notify(0, notification);*/
-      return null;
+      googleContactOut = null;
     } finally {
       if (connection != null) {
         connection.close();
@@ -272,6 +293,45 @@ public class ServerUtilities {
     }
 
     return googleContactOut;
+  }
+
+  /**
+   * Get all group from server.
+   * @param ldapServer Instance connection.
+   * @param context context of activity.
+   * @param handler handler of activity.
+   * @return List of GroupRow
+   */
+  public static List<GroupRow> fetchLDAPGroups(final ServerInstance ldapServer,
+      final Context context, final Handler handler) {
+    List<GroupRow> groupsServer = new ArrayList<GroupRow>();
+    LDAPConnection connection = null;
+    try {
+      connection = ldapServer.getConnection(handler, context);
+      SearchResult searchResult = connection.search(
+          Constants.ACCOUNT_OU_GROUPS + ldapServer.getAccountdData().getBaseDn(),
+          SearchScope.SUB,
+          Constants.ACCOUNT_FILTER_LDAP_GROUP,
+          Mapping.createAttributesGroup());
+      for (SearchResultEntry e : searchResult.getSearchEntries()) {
+        GroupRow groupRow = new GroupRow();
+        groupRow.setUuid(e.getAttributeValue(Constants.CN));
+        groupRow.setName(e.getAttributeValue(Constants.DESCRIPTION));
+        String[] members = e.getAttributeValues(Constants.OBJECT_ATTRIBUTE_MEMBER);
+        for (String member : members) {
+          groupRow.getMebersUuids().add(member);
+        }
+        Log.i(TAG, "fetchLDAPGroupsNameUUID: " + groupRow.toString());
+        groupsServer.add(groupRow);
+      }
+    } catch (LDAPException e) {
+      e.printStackTrace();
+    } finally {
+      if (connection != null) {
+        connection.close();
+      }
+    }
+    return groupsServer;
   }
 
   /**
@@ -291,7 +351,7 @@ public class ServerUtilities {
           Constants.ACCOUNT_OU_PEOPLE + ldapServer.getAccountdData().getBaseDn(),
           SearchScope.SUB,
           Constants.ACCOUNT_FILTER_LDAP,
-          Mapping.createAttributesSimply());
+          Mapping.createAttributesContactSimply());
       for (SearchResultEntry e : searchResult.getSearchEntries()) {
         ContactRow contactRow = new ContactRow();
         contactRow.setUuid(e.getAttributeValue(Constants.UUID));
@@ -308,11 +368,12 @@ public class ServerUtilities {
     return contactsServer;
   }
 
-  public static Map<String, GoogleContact> fetchModifyContactsLDAP(final ServerInstance ldapServer, final Context context, String timestamp) {
+  public static Map<String, GoogleContact> fetchModifyContactsLDAP(final ServerInstance ldapServer,
+      final Context context, final Handler handler, String timestamp) {
     LDAPConnection connection = null;
     Map<String, GoogleContact> contactsServer = new HashMap<String, GoogleContact>();
     try {
-      connection = ldapServer.getConnection(null, context);
+      connection = ldapServer.getConnection(handler, context);
       String filter = "(&" + Constants.ACCOUNT_FILTER_LDAP + "("
           + Constants.LDAP_MODIFY_TIME_STAMP + ">=" + timestamp + "))";
       SearchResult searchResult = connection.search(
@@ -336,25 +397,25 @@ public class ServerUtilities {
 
 
 
-  public void updateContactsLDAP(final ServerInstance ldapServer, final Context context, Map<String, GoogleContact> differenceDirty) {
+  public void updateContactsLDAP(final ServerInstance ldapServer, final Context context, final Handler handler, Map<String, GoogleContact> differenceDirty) {
     for (Map.Entry<String, GoogleContact> entry : differenceDirty.entrySet()) {
-      if (checkExistsContactLDAP(ldapServer, context, entry.getKey())) {
+      if (checkExistsContactLDAP(ldapServer, context, handler, entry.getKey())) {
         // update
-        updateContactLDAP(ldapServer, context, entry.getValue());
+        updateContactLDAP(ldapServer, context, handler, entry.getValue());
         Log.i(TAG, "update contact: " + entry.getKey());
       } else {
         // create new
-        addContactToServer(ldapServer, context, entry.getValue());
+        addContactToServer(ldapServer, context, handler, entry.getValue());
         Log.i(TAG, "create new contact: " + entry.getKey());
       }
     }
   }
 
-  private static void updateContactLDAP(final ServerInstance ldapServer, Context context, GoogleContact gc) {
+  private static void updateContactLDAP(final ServerInstance ldapServer, final Context context, final Handler handler, GoogleContact gc) {
     LDAPConnection connection = null;
 
     try {
-      connection = ldapServer.getConnection(null, context);
+      connection = ldapServer.getConnection(handler, context);
     } catch (LDAPException e1) {
       e1.printStackTrace();
     }
@@ -366,17 +427,21 @@ public class ServerUtilities {
       }
     } catch (LDAPException e) {
       e.printStackTrace();
+    } finally {
+      if (connection != null) {
+        connection.close();
+      }
     }
 
   }
 
 
 
-  public static boolean checkExistsContactLDAP(final ServerInstance ldapServer, final Context context, String uuid) {
+  public static boolean checkExistsContactLDAP(final ServerInstance ldapServer, final Context context, final Handler handler, String uuid) {
     LDAPConnection connection = null;
     boolean  found = false;
     try {
-      connection = ldapServer.getConnection(null, context);
+      connection = ldapServer.getConnection(handler, context);
       String filter = "(&" + Constants.ACCOUNT_FILTER_LDAP + "(" + Constants.UUID + "=" + uuid + "))";
       SearchResult searchResult = connection.search(
           Constants.ACCOUNT_OU_PEOPLE + ldapServer.getAccountdData().getBaseDn(),
@@ -412,7 +477,7 @@ public class ServerUtilities {
   }
 
 
-  public static boolean authenticate(ServerInstance ldapServer, Handler handler, final Context context, final boolean test) {
+  public static boolean authenticate(final ServerInstance ldapServer, final Handler handler, final Context context, final boolean test) {
     LDAPConnection connection = null;
     try {
       connection = ldapServer.getConnection(handler, context);

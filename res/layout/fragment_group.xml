@@ -15,11 +15,11 @@
     android:dividerHeight="0.3dp"
     android:paddingBottom="@dimen/margin_8" />
   <Button
-    android:id="@+id/button1"
+    android:id="@+id/fragment_group_button"
     style="@style/CustomButton"
     android:gravity="center"
-    android:onClick="mainActivity"
-    android:text="@string/info_button" >
+    android:onClick="go2InfoMerge"
+    android:text="@string/group_button" >
   </Button>
  
 </LinearLayout>

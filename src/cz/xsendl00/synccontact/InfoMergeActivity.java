@@ -16,7 +16,7 @@ import cz.xsendl00.synccontact.utils.Constants;
  *
  * @author portilo
  */
-@EActivity(R.layout.activity_info)
+@EActivity(R.layout.activity_info_merge)
 public class InfoMergeActivity extends Activity {
 
   @Override
@@ -28,8 +28,8 @@ public class InfoMergeActivity extends Activity {
   /**
    * @param view unused
    */
-  public void selectActivity(@SuppressWarnings("unused") View view) {
-    Intent intent = new Intent(this, ContactMergeActivity_.class);
+  public void go2MergeActivity(@SuppressWarnings("unused") View view) {
+    Intent intent = new Intent(this, ContactsMergeActivity_.class);
     startActivity(intent);
   }
 

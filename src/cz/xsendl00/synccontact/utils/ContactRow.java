@@ -3,12 +3,12 @@ package cz.xsendl00.synccontact.utils;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.UUID;
 
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
@@ -20,21 +20,13 @@ import android.provider.ContactsContract.RawContacts;
 import android.text.format.Time;
 import android.util.Log;
 
-public class ContactRow {
-
+public class ContactRow extends AbstractRow {
 
   private static final String TAG = "ContactShow";
-
-  private static ArrayList<ContactRow> contacts = null;
-  private String name;
-  private String id;
-  private Boolean sync;
   private List<String> groupsId;
-  private Integer idTable;
   private String accouNamePrevious;
   private String accouTypePrevious;
   private String timestamp;
-  private String uuid;
 
   public ContactRow() {
     this(null, null, true, null, null, null, null, null, null);
@@ -89,32 +81,14 @@ public class ContactRow {
       String accouTypePrevious,
       String timestamp,
       String uuid) {
-    this.id = id;
-    this.name = name;
-    this.sync = sync;
+    super(id, name, sync, idTable, uuid);
     this.groupsId = groups == null ? new ArrayList<String>() : groups;
-    this.idTable = idTable;
     this.accouNamePrevious = accouNamePrevious;
     this.accouTypePrevious = accouTypePrevious;
     this.timestamp = timestamp;
-    this.setUuid(uuid);
   }
 
-  public String getName() {
-    return name;
-  }
 
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
 
 
   public Set<String> fetchGroupMembersId(ContentResolver contentResolver, String groupId) {
@@ -216,7 +190,7 @@ public class ContactRow {
 
   public static List<ContactRow> fetchGroupMembersName(ContentResolver contentResolver,
       String groupId) {
-    SortedSet<ContactRow> groupMembers = new TreeSet<ContactRow>(new ContactRowComparator());
+    SortedSet<ContactRow> groupMembers = new TreeSet<ContactRow>(new RowComparator());
     Cursor cursor = null;
     try {
       String where = CommonDataKinds.GroupMembership.GROUP_ROW_ID + "=" + groupId + " AND "
@@ -246,48 +220,17 @@ public class ContactRow {
     return new ArrayList<ContactRow>(groupMembers);
   }
 
-  /**
-   * Fetch all contact from contact provider database.
-   *
-   * @param contentResolver resolver
-   * @return list of ContactRow.
-   */
-  public static ArrayList<ContactRow> fetchAllContact(ContentResolver contentResolver) {
-    Cursor cursor = null;
-    try {
-      contacts = new ArrayList<ContactRow>();
-      String[] projection = new String[]{RawContacts._ID, RawContacts.DISPLAY_NAME_PRIMARY,
-          RawContacts.ACCOUNT_NAME, RawContacts.ACCOUNT_TYPE};
-      cursor = contentResolver.query(RawContacts.CONTENT_URI, projection, null, null,
-          RawContacts.DISPLAY_NAME_PRIMARY + " COLLATE LOCALIZED ASC");
-      while (cursor.moveToNext()) {
-        ContactRow contactShow = new ContactRow(
-            cursor.getString(cursor.getColumnIndex(RawContacts._ID)),
-            cursor.getString(cursor.getColumnIndex(RawContacts.DISPLAY_NAME_PRIMARY)),
-            cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_NAME)),
-            cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_TYPE)));
-        contacts.add(contactShow);
-      }
-    } catch (Exception ex) {
-      ex.printStackTrace();
-    } finally {
-      try {
-        if (cursor != null && !cursor.isClosed()) {
-          cursor.close();
-        }
-      } catch (Exception ex) {
-        ex.printStackTrace();
-      }
+  public String getGroupsIdToString() {
+    StringBuilder builder = new StringBuilder();
+    for (String groupId : groupsId) {
+      builder.append(groupId);
+      builder.append(",");
     }
-    return contacts;
+    return builder.toString();
   }
 
-  public Boolean isSync() {
-    return sync;
-  }
-
-  public void setSync(Boolean sync) {
-    this.sync = sync;
+  public static List<String> getGroupsIdFromString(String stringId) {
+    return Arrays.asList(stringId.split(","));
   }
 
   public List<String> getGroupsId() {
@@ -296,14 +239,6 @@ public class ContactRow {
 
   public void setGroupsId(List<String> groupNames) {
     this.groupsId = groupNames;
-  }
-
-  public Integer getIdTable() {
-    return idTable;
-  }
-
-  public void setIdTable(Integer idTable) {
-    this.idTable = idTable;
   }
 
   public String getAccouNamePrevious() {
@@ -341,6 +276,7 @@ public class ContactRow {
     StringBuilder builder = new StringBuilder();
     builder.append(now.year);
     builder.append(now.month > 9 ? now.month : "0" + now.month);
+    builder.append(now.monthDay > 9 ? now.monthDay : "0" + now.monthDay);
     builder.append(now.hour > 9 ? now.hour : "0" + now.hour);
     builder.append(now.minute > 9 ? now.minute : "0" + now.minute);
     builder.append(now.second > 9 ? now.second : "0" + now.second);
@@ -359,32 +295,6 @@ public class ContactRow {
       out = "No synchronization.";
     }
     return out;
-  }
-
-  /**
-   * Generate UUID.
-   *
-   * @return UUID.toString
-   */
-  public static String generateUUID() {
-    UUID uuid = UUID.randomUUID();
-    return uuid.toString();
-  }
-
-  /**
-   * Get UUID.
-   *
-   * @return UUID.
-   */
-  public String getUuid() {
-    if (this.uuid == null) {
-      uuid = generateUUID();
-    }
-    return uuid;
-  }
-
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
   }
 
   /** {@inheritDoc} */

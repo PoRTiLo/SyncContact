@@ -3,32 +3,48 @@ package cz.xsendl00.synccontact.utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.provider.ContactsContract;
 
-public class GroupRow implements Parcelable {
+/**
+ * Class for data about groups.
+ */
+public class GroupRow extends AbstractRow {
 
-  private String name;
-  private String id;
-  private Integer idTable;
   private Integer size;
-  private Boolean sync;
-  private String uuid;
+  private List<String> mebersUuids = new ArrayList<String>();
   private static ArrayList<GroupRow> groups = null;
 
+  /**
+   * Class for data about groups.
+   */
   public GroupRow() {
     this(null, null);
   }
 
+  /**
+   * Class for data about groups.
+   * @param name name name of group
+   * @param id id in provider contact database.
+   */
   public GroupRow(String name, String id) {
-    this(name, id, null, false, null);
+    this(name, id, null, false, null, null);
   }
 
-  public GroupRow(String name, String id, Integer size, boolean sync, Integer idTable) {
+  /**
+   * Class for data about groups.
+   * @param name name of group
+   * @param id id in provider contact database.
+   * @param size number of members
+   * @param sync true/false is sync/no
+   * @param idTable id of local table
+   * @param uuid UUID
+   */
+  public GroupRow(String name, String id, Integer size, boolean sync, Integer idTable, String uuid) {
+    super(id, name, sync, idTable, uuid);
     this.setId(id);
     this.setName(name);
     this.setSize(size);
@@ -36,18 +52,12 @@ public class GroupRow implements Parcelable {
     this.setIdTable(idTable);
   }
 
+
+  /** {@inheritDoc} */
   @Override
   public String toString() {
-    return "GroupRow [name=" + name + ", id=" + id + ", idTable=" + idTable + ", size=" + size
-        + ", sync=" + sync + "]";
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
+    return "GroupRow [size=" + size + ", mebersUuids=" + mebersUuids + ", name=" + name + ", id="
+        + id + ", uuid=" + uuid + ", sync=" + sync + ", idTable=" + idTable + "]";
   }
 
   public Integer getSize() {
@@ -58,21 +68,11 @@ public class GroupRow implements Parcelable {
     this.size = size;
   }
 
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
-
-
-  public String toStringSync() {
-    return "Id: " + id + ", sync: " + sync;
-
-  }
-
-  // TODO: list init only once, but what will be happen if add new group?
+  /**
+   * List initialize of {@link GroupRow} from database local..
+   * @param contentResolver contentResolver
+   * @return list of {@link GroupRow}
+   */
   public static ArrayList<GroupRow> fetchGroups(ContentResolver contentResolver) {
     Cursor cursor = null;
     try {
@@ -88,13 +88,9 @@ public class GroupRow implements Parcelable {
     } catch (Exception ex) {
       ex.printStackTrace();
     } finally {
-      try {
         if (cursor != null && !cursor.isClosed()) {
           cursor.close();
         }
-      } catch (Exception ex) {
-        ex.printStackTrace();
-      }
     }
 
     Collections.sort(groups, new Comparator<GroupRow>() {
@@ -107,76 +103,17 @@ public class GroupRow implements Parcelable {
     return groups;
   }
 
-  public Boolean isSync() {
-    return sync;
-  }
-
-  public void setSync(Boolean sync) {
-    this.sync = sync;
-  }
-
-  public Integer getIdTable() {
-    return idTable;
-  }
-
-  public void setIdTable(Integer idTable) {
-    this.idTable = idTable;
-  }
-
-  @Override
-  public int describeContents() {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  @Override
-  public void writeToParcel(Parcel dest, int flags) {
-    dest.writeString(this.id);
-    dest.writeString(this.name);
-    if (this.idTable != null) {
-      dest.writeInt(this.idTable);
-    }
-    dest.writeValue(this.sync);
-    if (this.size != null) {
-      dest.writeInt(this.size);
-    }
-  }
-
-  public static final Parcelable.Creator<GroupRow> CREATOR = new Parcelable.Creator<GroupRow>() {
-
-    @Override
-    public GroupRow createFromParcel(Parcel in) {
-      return new GroupRow(in);
-    }
-
-    @Override
-    public GroupRow[] newArray(int size) {
-      return new GroupRow[size];
-    }
-  };
-
-  private GroupRow(Parcel in) {
-    this.id = in.readString();
-    this.name = in.readString();
-    this.sync = in.readInt() == 1;
-    this.idTable = in.readInt();
-    this.size = in.readInt();
+  /**
+   * @return Returns the mebersUuids.
+   */
+  public List<String> getMebersUuids() {
+    return mebersUuids;
   }
 
   /**
-   * @return Returns the UUID.
+   * @param mebersUuids The mebersUuids to set.
    */
-  public String getUuid() {
-    if (uuid == null) {
-      uuid = ContactRow.generateUUID();
-    }
-    return uuid;
-  }
-
-  /**
-   * @param uuid The uuid to set.
-   */
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
+  public void setMebersUuids(List<String> mebersUuids) {
+    this.mebersUuids = mebersUuids;
   }
 }

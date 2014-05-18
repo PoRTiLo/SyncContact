@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
-import cz.xsendl00.synccontact.ContactMergeActivity;
+import cz.xsendl00.synccontact.ContactsMergeActivity;
 import cz.xsendl00.synccontact.R;
 import cz.xsendl00.synccontact.utils.ContactRow;
 
@@ -24,16 +24,16 @@ public class RowMergerAdapter extends BaseAdapter {
   private Context context;
   private List<ContactRow> data;
   ViewHolder holder;
-  ContactMergeActivity contactMergeActivity;
+  ContactsMergeActivity contactsMergeActivity;
 
   /**
    * @param context
    * @param data
    * @param activity
    */
-  public RowMergerAdapter(Context context, List<ContactRow> data, ContactMergeActivity activity) {
+  public RowMergerAdapter(Context context, List<ContactRow> data, ContactsMergeActivity activity) {
     super();
-    this.contactMergeActivity = activity;
+    this.contactsMergeActivity = activity;
     this.data = data;
     this.context = context;
   }
@@ -78,7 +78,7 @@ public class RowMergerAdapter extends BaseAdapter {
       holder = (ViewHolder) convertView.getTag();
     }
     holder.check.setTag(position);
-    holder.check.setOnCheckedChangeListener(contactMergeActivity);
+    holder.check.setOnCheckedChangeListener(contactsMergeActivity);
     ContactRow contactRow = (ContactRow) getItem(position);
     holder.nameServer.setText(contactRow.getName());
     holder.nameLocal.setText(contactRow.getName());

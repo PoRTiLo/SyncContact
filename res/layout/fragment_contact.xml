@@ -18,8 +18,8 @@
     android:id="@+id/fragment_contact_button"
     style="@style/CustomButton"
     android:gravity="center"
-    android:onClick="mainActivity"
-    android:text="@string/info_button" >
+    android:onClick="go2InfoMerge"
+    android:text="@string/group_button" >
   </Button>
 
 </LinearLayout>

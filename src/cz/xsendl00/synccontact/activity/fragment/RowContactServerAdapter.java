@@ -13,17 +13,29 @@ import android.widget.TextView;
 import cz.xsendl00.synccontact.R;
 import cz.xsendl00.synccontact.utils.ContactRow;
 
-public class RowLDAPContactAdapter extends BaseAdapter {
+
+/**
+ * Adapter for {@link ContactServerFragment}.
+ */
+public class RowContactServerAdapter extends BaseAdapter {
 
   private Context context;
   private List<ContactRow> data;
   private ViewHolder holder;
-  private ContactLDAPFragment par;
-  private GroupFragment parG;
+  private ContactServerFragment contactServerFragment;
 
-  public RowLDAPContactAdapter(Context context, List<ContactRow> data, ContactLDAPFragment par) {
+  /**
+   * Constructor.
+   *
+   * @param context context
+   * @param data data
+   * @param fragment {@link ContactServerFragment}
+   */
+  public RowContactServerAdapter(Context context,
+      List<ContactRow> data,
+      ContactServerFragment fragment) {
     super();
-    this.par = par;
+    this.contactServerFragment = fragment;
     this.data = data;
     this.context = context;
   }
@@ -47,7 +59,6 @@ public class RowLDAPContactAdapter extends BaseAdapter {
   private class ViewHolder {
 
     private TextView contactName;
-    private TextView contactGroup;
     private CheckBox checkSync;
   }
 
@@ -56,23 +67,21 @@ public class RowLDAPContactAdapter extends BaseAdapter {
     holder = null;
 
     LayoutInflater inflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-
-    if (convertView == null) {
-      convertView = inflater.inflate(R.layout.row_contact, null);
+    View view = convertView;
+    if (view == null) {
+      view = inflater.inflate(R.layout.row_contact, null);
       holder = new ViewHolder();
-      holder.contactName = (TextView) convertView.findViewById(R.id.row_contact_name);
-      holder.contactGroup = (TextView) convertView.findViewById(R.id.row_conatct_in_group);
-      holder.checkSync = (CheckBox) convertView.findViewById(R.id.row_contact_sync);
-      convertView.setTag(holder);
+      holder.contactName = (TextView) view.findViewById(R.id.row_contact_name);
+      holder.checkSync = (CheckBox) view.findViewById(R.id.row_contact_sync);
+      view.setTag(holder);
     } else {
-      holder = (ViewHolder) convertView.getTag();
+      holder = (ViewHolder) view.getTag();
     }
     holder.checkSync.setTag(position);
-    holder.checkSync.setOnCheckedChangeListener(par);
+    holder.checkSync.setOnCheckedChangeListener(contactServerFragment);
     ContactRow contact = (ContactRow) getItem(position);
     holder.contactName.setText(contact.getName());
-    // holder.groupSize.setText("Number of contact: " + group.getSize());
     holder.checkSync.setChecked(contact.isSync());
-    return convertView;
+    return view;
   }
 }

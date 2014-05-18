@@ -2,17 +2,14 @@ package cz.xsendl00.synccontact.activity.fragment;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.UiThread;
 
 import android.app.Fragment;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -56,6 +53,52 @@ public class GroupFragment extends Fragment implements
     setHasOptionsMenu(true);
     activity = (ContactsActivity) getActivity();
     contactManager = ContactManager.getInstance(activity);
+  }
+
+  @Override
+  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    super.onCreateView(inflater, container, savedInstanceState);
+    View rootView = null;
+    if (activity.isFirst()) {
+      rootView = inflater.inflate(R.layout.fragment_group, container, false);
+    } else {
+      rootView = inflater.inflate(R.layout.fragment_group_simply, container, false);
+    }
+    return rootView;
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    if (!contactManager.isContactsLocalInit() || !contactManager.isGroupsLocalInit()) {
+      initContactManager();
+    }
+    isSelectedAll();
+    listRow = (ListView) getActivity().findViewById(R.id.list_group);
+    adapter = new RowGroupAdapter(getActivity().getApplicationContext(),
+        contactManager.getGroupsLocal(), this);
+    listRow.setAdapter(adapter);
+    if (listRow != null) {
+      listRow.setOnItemClickListener(new OnItemClickListener() {
+
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+          if (contactManager.getGroupsLocal().get(position).getSize() != 0) {
+            Intent i = new Intent(getActivity().getApplicationContext(),
+                ContactsDetailActivity_.class);
+            i.putExtra(Constants.INTENT_FIRST, activity.isFirst());
+            i.putExtra(Constants.INTENT_ID, contactManager.getGroupsLocal().get(position).getId());
+            i.putExtra(Constants.INTENT_NAME, contactManager.getGroupsLocal()
+                .get(position)
+                .getName());
+            startActivity(i);
+          } else {
+            Toast toast = Toast.makeText(getActivity(), R.string.group_toast, Toast.LENGTH_SHORT);
+            toast.show();
+          }
+        }
+      });
+    }
   }
 
   @Override
@@ -138,50 +181,6 @@ public class GroupFragment extends Fragment implements
     }).start();
   }
 
-  @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    super.onCreateView(inflater, container, savedInstanceState);
-    View rootView = null;
-    if (activity.isFirst()) {
-      rootView = inflater.inflate(R.layout.fragment_group, container, false);
-    } else {
-      rootView = inflater.inflate(R.layout.fragment_group_simply, container, false);
-    }
-    return rootView;
-  }
-
-  @Override
-  public void onResume() {
-    super.onResume();
-    if (!contactManager.isContactsLocalInit() || !contactManager.isGroupsLocalInit()) {
-      initContactManager();
-    }
-    isSelectedAll();
-    listRow = (ListView) getActivity().findViewById(R.id.list_group);
-    adapter = new RowGroupAdapter(getActivity().getApplicationContext(),
-        contactManager.getGroupsLocal(), this);
-    listRow.setAdapter(adapter);
-    if (listRow != null) {
-      listRow.setOnItemClickListener(new OnItemClickListener() {
-
-        @Override
-        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-          if (contactManager.getGroupsLocal().get(position).getSize() != 0) {
-            Intent i = new Intent(getActivity().getApplicationContext(),
-                ContactsDetailActivity_.class);
-            i.putExtra(Constants.INTENT_ID, contactManager.getGroupsLocal().get(position).getId());
-            i.putExtra(Constants.INTENT_NAME, contactManager.getGroupsLocal()
-                .get(position)
-                .getName());
-            startActivity(i);
-          } else {
-            Toast toast = Toast.makeText(getActivity(), R.string.group_toast, Toast.LENGTH_SHORT);
-            toast.show();
-          }
-        }
-      });
-    }
-  }
 
   @Override
   public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
@@ -205,25 +204,29 @@ public class GroupFragment extends Fragment implements
    * @param groups list of groups
    */
   @Background
-  public void updateGroups(final boolean isChecked, final List<GroupRow> groups) {
-    final ContentResolver contentResolver = getActivity().getContentResolver();
+  protected void updateGroups(final boolean isChecked, final List<GroupRow> groups) {
+    //final ContentResolver contentResolver = getActivity().getContentResolver();
     for (GroupRow groupRow : groups) {
       final String id = groupRow.getId();
-      if (getActivity() != null) {
-        final Set<String> list = new ContactRow().fetchGroupMembersId(contentResolver, id);
-        if (list != null) {
-          for (String id1 : list) {
-            for (ContactRow c : contactManager.getContactsLocal()) {
-              if (c.getId().equals(id1)) {
-                c.setSync(isChecked);
-                break;
-              }
-            }
-          }
-        }
-      } else {
-        Log.i(TAG, "je nulllllll taky");
+      List<ContactRow> list = contactManager.getGroupsContacts().get(id);
+      for (ContactRow contactRow : list) {
+        contactRow.setSync(isChecked);
       }
+//      if (getActivity() != null) {
+//        final Set<String> list = new ContactRow().fetchGroupMembersId(contentResolver, id);
+//        if (list != null) {
+//          for (String id1 : list) {
+//            for (ContactRow c : contactManager.getContactsLocal()) {
+//              if (c.getId().equals(id1)) {
+//                c.setSync(isChecked);
+//                break;
+//              }
+//            }
+//          }
+//        }
+//      } else {
+//        Log.i(TAG, "je nulllllll taky");
+//      }
     }
   }
 
@@ -234,20 +237,24 @@ public class GroupFragment extends Fragment implements
    * @param groups list of groups
    */
   @Background
-  public void updateDB(final boolean isChecked, final List<GroupRow> groups) {
-    final ContentResolver contentResolver = getActivity().getContentResolver();
+  protected void updateDB(final boolean isChecked, final List<GroupRow> groups) {
+    //final ContentResolver contentResolver = getActivity().getContentResolver();
     HelperSQL db = new HelperSQL(getActivity());
     for (GroupRow groupRow : groups) {
       final String id = groupRow.getId();
+
       db.updateGroupSync(groupRow);
-      if (getActivity() != null) {
-        final Set<String> list = new ContactRow().fetchGroupMembersId(contentResolver, id);
-        if (list != null) {
-          db.updateContactsSync(list, isChecked);
-        }
-      } else {
-        Log.i(TAG, "je nulllllll");
-      }
+      List<ContactRow> list = contactManager.getGroupsContacts().get(id);
+      db.updateContactsSync(list, isChecked);
+
+//      if (getActivity() != null) {
+//        final Set<String> list = new ContactRow().fetchGroupMembersId(contentResolver, id);
+//        if (list != null) {
+//          db.updateContactsSync(list, isChecked);
+//        }
+//      } else {
+//        Log.i(TAG, "je nulllllll");
+//      }
     }
   }
 
@@ -255,8 +262,8 @@ public class GroupFragment extends Fragment implements
    * Reload data in manager.
    */
   @Background
-  public void initContactManager() {
-    contactManager.reloadManager();
+  protected void initContactManager() {
+    contactManager.initGroupsContacts(); //.reloadManager();
     updateAdapter();
   }
 
@@ -264,7 +271,7 @@ public class GroupFragment extends Fragment implements
    * Update adapter in main thread.
    */
   @UiThread
-  public void updateAdapter() {
+  protected void updateAdapter() {
     adapter.notifyDataSetChanged();
   }
 

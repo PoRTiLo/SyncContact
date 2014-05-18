@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -24,13 +23,20 @@ import cz.xsendl00.synccontact.ldap.Synchronization;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 
+/**
+ * Synchronization activity.
+ */
 @EActivity(R.layout.activity_synchronization)
 public class SynchronizationActivity extends Activity {
 
   private static final String TAG = "SynchronizationActivity";
 
+  /**
+   * Place for date of last synchronization.
+   */
   @ViewById(R.id.synchronization_time)
   protected TextView editTextTime;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -43,6 +49,9 @@ public class SynchronizationActivity extends Activity {
     getLastSyncTime();
   }
 
+  /**
+   * Get last synchronization time from database.
+   */
   @AfterViews
   protected void getLastSyncTime() {
     new Thread(new Runnable() {
@@ -104,8 +113,7 @@ public class SynchronizationActivity extends Activity {
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
-    MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.sync_menu, menu);
+    getMenuInflater().inflate(R.menu.sync_menu, menu);
     return true;
   }
 

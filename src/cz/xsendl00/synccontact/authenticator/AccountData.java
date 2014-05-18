@@ -43,8 +43,25 @@ public class AccountData {
   }
 
   public AccountData(AccountData aData) {
-    this(aData.getName(), aData.getPassword(), aData.getPort(), aData.getHost(), aData.getBaseDn(),
-        aData.getEncryption(), aData.isNewAccount());
+    this(aData.getName(),
+        aData.getPassword(),
+        aData.getPort(),
+        aData.getHost(),
+        aData.getBaseDn(),
+        aData.getEncryption() == null ? 0 : aData.getEncryption(),
+        aData.isNewAccount());
+  }
+
+  public static AccountData initDefault() {
+    AccountData ac = new AccountData();
+    ac.name = "";
+    ac.port = 368;
+    ac.host = "";
+    ac.baseDn = "";
+    ac.password = "";
+    ac.encryption = 0;
+    ac.newAccount = true;
+    return ac;
   }
 
   public void setHost(String host) {

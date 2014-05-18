@@ -11,7 +11,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 import cz.xsendl00.synccontact.ServerAddActivity;
@@ -23,12 +22,18 @@ import cz.xsendl00.synccontact.ldap.ServerUtilities;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 
+/**
+ *
+ */
 public class SyncAuthenticator extends AbstractAccountAuthenticator {
 
   private final Context mContext;
   private static final String TAG = "SyncAuthenticator";
-  private volatile Looper mMyLooper;
 
+  /**
+   *
+   * @param context context
+   */
   public SyncAuthenticator(Context context) {
     super(context);
     mContext = context;
@@ -62,13 +67,17 @@ public class SyncAuthenticator extends AbstractAccountAuthenticator {
   }
 
   static final String smsg = "SyncContact account already exists.\nOnly one account is supported.";
+  static final String smsg1 = "Contacts will be moved to default account.";
   final Handler handler = new Handler() {
 
     @Override
     public void handleMessage(android.os.Message msg) {
       if (msg.what == 0) {
         Toast.makeText(mContext, smsg, Toast.LENGTH_LONG).show();
+      } else if (msg.what == 1) {
+        Toast.makeText(mContext, smsg1, Toast.LENGTH_LONG).show();
       }
+
     }
   };
 
@@ -173,7 +182,7 @@ public class SyncAuthenticator extends AbstractAccountAuthenticator {
     Log.i(TAG, "remove account" + account.type);
     Bundle ret = super.getAccountRemovalAllowed(response, account);
     if (ret.getBoolean(AccountManager.KEY_BOOLEAN_RESULT)) {
-      new Thread(new Runnable() {
+      Thread thread = new Thread(new Runnable() {
 
         @Override
         public void run() {
@@ -181,8 +190,18 @@ public class SyncAuthenticator extends AbstractAccountAuthenticator {
           List<ContactRow> contactRows = db.getAllContacts();
           new AndroidDB().exportContactsFromSyncAccount(mContext, contactRows);
         }
-      }).start();
+      });
+      thread.start();
+
+      handler.sendEmptyMessage(1);
+
+      try {
+        thread.join();
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
     }
+
     return ret;
   }
 }

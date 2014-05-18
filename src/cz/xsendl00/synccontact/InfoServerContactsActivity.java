@@ -1,4 +1,6 @@
 package cz.xsendl00.synccontact;
+
+
 import org.androidannotations.annotations.EActivity;
 
 import android.app.Activity;
@@ -12,11 +14,11 @@ import cz.xsendl00.synccontact.utils.Constants;
 
 /**
  * Info LDAp import data.
- * @author portilo
  *
+ * @author portilo
  */
-@EActivity(R.layout.activity_info)
-public class InfoLDAPActivity extends Activity {
+@EActivity(R.layout.activity_info_server)
+public class InfoServerContactsActivity extends Activity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -26,10 +28,11 @@ public class InfoLDAPActivity extends Activity {
 
   /**
    * Go to import activity.
+   *
    * @param view unused
    */
   public void selectActivity(@SuppressWarnings("unused") View view) {
-    Intent intent = new Intent(this, LDAPContactActivity_.class);
+    Intent intent = new Intent(this, ContactsServerActivity_.class);
     intent.putExtra(Constants.INTENT_FIRST, true);
     startActivity(intent);
   }
@@ -37,7 +40,7 @@ public class InfoLDAPActivity extends Activity {
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.sync_menu, menu);
+    inflater.inflate(R.menu.settings_menu, menu);
     return true;
   }
 
@@ -45,21 +48,17 @@ public class InfoLDAPActivity extends Activity {
   public boolean onOptionsItemSelected(MenuItem item) {
     Intent intent = null;
     switch (item.getItemId()) {
-    case R.id.action_help:
-      intent = new Intent(this, HelpActivity_.class);
-      startActivity(intent);
-      break;
-    case R.id.action_settings:
-      intent = new Intent(this, SettingsActivity_.class);
-      startActivity(intent);
-      break;
-    case android.R.id.home:
-      finish();
-      break;
-    default:
-      break;
+      case R.id.action_help:
+        intent = new Intent(this, HelpActivity_.class);
+        intent.putExtra(Constants.INTENT_FIRST, true);
+        startActivity(intent);
+        break;
+      case android.R.id.home:
+        finish();
+        break;
+      default:
+        break;
     }
-
     return true;
   }
 }

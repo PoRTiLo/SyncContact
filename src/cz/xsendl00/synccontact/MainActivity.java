@@ -33,7 +33,7 @@ public class MainActivity extends Activity {
   @ViewById(R.id.button_show_sight)
   protected Button show;
   @ViewById(R.id.button_help)
-  protected Button help;
+  protected Button importButton;
 
   private static final String TAG = "MainActivity";
 
@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
     Log.i(TAG, "Load preferens: startFirst = " + startFirst);
     if (startFirst) {
       // load first route
-      Intent intent = new Intent(this, WelcomeActivity_.class);
+      Intent intent = new Intent(this, InfoWelcomeActivity_.class);
       startActivity(intent);
       this.finish();
     }
@@ -88,9 +88,9 @@ public class MainActivity extends Activity {
     show.getLayoutParams().width = x;
     show.setLayoutParams(show.getLayoutParams());
 
-    help.getLayoutParams().height = y * 2;
-    help.getLayoutParams().width = x;
-    help.setLayoutParams(help.getLayoutParams());
+    importButton.getLayoutParams().height = y * 2;
+    importButton.getLayoutParams().width = x;
+    importButton.setLayoutParams(importButton.getLayoutParams());
 
     add.getLayoutParams().height = y * 3;
     add.getLayoutParams().width = x;
@@ -107,7 +107,7 @@ public class MainActivity extends Activity {
         MODE_PRIVATE);
     boolean startFirst = settings.getBoolean(Constants.PREFS_START_FIRST, true);
     if (startFirst) {
-      Intent intent = new Intent(this, WelcomeActivity_.class);
+      Intent intent = new Intent(this, InfoWelcomeActivity_.class);
       startActivity(intent);
     } else {
       Intent intent = new Intent(this, ServerActivity_.class);
@@ -129,7 +129,7 @@ public class MainActivity extends Activity {
    * @param view unused
    */
   public void startLDAPContactsActivity(@SuppressWarnings("unused") View view) {
-    Intent intent = new Intent(this, LDAPContactActivity_.class);
+    Intent intent = new Intent(this, ContactsServerActivity_.class);
     startActivity(intent);
   }
 

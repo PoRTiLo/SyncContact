@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.androidannotations.annotations.Background;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.UiThread;
 
@@ -48,6 +49,12 @@ public class ContactFragment extends Fragment implements
   private static boolean selectAll;
   private ContactManager contactManager;
 
+  /**
+   * Get data from contact provider.
+   */
+  @Bean
+  protected AndroidDB androidDB;
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -84,7 +91,7 @@ public class ContactFragment extends Fragment implements
 
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-          int idContact = AndroidDB.getIdContact(getActivity(), contactManager.getContactsLocal()
+          int idContact = androidDB.getIdContact(getActivity(), contactManager.getContactsLocal()
               .get(position)
               .getId());
           Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI,
@@ -178,9 +185,11 @@ public class ContactFragment extends Fragment implements
       @Override
       public void run() {
         for (GroupRow groupRow : contactManager.getGroupsLocal()) {
-          groupRow.setSync(result);
-          HelperSQL db = new HelperSQL(getActivity());
-          db.updateGroupSync(groupRow);
+          if (groupRow.getSize() != 0) {
+            groupRow.setSync(result);
+            HelperSQL db = new HelperSQL(getActivity());
+            db.updateGroupSync(groupRow);
+          }
         }
       }
     }).start();
@@ -204,6 +213,17 @@ public class ContactFragment extends Fragment implements
       ContactRow p = contactManager.getContactsLocal().get(pos);
       if (p.isSync() != isChecked) {
         p.setSync(isChecked);
+        // if grou pchecked and contact in this group is not checked, group shoul be no checked
+//        if (isChecked) {
+//          for (String idGroup : p.getGroupsId()) {
+//            for (GroupRow groupRow : contactManager.getGroupsLocal()) {
+//              if (groupRow.getId().equals(idGroup) && groupRow.isSync()) {
+//                groupRow.setSync(!isChecked);
+//                break;
+//              }
+//            }
+//          }
+//        }
         ArrayList<ContactRow> contacts = new ArrayList<ContactRow>();
         contacts.add(p);
         updateDB(contacts, isChecked);
@@ -216,7 +236,7 @@ public class ContactFragment extends Fragment implements
    */
   @Background
   public void initContactManager() {
-    contactManager.reloadManager();
+    contactManager.initGroupsContacts(); //reloadManager();
     updateAdapter();
   }
 

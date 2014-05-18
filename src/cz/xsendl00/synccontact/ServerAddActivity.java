@@ -42,7 +42,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 /**
  * Add or edit server connection.
  */
-@EActivity(R.layout.activity_add_account)
+@EActivity(R.layout.activity_server_add)
 public class ServerAddActivity extends AccountAuthenticatorActivity {
 
   private static final String TAG = "ServerAddActivity";
@@ -98,13 +98,28 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
   protected void init() {
 
     first = getIntent().getBooleanExtra(Constants.INTENT_FIRST, false);
-    if (contactManager.getAccountData() == null) {
-      contactManager.initAccountData();
-    }
+    Thread updateContactIdGroupThread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        if (contactManager.getAccountData() == null) {
+          contactManager.initAccountData();
+        }
+      }
+    });
+    updateContactIdGroupThread.start();
+
 
     createLoginText();
     createPortText();
 
+    try {
+      updateContactIdGroupThread.join(2000);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    if (contactManager.getAccountData() == null) {
+      contactManager.setAccountData(AccountData.initDefault());
+    }
     setControls();
     setEncryptionSpinner();
     // TODO:delete after complete

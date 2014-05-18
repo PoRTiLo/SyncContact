@@ -16,8 +16,8 @@ import cz.xsendl00.synccontact.utils.Constants;
  *
  * @author portilo
  */
-@EActivity(R.layout.activity_welcome)
-public class WelcomeActivity extends Activity {
+@EActivity(R.layout.activity_info_welcome)
+public class InfoWelcomeActivity extends Activity {
 
   private Toast toast;
   private long lastBackPressTime = 0;
@@ -25,7 +25,6 @@ public class WelcomeActivity extends Activity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    getActionBar().setDisplayHomeAsUpEnabled(true);
   }
 
   /**
@@ -67,9 +66,6 @@ public class WelcomeActivity extends Activity {
         intent = new Intent(this, HelpActivity_.class);
         intent.putExtra(Constants.INTENT_FIRST, true);
         startActivity(intent);
-        break;
-      case android.R.id.home:
-        finish();
         break;
       default:
         break;

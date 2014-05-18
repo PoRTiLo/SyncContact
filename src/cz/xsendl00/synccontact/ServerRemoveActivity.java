@@ -28,7 +28,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 /**
  * Remove server connection.
  */
-@EActivity(R.layout.activity_remove_server)
+@EActivity(R.layout.activity_server_remove)
 public class ServerRemoveActivity extends Activity {
 
   /**

@@ -9,19 +9,21 @@
     <string name="app_name_remove">Remove</string>
     <string name="app_name_edit">Edit</string>
     <string name="app_name_info">Info</string>
-    <string name="app_name_info_ldap">Info LDAP</string>
-    <string name="app_name_info_merge">Merge contact</string>
+    <string name="app_name_info_ldap">Info import contacts</string>
+    <string name="app_name_info_merge">Info merge contacts</string>
+    <string name="app_name_info_sync">Info synchronization</string>
+    <string name="app_name_merge">Merge contacts</string>
     <string name="app_name_settings">Settings</string>
-    <string name="app_name_ldap_contact">LDAP contacts</string>
+    <string name="app_name_ldap_contact">Cloud contacts</string>
 
     <!-- Default text from activities -->
     <string name="def_group">Groups</string>
     <string name="def_contact">Contacts</string>
     
     <!-- ProgressBar -->
-    <string name="progress_loading">Loading (…, &#8230;)</string>
+    <string name="progress_loading">Loading&#8230;</string>
     <string name="progress_loading_text">Loading data from database.</string>
-    <string name="progress_downloading">Downloading (…, &#8230;)</string>
+    <string name="progress_downloading">Downloading&#8230;</string>
     <string name="progress_downloading_text">Downloading data from server.</string>
     
     <!-- MainActivity -->
@@ -44,9 +46,10 @@
 
     <!-- WelcomeActivity -->
     <string name="welcome_welcome">Welcome</string>
-    <string name="welcome_info">Now you start app SyncContact, this application is for synchronization your contact.</string>
-    <string name="welcome_first">At the first, you must add new server</string>
-    <string name="welcome_add_server">Add server</string>
+    <string name="welcome_info">You started the application SyncContact, the application is designed for synchronization your contacts.</string>
+    <string name="welcome_first">This tutorial helps you for creating connections settings and selecting contacts for synchronization.</string>
+    <string name="welcome_second">First, you must add new server.</string>
+    <string name="welcome_add_server">Add new server</string>
 
     <!-- SynchronizationActivity -->
     <string name="sync_info">You can synchornization manualy</string>
@@ -56,7 +59,9 @@
 
     <!-- RemoveActivity -->
     <string name="remove_info">Read closely</string>
-    <string name="remove_text">When removed this server, will be removed account from your mobile. For using this application, you must create new server\'s connection</string>
+    <string name="remove_text">When removed this server, will be removed account from your mobile. 
+        For using this application, you must create new server\'s connection
+    </string>
 
     <!-- ServerActivity -->
     <string name="server_info">Server connection</string>
@@ -67,17 +72,44 @@
     <string name="server_edit">Edit server</string>
     <string name="server_remove">Remove server</string>
 
-    <!-- InfoActivity -->
+    <!-- Info - Activity -->
     <string name="info_server_added">Server added successfully</string>
     <string name="info_ok">OK</string>
-    <string name="info_button">Select contacts</string>
-    <string name="info_text">Now you must select contact or group, which should be synchonized.</string>
-    <string name="info_warning">Warning: Contact which will be selected must be moved to new account. It will be done automatic. Any application can not work with this contact.</string>
+    <string name="info_button">Go to select contacts</string>
+    <string name="info_text">Now you must select contact or group, which should be synchronized.</string>
+    <string name="info_warning">Warning: Contacts which will selected must be moved to new account. 
+        It will be done automatic. Some application can have problems with these contacts. 
+        Before uninstall this application you must exported contacts to previous account manualy. 
+        This options will be in main menu like &quot;export contact back&quot;.
+    </string>
+    
+    <!-- Info - Merge - Activity -->
+    <string name="info_merge_head">Contacts selected</string>
+    <string name="info_merge_button">Go to merge contacts</string>
+    <string name="info_merge_text">After selected contacts you must merge local contacts and contacts on server. 
+        The next window are showing contacs, which look like same. 
+        Check them. Contacts marked as same, will be merged.
+    </string>
+    <string name="info_merge_text_2">No marked contacts will be created on server.</string>
+    <string name="info_merge_button_skip">Skip</string>
+    
+    <!-- Info - Server Contact - Activity -->
+    <string name="info_server_head">Contacts merged</string>
+    <string name="info_server_button">Go to import contacts</string>
+    <string name="info_server_text">The selected local contacts are merged with server contacts. 
+        Now you can import new contacts to the local storage from the server.
+        The next window are showing contacts on the server. 
+        The selected contacts are already on the local storage. 
+        If you want add new contacts, select them and click on button Import
+    </string>
+    <string name="info_server_text_2">Automatically marked contacts let them marked.</string>
     
     <!-- GroupFragmnet -->
     <string name="group_toast">Group is empty.</string>
     <string name="group_select_all">Select All.</string>
     <string name="group_select_no">Select nothing.</string>
+    <string name="group_button">Select contacts</string>
+    <string name="group_number_of">Number of contact: </string>
     
     <!-- Menu -->
     <string name="menu_sync">Synchronization</string>

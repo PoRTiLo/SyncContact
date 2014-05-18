@@ -23,6 +23,7 @@ local.properties
 proguard/
 
 #lib source
+libs/androidannotations/*
 libs/unboudid/
 libs/v4/
 libs/*properties
