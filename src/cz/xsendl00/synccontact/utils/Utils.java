@@ -1,11 +1,15 @@
 package cz.xsendl00.synccontact.utils;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.androidannotations.annotations.EBean;
 
+import android.annotation.SuppressLint;
+import android.text.format.Time;
 import android.util.Log;
 
 /**
@@ -28,7 +32,7 @@ public class Utils {
    */
   public void startTime(String tag, String text) {
     last = System.currentTimeMillis();
-    Log.i(tag, "start --" + text + ": 0.0");
+    Log.i(tag, "start -- " + text + " --- time : 0.0");
   }
 
   /**
@@ -39,7 +43,40 @@ public class Utils {
   public void stopTime(String tag, String text) {
     now = System.currentTimeMillis();
     String str = String.valueOf(now - last);
-    Log.i(tag, "end --" + text + ": " + str);
+    Log.i(tag, "end -- " + text + " --- time : " + str);
+  }
+
+  /**
+   * Get new timestamp "yyyyMMddHHmmss".
+   *
+   * @return The {@link String} representation timestamp.
+   */
+  public String createTimestamp() {
+    Time now = new Time(Time.getCurrentTimezone());
+    now.setToNow();
+    StringBuilder builder = new StringBuilder();
+    builder.append(now.year);
+    int month = now.month + 1;
+    builder.append(month > 9 ? month : "0" + month);
+    builder.append(now.monthDay > 9 ? now.monthDay : "0" + now.monthDay);
+    builder.append(now.hour > 9 ? now.hour : "0" + now.hour);
+    builder.append(now.minute > 9 ? now.minute : "0" + now.minute);
+    builder.append(now.second > 9 ? now.second : "0" + now.second);
+    builder.append("Z");
+    return builder.toString();
+  }
+
+  @SuppressLint("SimpleDateFormat")
+  public String timestamptoDate(String str) {
+    SimpleDateFormat df1 = new SimpleDateFormat("yyyyMMddHHmmss");
+    String out = null;
+    try {
+      out = df1.parse(str).toString();
+    } catch (ParseException e) {
+      Log.e(TAG, "Can not formated timestamp from db to readable string :" + out);
+      out = "No synchronization.";
+    }
+    return out;
   }
 
   /**

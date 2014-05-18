@@ -27,7 +27,7 @@ public class ContactDetail {
   private static final String SORT_ORDER = Data.MIMETYPE;
 
   /**
-   * @param contentResolver
+   * @param contentResolver contentResolver
    * @param mLookupKey Defines a variable to contain the selection value. Once you have the Cursor
    * from the Contacts table, and you've selected the desired row, move the row's LOOKUP_KEY value
    * into this variable.

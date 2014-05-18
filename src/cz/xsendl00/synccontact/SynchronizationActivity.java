@@ -1,6 +1,7 @@
 package cz.xsendl00.synccontact;
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 
@@ -11,17 +12,16 @@ import android.content.OperationApplicationException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import cz.xsendl00.synccontact.authenticator.AccountData;
+import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.Synchronization;
 import cz.xsendl00.synccontact.utils.Constants;
-import cz.xsendl00.synccontact.utils.ContactRow;
+import cz.xsendl00.synccontact.utils.Utils;
 
 /**
  * Synchronization activity.
@@ -29,18 +29,26 @@ import cz.xsendl00.synccontact.utils.ContactRow;
 @EActivity(R.layout.activity_synchronization)
 public class SynchronizationActivity extends Activity {
 
+
   private static final String TAG = "SynchronizationActivity";
 
+  @Bean
+  protected Utils utils;
+
+  @Bean
+  protected Synchronization synchronization;
   /**
    * Place for date of last synchronization.
    */
   @ViewById(R.id.synchronization_time)
   protected TextView editTextTime;
+  private ContactManager contactManager;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getActionBar().setDisplayHomeAsUpEnabled(true);
+    contactManager = ContactManager.getInstance(SynchronizationActivity.this);
   }
 
   @Override
@@ -62,8 +70,7 @@ public class SynchronizationActivity extends Activity {
         editTextTime.post(new Runnable() {
           @Override
           public void run() {
-            editTextTime.setText(ContactRow.timestamptoDate(str));
-            Log.i(TAG, "LastSync: " + editTextTime.getText());
+            editTextTime.setText(utils.timestamptoDate(str));
           }
         });
       }
@@ -88,9 +95,12 @@ public class SynchronizationActivity extends Activity {
     @Override
     protected Boolean doInBackground(Void...params) {
       try {
-        Synchronization synchronization = new Synchronization(getApplicationContext());
-        synchronization.synchronization(new ServerInstance(AccountData.getAccountData(getApplicationContext())),
-            getApplicationContext());
+        if (contactManager.getAccountData() == null) {
+          if (!contactManager.initAccountData()) {
+            //TODO: call activity for edit connection
+          }
+        }
+        synchronization.synchronization(new ServerInstance(contactManager.getAccountData()), getApplicationContext());
       } catch (RemoteException e) {
         e.printStackTrace();
       } catch (OperationApplicationException e) {
@@ -130,7 +140,6 @@ public class SynchronizationActivity extends Activity {
         startActivity(intent);
         break;
       case android.R.id.home:
-        finish();
         break;
       default:
         break;

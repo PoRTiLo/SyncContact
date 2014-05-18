@@ -1,7 +1,5 @@
 package cz.xsendl00.synccontact.utils;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -10,14 +8,12 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.provider.ContactsContract.CommonDataKinds;
 import android.provider.ContactsContract.CommonDataKinds.GroupMembership;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
-import android.text.format.Time;
 import android.util.Log;
 
 public class ContactRow extends AbstractRow {
@@ -265,37 +261,7 @@ public class ContactRow extends AbstractRow {
     this.timestamp = timestamp;
   }
 
-  /**
-   * Get new timestamp "yyyyMMddHHmmss".
-   *
-   * @return The {@link String} representation timestamp.
-   */
-  public static String createTimestamp() {
-    Time now = new Time(Time.getCurrentTimezone());
-    now.setToNow();
-    StringBuilder builder = new StringBuilder();
-    builder.append(now.year);
-    builder.append(now.month > 9 ? now.month : "0" + now.month);
-    builder.append(now.monthDay > 9 ? now.monthDay : "0" + now.monthDay);
-    builder.append(now.hour > 9 ? now.hour : "0" + now.hour);
-    builder.append(now.minute > 9 ? now.minute : "0" + now.minute);
-    builder.append(now.second > 9 ? now.second : "0" + now.second);
-    builder.append("Z");
-    return builder.toString();
-  }
 
-  @SuppressLint("SimpleDateFormat")
-  public static String timestamptoDate(String str) {
-    SimpleDateFormat df1 = new SimpleDateFormat("yyyyMMddHHmmss");
-    String out = null;
-    try {
-      out = df1.parse(str).toString();
-    } catch (ParseException e) {
-      Log.e(TAG, "Can not formated timestamp from db to readable string :" + out);
-      out = "No synchronization.";
-    }
-    return out;
-  }
 
   /** {@inheritDoc} */
   @Override

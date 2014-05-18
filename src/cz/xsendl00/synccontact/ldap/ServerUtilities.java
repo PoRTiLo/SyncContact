@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
 import com.unboundid.ldap.sdk.AddRequest;
@@ -41,6 +42,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
 import cz.xsendl00.synccontact.utils.Mapping;
+import cz.xsendl00.synccontact.utils.Utils;
 
 /**
  * Server utilities.
@@ -48,6 +50,8 @@ import cz.xsendl00.synccontact.utils.Mapping;
 @EBean
 public class ServerUtilities {
 
+  @Bean
+  protected Utils utils;
   private static final String TAG = "ServerUtilities";
 
   /**
@@ -258,7 +262,7 @@ public class ServerUtilities {
               HelperSQL db = new HelperSQL(context);
               ContactRow contactRow = new ContactRow(id,
                   googleContact.getStructuredName().getDisplayName(), true, null, Constants.ACCOUNT_NAME,
-                  Constants.ACCOUNT_TYPE, ContactRow.createTimestamp(), googleContact.getUuid());
+                  Constants.ACCOUNT_TYPE, utils.createTimestamp(), googleContact.getUuid());
               List<ContactRow> contacts = new ArrayList<ContactRow>();
               contacts.add(contactRow);
               db.addContacts(contacts);
@@ -382,7 +386,7 @@ public class ServerUtilities {
           filter,
           Mapping.createAttributes());
       for (SearchResultEntry e : searchResult.getSearchEntries()) {
-        Log.i(TAG, e.getAttributeValue(Constants.UUID) + ", has att:" + e.hasAttribute(Constants.UUID));
+        //Log.i(TAG, e.getAttributeValue(Constants.UUID) + ", has att:" + e.hasAttribute(Constants.UUID));
         contactsServer.put(e.getAttributeValue(Constants.UUID), Mapping.mappingContactFromLDAP(e));
       }
     } catch (LDAPException e) {
@@ -397,7 +401,7 @@ public class ServerUtilities {
 
 
 
-  public void updateContactsLDAP(final ServerInstance ldapServer, final Context context, final Handler handler, Map<String, GoogleContact> differenceDirty) {
+  public void updateContactsServer(final ServerInstance ldapServer, final Context context, final Handler handler, Map<String, GoogleContact> differenceDirty) {
     for (Map.Entry<String, GoogleContact> entry : differenceDirty.entrySet()) {
       if (checkExistsContactLDAP(ldapServer, context, handler, entry.getKey())) {
         // update

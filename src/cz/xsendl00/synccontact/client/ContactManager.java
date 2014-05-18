@@ -52,7 +52,6 @@ public class ContactManager {
   private boolean groupsLocalReload = false;
 
 
-
   private ContactManager(Context context) {
     this.context = context;
   }
@@ -96,6 +95,7 @@ public class ContactManager {
     groupsContacts.put("default", noInGroups);
 
     Thread updateContactIdGroupThread = new Thread(new Runnable() {
+
       @Override
       public void run() {
         HelperSQL db = new HelperSQL(context);
@@ -109,6 +109,7 @@ public class ContactManager {
 
   /**
    * Initialize {@link AccountData}. Load data from Accounts.
+   *
    * @return true if account exist, other false
    */
   public boolean initAccountData() {
@@ -117,7 +118,7 @@ public class ContactManager {
       accountData = new AccountData();
       return false;
     }
-     return true;
+    return true;
   }
 
 
@@ -135,13 +136,13 @@ public class ContactManager {
     initContact();
 
     isContactInGroup();
-//    new Thread(new Runnable() {
-//
-//      @Override
-//      public void run() {
-//        isContactInGroup();
-//      }
-//    }).start();
+    // new Thread(new Runnable() {
+    //
+    // @Override
+    // public void run() {
+    // isContactInGroup();
+    // }
+    // }).start();
     util.stopTime(TAG, "initGroupsContacts");
   }
 
@@ -308,6 +309,7 @@ public class ContactManager {
 
   /**
    * Download all groups (uuid, name) from LDAP server.
+   *
    * @param handler for check connection.
    */
   public void initGroupsServer(Handler handler) {
@@ -317,8 +319,8 @@ public class ContactManager {
       initAccountData();
     }
     groupsServer = new ArrayList<GroupRow>();
-    groupsServer.addAll(ServerUtilities.fetchLDAPGroups(
-        new ServerInstance(accountData), context, handler));
+    groupsServer.addAll(ServerUtilities.fetchLDAPGroups(new ServerInstance(accountData), context,
+        handler));
     // sort contact by name
     Collections.sort(groupsServer, new RowComparator());
     groupsServerInit = true;

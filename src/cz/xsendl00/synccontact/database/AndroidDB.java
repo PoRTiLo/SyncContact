@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
 import android.content.ContentProviderOperation;
@@ -30,6 +31,9 @@ import cz.xsendl00.synccontact.utils.Mapping;
 @EBean
 public class AndroidDB {
 
+  @Bean
+  Mapping mapping;
+
   private static final String TAG = "AndroidDB";
   private static final int MAX_OPERATIONS_IYELD = 500;
 
@@ -43,21 +47,23 @@ public class AndroidDB {
    * @throws OperationApplicationException OperationApplicationException
    * @throws RemoteException RemoteException
    */
-  public boolean updateContactsDb(Context context, Map<String, GoogleContact> differenceLDAP)
+  public boolean updateContactsDb(final Context context, final Map<String, GoogleContact> differenceLDAP)
       throws RemoteException, OperationApplicationException {
 
     ArrayList<ContentProviderOperation> op = new ArrayList<ContentProviderOperation>();
 
+    // for every contact do:
     for (Map.Entry<String, GoogleContact> entry : differenceLDAP.entrySet()) {
-      Log.i(TAG, "zpracovava se: " + entry.getValue().getStructuredName().getDisplayName());
-      HelperSQL s = new HelperSQL(context);
-      Log.i(TAG, "create sql heleper ");
-      String id = s.getContactId(entry.getKey());
+      //Log.i(TAG, "zpracovava se: " + entry.getValue().getStructuredName().getDisplayName());
+      HelperSQL helperSQL = new HelperSQL(context);
+      // get raw_id from local database
+      String id = helperSQL.getContactId(entry.getKey());
+
       Log.i(TAG, "uuid:: " + entry.getKey() + " mapping to:" + id);
-      GoogleContact gc = new Mapping().mappingContactFromDB(context.getContentResolver(), id,
+      GoogleContact googleContact = mapping.mappingContactFromDB(context.getContentResolver(), id,
           entry.getKey());
       Log.i(TAG, "z db se vzal: " + entry.getValue().getStructuredName().getDisplayName());
-      op.addAll(GoogleContact.createOperationUpdate(gc, entry.getValue()));
+      op.addAll(GoogleContact.createOperationUpdate(googleContact, entry.getValue()));
     }
     for (ContentProviderOperation o : op) {
       Log.i(TAG, o.toString());

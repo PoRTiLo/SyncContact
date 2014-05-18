@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
 import android.content.ContentValues;
@@ -19,9 +20,13 @@ import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
+import cz.xsendl00.synccontact.utils.Utils;
 
 @EBean
 public class HelperSQL extends SQLiteOpenHelper {
+
+  @Bean
+  protected Utils utils;
 
   private static final String TAG = "HelperSQL";
 
@@ -478,7 +483,7 @@ public class HelperSQL extends SQLiteOpenHelper {
           con.setId(cursor.getString(0));
           con.setUuid(cursor.getString(1));
           contacts.add(con);
-          Log.i(TAG, "get Sync contac: " + con.toString());
+          //Log.i(TAG, "get Sync contac: " + con.toString());
         } while (cursor.moveToNext());
         cursor.close();
       }
@@ -700,7 +705,7 @@ public class HelperSQL extends SQLiteOpenHelper {
   public void fillContacts(List<ContactRow> contacts) {
     List<ContactRow> conTable = getAllContacts();
     List<ContactRow> add = new ArrayList<ContactRow>();
-    String timestamp = ContactRow.createTimestamp();
+    String timestamp = utils.createTimestamp();
     for (ContactRow con : contacts) {
       boolean found = false;
       for (ContactRow conT : conTable) {

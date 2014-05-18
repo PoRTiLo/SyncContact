@@ -82,37 +82,38 @@ public class Mapping {
   /**
    * Fetch contact selected like modified. In database SYNC = 1;
    *
-   * @param context
-   * @param list
-   * @return map of uuid and googleContact.
+   * @param contentResolver contentResolver
+   * @param list list of synchronization contacts.
+   * @return map of UUID and googleContact.
    */
-  public Map<String, GoogleContact> fetchDirtyContacts(Context context, List<ContactRow> list) {
+  public Map<String, GoogleContact> fetchDirtyContacts(ContentResolver contentResolver,
+      List<ContactRow> list) {
     Map<String, GoogleContact> dirtyContacts = new HashMap<String, GoogleContact>();
     Cursor cursor = null;
     try {
+      // get list id_raw of changed contacts
+      cursor = contentResolver.query(RawContacts.CONTENT_URI, new String[]{RawContacts._ID},
+          RawContacts.DIRTY + "=?", new String[]{"1"}, null);
+      List<String> dirtys = new ArrayList<String>();
+      while (cursor.moveToNext()) {
+        dirtys.add(cursor.getString(cursor.getColumnIndex(RawContacts._ID)));
+      }
+      if (cursor != null && !cursor.isClosed()) {
+        cursor.close();
+      }
+
       for (ContactRow contactRow : list) {
-        cursor = context.getContentResolver().query(RawContacts.CONTENT_URI,
-            new String[]{RawContacts._ID}, RawContacts._ID + "=? AND " + RawContacts.DIRTY + "=?",
-            new String[]{contactRow.getId(), "1"}, null);
-        while (cursor.moveToNext()) {
-          dirtyContacts.put(
-              contactRow.getUuid(),
-              mappingContactFromDB(context.getContentResolver(),
-                  cursor.getString(cursor.getColumnIndex(RawContacts._ID)), contactRow.getUuid()));
-        }
-        if (cursor != null && !cursor.isClosed()) {
-          cursor.close();
+        if (dirtys.contains(contactRow.getId())) {
+          GoogleContact googleContact = mappingContactFromDB(contentResolver, contactRow.getUuid(),
+              contactRow.getUuid());
+          dirtyContacts.put(contactRow.getUuid(), googleContact);
         }
       }
     } catch (Exception ex) {
       ex.printStackTrace();
     } finally {
-      try {
-        if (cursor != null && !cursor.isClosed()) {
-          cursor.close();
-        }
-      } catch (Exception ex) {
-        ex.printStackTrace();
+      if (cursor != null && !cursor.isClosed()) {
+        cursor.close();
       }
     }
     return dirtyContacts;
@@ -336,7 +337,7 @@ public class Mapping {
     if (attributesTemp != null && !attributesTemp.isEmpty()) {
       attributes.addAll(attributesTemp);
     }
-    //TODO:predtim 2
+    // TODO:predtim 2
     if (attributes != null && attributes.size() > 1) {
       AddRequest addRequest = new AddRequest(Constants.UUID + "=" + gc.getUuid().toString() + ","
           + Constants.ACCOUNT_OU_PEOPLE + baseDn, attributes);
@@ -355,13 +356,15 @@ public class Mapping {
    * @param context context
    * @return list of add request.
    */
-  public AddRequest createGroupAddRequest(final GroupRow groupRow, final String baseDn, final Context context, List<Modification> mod) {
+  public AddRequest createGroupAddRequest(final GroupRow groupRow,
+      final String baseDn,
+      final Context context,
+      List<Modification> mod) {
     Log.i(TAG, "createGroupAddRequest START");
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 
     attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GROUP_OF_NAME));
     attributes.add(new Attribute(Constants.CN, groupRow.getUuid()));
-
 
 
     ArrayList<Attribute> attributesTemp = fillAttribute(groupRow, baseDn, context, mod);
@@ -399,7 +402,10 @@ public class Mapping {
    * @param groupRow group
    * @return list of request
    */
-  private static ArrayList<Attribute> fillAttribute(final GroupRow groupRow, final String baseDn, Context context, List<Modification> mod) {
+  private static ArrayList<Attribute> fillAttribute(final GroupRow groupRow,
+      final String baseDn,
+      Context context,
+      List<Modification> mod) {
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 
     ContactManager contactManager = ContactManager.getInstance(context);
@@ -411,13 +417,12 @@ public class Mapping {
     boolean first = true;
     for (ContactRow contactRow : list) {
       if (first) {
-        attributes.add(new Attribute(Constants.GROUP_MEMBER, Constants.UUID + "=" + contactRow.getUuid() + ","
-            + Constants.ACCOUNT_OU_PEOPLE + baseDn));
+        attributes.add(new Attribute(Constants.GROUP_MEMBER, Constants.UUID + "="
+            + contactRow.getUuid() + "," + Constants.ACCOUNT_OU_PEOPLE + baseDn));
         first = false;
       } else {
-        mod.add(new Modification(ModificationType.ADD, Constants.GROUP_MEMBER,
-          Constants.UUID + "=" + contactRow.getUuid() + ","
-          + Constants.ACCOUNT_OU_PEOPLE + baseDn));
+        mod.add(new Modification(ModificationType.ADD, Constants.GROUP_MEMBER, Constants.UUID + "="
+            + contactRow.getUuid() + "," + Constants.ACCOUNT_OU_PEOPLE + baseDn));
       }
     }
     attributes.add(new Attribute(Constants.GROUP_DESCRIPTION, groupRow.getName()));
@@ -911,10 +916,12 @@ public class Mapping {
   }
 
   /**
-   * @param contentResolver
-   * @param id
-   * @param uuid
-   * @return
+   * Mapping data from contact provider database to {@link GoogleContact}.
+   *
+   * @param contentResolver contentResolver
+   * @param id raw_ID contacts
+   * @param uuid UUID
+   * @return GoogleContact
    */
   public GoogleContact mappingContactFromDB(ContentResolver contentResolver, String id, String uuid) {
     Cursor cursor = null;
@@ -930,12 +937,8 @@ public class Mapping {
     } catch (Exception ex) {
       ex.printStackTrace();
     } finally {
-      try {
-        if (cursor != null && !cursor.isClosed()) {
-          cursor.close();
-        }
-      } catch (Exception ex) {
-        ex.printStackTrace();
+      if (cursor != null && !cursor.isClosed()) {
+        cursor.close();
       }
     }
 
@@ -943,7 +946,8 @@ public class Mapping {
       if (contact.getStructuredName() == null) {
         contact.initStructuredName();
       }
-      contact.getStructuredName().setDisplayName(new AndroidDB().fetchContactName(contentResolver, id));
+      contact.getStructuredName().setDisplayName(
+          new AndroidDB().fetchContactName(contentResolver, id));
     }
     return contact;
   }
@@ -2691,64 +2695,58 @@ public class Mapping {
     return attributes;
   }
 
-  private void fillContact(Cursor cursor, GoogleContact contact) {
+  private StructuredNameSync fillStructuredName(final Cursor cursor) {
+    StructuredNameSync structuredNameSync = new StructuredNameSync();
+    structuredNameSync.getID().add(new ID(StructuredName.CONTENT_ITEM_TYPE, null,
+        cursor.getString(cursor.getColumnIndex(Data._ID))));
+    if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))
+        && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
+      structuredNameSync.setDisplayName(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
+    }
+    if (!cursor.isNull(cursor.getColumnIndex(Data.DATA2))
+        && !cursor.getString(cursor.getColumnIndex(Data.DATA2)).isEmpty()) {
+      structuredNameSync.setGivenName(cursor.getString(cursor.getColumnIndex(Data.DATA2)));
+    }
+    if (!cursor.isNull(cursor.getColumnIndex(Data.DATA3))
+        && !cursor.getString(cursor.getColumnIndex(Data.DATA3)).isEmpty()) {
+      structuredNameSync.setFamilyName(cursor.getString(cursor.getColumnIndex(Data.DATA3)));
+    }
+    if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))
+        && !cursor.getString(cursor.getColumnIndex(Data.DATA4)).isEmpty()) {
+      structuredNameSync.setNamePrefix(cursor.getString(cursor.getColumnIndex(Data.DATA4)));
+    }
+    if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))
+        && !cursor.getString(cursor.getColumnIndex(Data.DATA5)).isEmpty()) {
+      structuredNameSync.setMiddleName(cursor.getString(cursor.getColumnIndex(Data.DATA5)));
+    }
+    if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))
+        && !cursor.getString(cursor.getColumnIndex(Data.DATA6)).isEmpty()) {
+      structuredNameSync.setNameSuffix(cursor.getString(cursor.getColumnIndex(Data.DATA6)));
+    }
+    if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))
+        && !cursor.getString(cursor.getColumnIndex(Data.DATA7)).isEmpty()) {
+      structuredNameSync.setPhoneticGivenName(cursor.getString(cursor.getColumnIndex(Data.DATA7)));
+    }
+    if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))
+        && !cursor.getString(cursor.getColumnIndex(Data.DATA8)).isEmpty()) {
+      structuredNameSync.setPhoneticMiddleName(cursor.getString(cursor.getColumnIndex(Data.DATA8)));
+    }
+    if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))
+        && !cursor.getString(cursor.getColumnIndex(Data.DATA9)).isEmpty()) {
+      structuredNameSync.setPhoneticFamilyName(cursor.getString(cursor.getColumnIndex(Data.DATA9)));
+    }
 
-    String str = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
+    return structuredNameSync;
+  }
 
-    // Log.i(TAG, contact.toString());
-    if (str.equals(StructuredName.CONTENT_ITEM_TYPE)) {
-      contact.initStructuredName();
-      contact.getStructuredName()
-          .getID()
-          .add(
-              new ID(StructuredName.CONTENT_ITEM_TYPE, null,
-                  cursor.getString(cursor.getColumnIndex(Data._ID))));
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA1))
-          && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
-        contact.getStructuredName().setDisplayName(
-            cursor.getString(cursor.getColumnIndex(Data.DATA1)));
-      }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA2))
-          && !cursor.getString(cursor.getColumnIndex(Data.DATA2)).isEmpty()) {
-        contact.getStructuredName().setGivenName(
-            cursor.getString(cursor.getColumnIndex(Data.DATA2)));
-      }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA3))
-          && !cursor.getString(cursor.getColumnIndex(Data.DATA3)).isEmpty()) {
-        contact.getStructuredName().setFamilyName(
-            cursor.getString(cursor.getColumnIndex(Data.DATA3)));
-      }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA4))
-          && !cursor.getString(cursor.getColumnIndex(Data.DATA4)).isEmpty()) {
-        contact.getStructuredName().setNamePrefix(
-            cursor.getString(cursor.getColumnIndex(Data.DATA4)));
-      }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA5))
-          && !cursor.getString(cursor.getColumnIndex(Data.DATA5)).isEmpty()) {
-        contact.getStructuredName().setMiddleName(
-            cursor.getString(cursor.getColumnIndex(Data.DATA5)));
-      }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA6))
-          && !cursor.getString(cursor.getColumnIndex(Data.DATA6)).isEmpty()) {
-        contact.getStructuredName().setNameSuffix(
-            cursor.getString(cursor.getColumnIndex(Data.DATA6)));
-      }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA7))
-          && !cursor.getString(cursor.getColumnIndex(Data.DATA7)).isEmpty()) {
-        contact.getStructuredName().setPhoneticGivenName(
-            cursor.getString(cursor.getColumnIndex(Data.DATA7)));
-      }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA8))
-          && !cursor.getString(cursor.getColumnIndex(Data.DATA8)).isEmpty()) {
-        contact.getStructuredName().setPhoneticMiddleName(
-            cursor.getString(cursor.getColumnIndex(Data.DATA8)));
-      }
-      if (!cursor.isNull(cursor.getColumnIndex(Data.DATA9))
-          && !cursor.getString(cursor.getColumnIndex(Data.DATA9)).isEmpty()) {
-        contact.getStructuredName().setPhoneticFamilyName(
-            cursor.getString(cursor.getColumnIndex(Data.DATA9)));
-      }
-    } else if (str.equals(Phone.CONTENT_ITEM_TYPE)) {
+  private void fillContact(final Cursor cursor, GoogleContact contact) {
+
+    String mimeType = cursor.getString(cursor.getColumnIndex(Data.MIMETYPE));
+
+
+    if (mimeType.equals(StructuredName.CONTENT_ITEM_TYPE)) {
+      contact.setStructuredName(fillStructuredName(cursor));
+    } else if (mimeType.equals(Phone.CONTENT_ITEM_TYPE)) {
       contact.initPhone();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getPhone()
@@ -2800,7 +2798,7 @@ public class Mapping {
       } else {
         Log.d("NOT SUPPORTED TYPE PHONE", "NOT SUPPORTED TYPE PHONE");
       }
-    } else if (str.equals(Email.CONTENT_ITEM_TYPE)) {
+    } else if (mimeType.equals(Email.CONTENT_ITEM_TYPE)) {
       contact.initEmail();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getEmail()
@@ -2819,9 +2817,9 @@ public class Mapping {
       } else {
         Log.d("NOT SUPPORTED TYPE EMAIL", "NOT SUPPORTED TYPE EMAIL");
       }
-    } else if (str.equals(Photo.CONTENT_ITEM_TYPE)) {
+    } else if (mimeType.equals(Photo.CONTENT_ITEM_TYPE)) {
       Log.d("NOT SUPPORTED TYPE Photo", "NOT SUPPORTED TYPE Photo");
-    } else if (str.equals(Organization.CONTENT_ITEM_TYPE)) {
+    } else if (mimeType.equals(Organization.CONTENT_ITEM_TYPE)) {
       contact.initOrganization();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getOrganization()
@@ -2914,7 +2912,7 @@ public class Mapping {
       } else {
         Log.d("NOT SUPPORTED TYPE Organization", "NOT SUPPORTED TYPE else");
       }
-    } else if (str.equals(Im.CONTENT_ITEM_TYPE)) {
+    } else if (mimeType.equals(Im.CONTENT_ITEM_TYPE)) {
       contact.initIm();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       Integer protocol = cursor.getInt(cursor.getColumnIndex(Data.DATA5));
@@ -3044,7 +3042,7 @@ public class Mapping {
           Log.d("NOT SUPPORTED TYPE IM", "NOT SUPPORTED TYPE IM");
         }
       }
-    } else if (str.equals(Nickname.CONTENT_ITEM_TYPE)) {
+    } else if (mimeType.equals(Nickname.CONTENT_ITEM_TYPE)) {
       contact.initNickname();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getNickname()
@@ -3069,7 +3067,7 @@ public class Mapping {
       } else {
         Log.d("NOT SUPPORTED TYPE NICKNAME", "NOT SUPPORTED TYPE NICKANEME");
       }
-    } else if (str.equals(Note.CONTENT_ITEM_TYPE)) {
+    } else if (mimeType.equals(Note.CONTENT_ITEM_TYPE)) {
       contact.initNote();
       contact.getNote()
           .getID()
@@ -3080,7 +3078,7 @@ public class Mapping {
           && !cursor.getString(cursor.getColumnIndex(Data.DATA1)).isEmpty()) {
         contact.getNote().setNotes(cursor.getString(cursor.getColumnIndex(Data.DATA1)));
       }
-    } else if (str.equals(StructuredPostal.CONTENT_ITEM_TYPE)) {
+    } else if (mimeType.equals(StructuredPostal.CONTENT_ITEM_TYPE)) {
       contact.initStructuredPostalSync();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getStructuredPostal()
@@ -3219,13 +3217,13 @@ public class Mapping {
         Log.d("NOT SUPPORTED TYPE StructuredPostal", "NOT SUPPORTED ELSE");
       }
 
-    } else if (str.equals(GroupMembership.CONTENT_ITEM_TYPE)) {
+    } else if (mimeType.equals(GroupMembership.CONTENT_ITEM_TYPE)) {
       // TODO:
       // long GROUP_ROW_ID DATA1
       // attributes.add(new Attribute(Constants.,
       // cursor.getString(cursor.getColumnIndex(Data.DATA1))));
       Log.d("NOT SUPPORTED TYPE GroupMembership", "NOT SUPPORTED TYPE ");
-    } else if (str.equals(Website.CONTENT_ITEM_TYPE)) {
+    } else if (mimeType.equals(Website.CONTENT_ITEM_TYPE)) {
       contact.initWebsite();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getWebsite()
@@ -3252,7 +3250,7 @@ public class Mapping {
       } else {
         Log.d("NOT SUPPORTED TYPE WEBSITE", "NOT SUPPORTED TYPE WEBSITE");
       }
-    } else if (str.equals(Event.CONTENT_ITEM_TYPE)) {
+    } else if (mimeType.equals(Event.CONTENT_ITEM_TYPE)) {
       contact.initEvent();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getEvent()
@@ -3271,7 +3269,7 @@ public class Mapping {
       } else {
         Log.d("NOT SUPPORTED TYPE Event", "NOT SUPPORTED TYPE EVENT");
       }
-    } else if (str.equals(Relation.CONTENT_ITEM_TYPE)) {
+    } else if (mimeType.equals(Relation.CONTENT_ITEM_TYPE)) {
       contact.initRelation();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getRelation()
@@ -3327,7 +3325,7 @@ public class Mapping {
       } else {
         Log.d("NOT SUPPORTED TYPE Relation", "NOT SUPPORTED TYPE Relation");
       }
-    } else if (str.equals(SipAddress.CONTENT_ITEM_TYPE)) {
+    } else if (mimeType.equals(SipAddress.CONTENT_ITEM_TYPE)) {
       contact.initSipAddressSync();
       Integer type = cursor.getInt(cursor.getColumnIndex(Data.DATA2));
       contact.getSipAddress()
@@ -3347,7 +3345,7 @@ public class Mapping {
       } else {
         Log.d("NOT SUPPORTED TYPE SIP", "NOT SUPPORTED TYPE SIP");
       }
-    } else if (str.equals(Identity.CONTENT_ITEM_TYPE)) {
+    } else if (mimeType.equals(Identity.CONTENT_ITEM_TYPE)) {
       contact.initIdentity();
       contact.getIdentity()
           .getID()
@@ -3358,7 +3356,7 @@ public class Mapping {
       contact.getIdentity().setIdentityNamespace(
           cursor.getString(cursor.getColumnIndex(Data.DATA2)));
     } else {
-      Log.d("NOT SUPPORTED TYPE MIME", "NOT SUPPORTED TYPE MIME: " + str);
+      Log.d("NOT SUPPORTED TYPE MIME", "NOT SUPPORTED TYPE MIME: " + mimeType);
     }
   }
 }
