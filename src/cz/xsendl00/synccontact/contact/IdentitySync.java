@@ -169,4 +169,48 @@ public class IdentitySync extends AbstractType implements ContactInterface {
     }
     return ops.size() > 0 ? ops : null;
   }
+  /** {@inheritDoc} */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((identityNamespace == null) ? 0 : identityNamespace.hashCode());
+    result = prime * result + ((identityText == null) ? 0 : identityText.hashCode());
+    return result;
+  }
+  /** {@inheritDoc} */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    IdentitySync other = (IdentitySync) obj;
+    if (identityNamespace == null) {
+      if (other.identityNamespace != null) {
+        return false;
+      }
+    } else if (!identityNamespace.equals(other.identityNamespace)) {
+      return false;
+    }
+    if (identityText == null) {
+      if (other.identityText != null) {
+        return false;
+      }
+    } else if (!identityText.equals(other.identityText)) {
+      return false;
+    }
+    return true;
+  }
+  @Override
+  public boolean isNull() {
+    return identityText == null && identityNamespace == null;
+  }
+
+
 }

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
 import android.content.ContentValues;
@@ -24,9 +23,6 @@ import cz.xsendl00.synccontact.utils.Utils;
 
 @EBean
 public class HelperSQL extends SQLiteOpenHelper {
-
-  @Bean
-  protected Utils utils;
 
   private static final String TAG = "HelperSQL";
 
@@ -651,8 +647,8 @@ public class HelperSQL extends SQLiteOpenHelper {
   /**
    * Update column SYNC and TIMESTAMP for all entries in map googleContacts.
    *
-   * @param googleContacts
-   * @param timestamp
+   * @param googleContacts googleContacts
+   * @param timestamp new timestamp
    */
   public void updateContacts(Map<String, GoogleContact> googleContacts,
       String timestamp) {
@@ -665,7 +661,7 @@ public class HelperSQL extends SQLiteOpenHelper {
       db.beginTransaction();
       SQLiteStatement stmt = db.compileStatement(sql);
       for (String entry : googleContacts.keySet()) {
-        stmt.bindLong(1, 0);
+        stmt.bindLong(1, 1);
         stmt.bindString(2, timestamp);
         stmt.bindString(3, entry);
         stmt.executeUpdateDelete();
@@ -673,7 +669,7 @@ public class HelperSQL extends SQLiteOpenHelper {
       }
       db.setTransactionSuccessful();
       Log.i(TAG, "Contact update: " + googleContacts.size() + ", set "
-          + CONTACT_KEY_SYNC + ":" + false + ", and " + CONTACT_KEY_TIMESTAMP
+          + CONTACT_KEY_SYNC + ":" + true + ", and " + CONTACT_KEY_TIMESTAMP
           + ":" + timestamp);
     } catch (Exception ex) {
       ex.printStackTrace();
@@ -705,7 +701,7 @@ public class HelperSQL extends SQLiteOpenHelper {
   public void fillContacts(List<ContactRow> contacts) {
     List<ContactRow> conTable = getAllContacts();
     List<ContactRow> add = new ArrayList<ContactRow>();
-    String timestamp = utils.createTimestamp();
+    String timestamp = new Utils().createTimestamp();
     for (ContactRow con : contacts) {
       boolean found = false;
       for (ContactRow conT : conTable) {

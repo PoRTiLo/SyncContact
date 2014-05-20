@@ -52,26 +52,31 @@ public class Utils {
    * @return The {@link String} representation timestamp.
    */
   public String createTimestamp() {
-    Time now = new Time(Time.getCurrentTimezone());
-    now.setToNow();
+    Time time = new Time("GMT");
+    time.setToNow();
     StringBuilder builder = new StringBuilder();
-    builder.append(now.year);
-    int month = now.month + 1;
+    builder.append(time.year);
+    int month = time.month + 1;
     builder.append(month > 9 ? month : "0" + month);
-    builder.append(now.monthDay > 9 ? now.monthDay : "0" + now.monthDay);
-    builder.append(now.hour > 9 ? now.hour : "0" + now.hour);
-    builder.append(now.minute > 9 ? now.minute : "0" + now.minute);
-    builder.append(now.second > 9 ? now.second : "0" + now.second);
+    builder.append(time.monthDay > 9 ? time.monthDay : "0" + time.monthDay);
+    builder.append(time.hour > 9 ? time.hour : "0" + time.hour);
+    builder.append(time.minute > 9 ? time.minute : "0" + time.minute);
+    builder.append(time.second > 9 ? time.second : "0" + time.second);
     builder.append("Z");
     return builder.toString();
   }
 
+  /**
+   * Timestamp string format to readable string.
+   * @param timestamp timestamp
+   * @return String readable format timesatmp
+   */
   @SuppressLint("SimpleDateFormat")
-  public String timestamptoDate(String str) {
+  public String timestamptoDate(String timestamp) {
     SimpleDateFormat df1 = new SimpleDateFormat("yyyyMMddHHmmss");
     String out = null;
     try {
-      out = df1.parse(str).toString();
+      out = df1.parse(timestamp).toString();
     } catch (ParseException e) {
       Log.e(TAG, "Can not formated timestamp from db to readable string :" + out);
       out = "No synchronization.";

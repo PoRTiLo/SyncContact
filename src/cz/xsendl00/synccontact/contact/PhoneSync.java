@@ -791,4 +791,197 @@ public class PhoneSync extends AbstractType implements ContactInterface {
     return ops.size() > 0 ? ops : null;
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((phoneAssistant == null) ? 0 : phoneAssistant.hashCode());
+    result = prime * result + ((phoneCallback == null) ? 0 : phoneCallback.hashCode());
+    result = prime * result + ((phoneCar == null) ? 0 : phoneCar.hashCode());
+    result = prime * result + ((phoneCompany == null) ? 0 : phoneCompany.hashCode());
+    result = prime * result + ((phoneFaxHome == null) ? 0 : phoneFaxHome.hashCode());
+    result = prime * result + ((phoneFaxWork == null) ? 0 : phoneFaxWork.hashCode());
+    result = prime * result + ((phoneHome == null) ? 0 : phoneHome.hashCode());
+    result = prime * result + ((phoneISDN == null) ? 0 : phoneISDN.hashCode());
+    result = prime * result + ((phoneMMS == null) ? 0 : phoneMMS.hashCode());
+    result = prime * result + ((phoneMain == null) ? 0 : phoneMain.hashCode());
+    result = prime * result + ((phoneMobile == null) ? 0 : phoneMobile.hashCode());
+    result = prime * result + ((phoneOther == null) ? 0 : phoneOther.hashCode());
+    result = prime * result + ((phoneOtherFax == null) ? 0 : phoneOtherFax.hashCode());
+    result = prime * result + ((phonePager == null) ? 0 : phonePager.hashCode());
+    result = prime * result + ((phoneRadio == null) ? 0 : phoneRadio.hashCode());
+    result = prime * result + ((phoneTTYTDD == null) ? 0 : phoneTTYTDD.hashCode());
+    result = prime * result + ((phoneTelex == null) ? 0 : phoneTelex.hashCode());
+    result = prime * result + ((phoneWork == null) ? 0 : phoneWork.hashCode());
+    result = prime * result + ((phoneWorkMobile == null) ? 0 : phoneWorkMobile.hashCode());
+    result = prime * result + ((phoneWorkPager == null) ? 0 : phoneWorkPager.hashCode());
+    return result;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    PhoneSync other = (PhoneSync) obj;
+    if (phoneAssistant == null) {
+      if (other.phoneAssistant != null) {
+        return false;
+      }
+    } else if (!phoneAssistant.equals(other.phoneAssistant)) {
+      return false;
+    }
+    if (phoneCallback == null) {
+      if (other.phoneCallback != null) {
+        return false;
+      }
+    } else if (!phoneCallback.equals(other.phoneCallback)) {
+      return false;
+    }
+    if (phoneCar == null) {
+      if (other.phoneCar != null) {
+        return false;
+      }
+    } else if (!phoneCar.equals(other.phoneCar)) {
+      return false;
+    }
+    if (phoneCompany == null) {
+      if (other.phoneCompany != null) {
+        return false;
+      }
+    } else if (!phoneCompany.equals(other.phoneCompany)) {
+      return false;
+    }
+    if (phoneFaxHome == null) {
+      if (other.phoneFaxHome != null) {
+        return false;
+      }
+    } else if (!phoneFaxHome.equals(other.phoneFaxHome)) {
+      return false;
+    }
+    if (phoneFaxWork == null) {
+      if (other.phoneFaxWork != null) {
+        return false;
+      }
+    } else if (!phoneFaxWork.equals(other.phoneFaxWork)) {
+      return false;
+    }
+    if (phoneHome == null) {
+      if (other.phoneHome != null) {
+        return false;
+      }
+    } else if (!phoneHome.equals(other.phoneHome)) {
+      return false;
+    }
+    if (phoneISDN == null) {
+      if (other.phoneISDN != null) {
+        return false;
+      }
+    } else if (!phoneISDN.equals(other.phoneISDN)) {
+      return false;
+    }
+    if (phoneMMS == null) {
+      if (other.phoneMMS != null) {
+        return false;
+      }
+    } else if (!phoneMMS.equals(other.phoneMMS)) {
+      return false;
+    }
+    if (phoneMain == null) {
+      if (other.phoneMain != null) {
+        return false;
+      }
+    } else if (!phoneMain.equals(other.phoneMain)) {
+      return false;
+    }
+    if (phoneMobile == null) {
+      if (other.phoneMobile != null) {
+        return false;
+      }
+    } else if (!phoneMobile.equals(other.phoneMobile)) {
+      return false;
+    }
+    if (phoneOther == null) {
+      if (other.phoneOther != null) {
+        return false;
+      }
+    } else if (!phoneOther.equals(other.phoneOther)) {
+      return false;
+    }
+    if (phoneOtherFax == null) {
+      if (other.phoneOtherFax != null) {
+        return false;
+      }
+    } else if (!phoneOtherFax.equals(other.phoneOtherFax)) {
+      return false;
+    }
+    if (phonePager == null) {
+      if (other.phonePager != null) {
+        return false;
+      }
+    } else if (!phonePager.equals(other.phonePager)) {
+      return false;
+    }
+    if (phoneRadio == null) {
+      if (other.phoneRadio != null) {
+        return false;
+      }
+    } else if (!phoneRadio.equals(other.phoneRadio)) {
+      return false;
+    }
+    if (phoneTTYTDD == null) {
+      if (other.phoneTTYTDD != null) {
+        return false;
+      }
+    } else if (!phoneTTYTDD.equals(other.phoneTTYTDD)) {
+      return false;
+    }
+    if (phoneTelex == null) {
+      if (other.phoneTelex != null) {
+        return false;
+      }
+    } else if (!phoneTelex.equals(other.phoneTelex)) {
+      return false;
+    }
+    if (phoneWork == null) {
+      if (other.phoneWork != null) {
+        return false;
+      }
+    } else if (!phoneWork.equals(other.phoneWork)) {
+      return false;
+    }
+    if (phoneWorkMobile == null) {
+      if (other.phoneWorkMobile != null) {
+        return false;
+      }
+    } else if (!phoneWorkMobile.equals(other.phoneWorkMobile)) {
+      return false;
+    }
+    if (phoneWorkPager == null) {
+      if (other.phoneWorkPager != null) {
+        return false;
+      }
+    } else if (!phoneWorkPager.equals(other.phoneWorkPager)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public boolean isNull() {
+    return phoneAssistant == null && phoneCallback == null && phoneCar == null && phoneCompany == null
+        && phoneFaxHome == null && phoneFaxWork == null && phoneHome == null && phoneISDN == null
+        && phoneMain == null && phoneMMS == null && phoneMobile == null && phoneOther == null
+        && phoneOtherFax == null && phonePager == null && phoneRadio == null && phoneTelex == null
+        && phoneTTYTDD == null && phoneWork == null && phoneWorkMobile == null && phoneWorkPager == null;
+  }
+
 }

@@ -325,7 +325,6 @@ public class ServerUtilities {
         for (String member : members) {
           groupRow.getMebersUuids().add(member);
         }
-        Log.i(TAG, "fetchLDAPGroupsNameUUID: " + groupRow.toString());
         groupsServer.add(groupRow);
       }
     } catch (LDAPException e) {
@@ -335,6 +334,7 @@ public class ServerUtilities {
         connection.close();
       }
     }
+    Log.i(TAG, "From server download: " + groupsServer.size() + " groups");
     return groupsServer;
   }
 
@@ -403,50 +403,26 @@ public class ServerUtilities {
 
   public void updateContactsServer(final ServerInstance ldapServer, final Context context, final Handler handler, Map<String, GoogleContact> differenceDirty) {
     for (Map.Entry<String, GoogleContact> entry : differenceDirty.entrySet()) {
-      if (checkExistsContactLDAP(ldapServer, context, handler, entry.getKey())) {
-        // update
-        updateContactLDAP(ldapServer, context, handler, entry.getValue());
-        Log.i(TAG, "update contact: " + entry.getKey());
-      } else {
-        // create new
-        addContactToServer(ldapServer, context, handler, entry.getValue());
-        Log.i(TAG, "create new contact: " + entry.getKey());
-      }
+      removeOrAddServerContact(ldapServer, context, handler, entry.getValue());
     }
   }
 
-  private static void updateContactLDAP(final ServerInstance ldapServer, final Context context, final Handler handler, GoogleContact gc) {
-    LDAPConnection connection = null;
-
-    try {
-      connection = ldapServer.getConnection(handler, context);
-    } catch (LDAPException e1) {
-      e1.printStackTrace();
-    }
-    try {
-      ModifyRequest modifyRequest = Mapping.mappingRequest(gc, ldapServer.getAccountdData().getBaseDn());
-      if (modifyRequest != null) {
-        LDAPResult result = connection.modify(modifyRequest);
-        //result.getDiagnosticMessage()
-      }
-    } catch (LDAPException e) {
-      e.printStackTrace();
-    } finally {
-      if (connection != null) {
-        connection.close();
-      }
-    }
-
-  }
-
-
-
-  public static boolean checkExistsContactLDAP(final ServerInstance ldapServer, final Context context, final Handler handler, String uuid) {
+  /**
+   *
+   * @param ldapServer
+   * @param context
+   * @param handler
+   * @param googleContact
+   * @return true if
+   */
+  public boolean removeOrAddServerContact(final ServerInstance ldapServer,
+      final Context context, final Handler handler, final GoogleContact googleContact) {
     LDAPConnection connection = null;
     boolean  found = false;
     try {
       connection = ldapServer.getConnection(handler, context);
-      String filter = "(&" + Constants.ACCOUNT_FILTER_LDAP + "(" + Constants.UUID + "=" + uuid + "))";
+      String filter = "(&" + Constants.ACCOUNT_FILTER_LDAP
+          + "(" + Constants.UUID + "=" + googleContact.getUuid() + "))";
       SearchResult searchResult = connection.search(
           Constants.ACCOUNT_OU_PEOPLE + ldapServer.getAccountdData().getBaseDn(),
           SearchScope.SUB,
@@ -457,6 +433,20 @@ public class ServerUtilities {
           found = true;
           break;
         }
+      }
+      if (found) {
+        // update -> remove
+        String deleteDN = Constants.UUID + "=" + googleContact.getUuid() + ","
+            + Constants.ACCOUNT_OU_PEOPLE + ldapServer.getAccountdData().getBaseDn();
+        LDAPResult ldapResult = connection.delete(deleteDN);
+        Log.i(TAG, "Remove contact : " + googleContact.getUuid() + "---" + ldapResult.toString());
+      }
+      // add contact
+      AddRequest addRequest = new Mapping().mappingAddRequest(googleContact, ldapServer.getAccountdData().getBaseDn());
+      if (addRequest != null) {
+        LDAPResult ldapResult = connection.add(addRequest);
+        Log.i(TAG, "Add to server : " + googleContact.getUuid() + "---" + ldapResult.toString());
+        //notification(context, googleContact.getUuid());
       }
     } catch (LDAPException e) {
       e.printStackTrace();

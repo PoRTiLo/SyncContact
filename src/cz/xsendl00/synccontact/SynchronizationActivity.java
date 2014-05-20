@@ -111,6 +111,7 @@ public class SynchronizationActivity extends Activity {
     @Override
     protected void onPostExecute(Boolean bool) {
       progressDialog.dismiss();
+      getLastSyncTime();
     }
 
     @Override
@@ -140,6 +141,7 @@ public class SynchronizationActivity extends Activity {
         startActivity(intent);
         break;
       case android.R.id.home:
+        finish();
         break;
       default:
         break;

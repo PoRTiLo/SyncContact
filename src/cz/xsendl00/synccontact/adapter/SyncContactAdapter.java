@@ -53,7 +53,7 @@ public class SyncContactAdapter extends AbstractThreadedSyncAdapter {
       ServerInstance ldapServer = new ServerInstance(accountData);
 
       accountData.setSearchFilter(accountManager.getUserData(account, Constants.PAR_SEARCHFILTER));
-      accountData.setBaseDn((accountManager.getUserData(account, Constants.PAR_BASEDN)));
+      accountData.setBaseDn(accountManager.getUserData(account, Constants.PAR_BASEDN));
 
       // LDAP name mappings
       // final Bundle userMapping = Mapping.mappingFrom(accountManager, account);

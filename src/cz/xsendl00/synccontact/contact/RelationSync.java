@@ -585,4 +585,152 @@ public class RelationSync extends AbstractType implements ContactInterface {
     }
     return ops.size() > 0 ? ops : null;
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((relationAssistant == null) ? 0 : relationAssistant.hashCode());
+    result = prime * result + ((relationBrother == null) ? 0 : relationBrother.hashCode());
+    result = prime * result + ((relationChild == null) ? 0 : relationChild.hashCode());
+    result = prime * result
+        + ((relationDomesticPartner == null) ? 0 : relationDomesticPartner.hashCode());
+    result = prime * result + ((relationFather == null) ? 0 : relationFather.hashCode());
+    result = prime * result + ((relationFriend == null) ? 0 : relationFriend.hashCode());
+    result = prime * result + ((relationManager == null) ? 0 : relationManager.hashCode());
+    result = prime * result + ((relationMother == null) ? 0 : relationMother.hashCode());
+    result = prime * result + ((relationParent == null) ? 0 : relationParent.hashCode());
+    result = prime * result + ((relationPartner == null) ? 0 : relationPartner.hashCode());
+    result = prime * result + ((relationRefferedBy == null) ? 0 : relationRefferedBy.hashCode());
+    result = prime * result + ((relationRelative == null) ? 0 : relationRelative.hashCode());
+    result = prime * result + ((relationSister == null) ? 0 : relationSister.hashCode());
+    result = prime * result + ((relationSpouse == null) ? 0 : relationSpouse.hashCode());
+    return result;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    RelationSync other = (RelationSync) obj;
+    if (relationAssistant == null) {
+      if (other.relationAssistant != null) {
+        return false;
+      }
+    } else if (!relationAssistant.equals(other.relationAssistant)) {
+      return false;
+    }
+    if (relationBrother == null) {
+      if (other.relationBrother != null) {
+        return false;
+      }
+    } else if (!relationBrother.equals(other.relationBrother)) {
+      return false;
+    }
+    if (relationChild == null) {
+      if (other.relationChild != null) {
+        return false;
+      }
+    } else if (!relationChild.equals(other.relationChild)) {
+      return false;
+    }
+    if (relationDomesticPartner == null) {
+      if (other.relationDomesticPartner != null) {
+        return false;
+      }
+    } else if (!relationDomesticPartner.equals(other.relationDomesticPartner)) {
+      return false;
+    }
+    if (relationFather == null) {
+      if (other.relationFather != null) {
+        return false;
+      }
+    } else if (!relationFather.equals(other.relationFather)) {
+      return false;
+    }
+    if (relationFriend == null) {
+      if (other.relationFriend != null) {
+        return false;
+      }
+    } else if (!relationFriend.equals(other.relationFriend)) {
+      return false;
+    }
+    if (relationManager == null) {
+      if (other.relationManager != null) {
+        return false;
+      }
+    } else if (!relationManager.equals(other.relationManager)) {
+      return false;
+    }
+    if (relationMother == null) {
+      if (other.relationMother != null) {
+        return false;
+      }
+    } else if (!relationMother.equals(other.relationMother)) {
+      return false;
+    }
+    if (relationParent == null) {
+      if (other.relationParent != null) {
+        return false;
+      }
+    } else if (!relationParent.equals(other.relationParent)) {
+      return false;
+    }
+    if (relationPartner == null) {
+      if (other.relationPartner != null) {
+        return false;
+      }
+    } else if (!relationPartner.equals(other.relationPartner)) {
+      return false;
+    }
+    if (relationRefferedBy == null) {
+      if (other.relationRefferedBy != null) {
+        return false;
+      }
+    } else if (!relationRefferedBy.equals(other.relationRefferedBy)) {
+      return false;
+    }
+    if (relationRelative == null) {
+      if (other.relationRelative != null) {
+        return false;
+      }
+    } else if (!relationRelative.equals(other.relationRelative)) {
+      return false;
+    }
+    if (relationSister == null) {
+      if (other.relationSister != null) {
+        return false;
+      }
+    } else if (!relationSister.equals(other.relationSister)) {
+      return false;
+    }
+    if (relationSpouse == null) {
+      if (other.relationSpouse != null) {
+        return false;
+      }
+    } else if (!relationSpouse.equals(other.relationSpouse)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public boolean isNull() {
+    return relationAssistant == null && relationBrother == null && relationChild == null
+        && relationDomesticPartner == null &&  relationFather == null && relationFriend == null
+        && relationManager == null && relationMother == null && relationParent == null
+        && relationPartner == null && relationRefferedBy == null && relationRelative == null
+        && relationSister == null && relationSpouse == null;
+  }
+
+
 }

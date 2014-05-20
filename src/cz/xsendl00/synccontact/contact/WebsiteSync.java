@@ -319,4 +319,93 @@ public class WebsiteSync extends AbstractType implements ContactInterface {
     }
     return ops.size() > 0 ? ops : null;
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((websiteBlog == null) ? 0 : websiteBlog.hashCode());
+    result = prime * result + ((websiteFtp == null) ? 0 : websiteFtp.hashCode());
+    result = prime * result + ((websiteHome == null) ? 0 : websiteHome.hashCode());
+    result = prime * result + ((websiteHomepage == null) ? 0 : websiteHomepage.hashCode());
+    result = prime * result + ((websiteOther == null) ? 0 : websiteOther.hashCode());
+    result = prime * result + ((websiteProfile == null) ? 0 : websiteProfile.hashCode());
+    result = prime * result + ((websiteWork == null) ? 0 : websiteWork.hashCode());
+    return result;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    WebsiteSync other = (WebsiteSync) obj;
+    if (websiteBlog == null) {
+      if (other.websiteBlog != null) {
+        return false;
+      }
+    } else if (!websiteBlog.equals(other.websiteBlog)) {
+      return false;
+    }
+    if (websiteFtp == null) {
+      if (other.websiteFtp != null) {
+        return false;
+      }
+    } else if (!websiteFtp.equals(other.websiteFtp)) {
+      return false;
+    }
+    if (websiteHome == null) {
+      if (other.websiteHome != null) {
+        return false;
+      }
+    } else if (!websiteHome.equals(other.websiteHome)) {
+      return false;
+    }
+    if (websiteHomepage == null) {
+      if (other.websiteHomepage != null) {
+        return false;
+      }
+    } else if (!websiteHomepage.equals(other.websiteHomepage)) {
+      return false;
+    }
+    if (websiteOther == null) {
+      if (other.websiteOther != null) {
+        return false;
+      }
+    } else if (!websiteOther.equals(other.websiteOther)) {
+      return false;
+    }
+    if (websiteProfile == null) {
+      if (other.websiteProfile != null) {
+        return false;
+      }
+    } else if (!websiteProfile.equals(other.websiteProfile)) {
+      return false;
+    }
+    if (websiteWork == null) {
+      if (other.websiteWork != null) {
+        return false;
+      }
+    } else if (!websiteWork.equals(other.websiteWork)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public boolean isNull() {
+    return websiteHomepage == null && websiteBlog == null && websiteProfile == null && websiteHome == null
+        && websiteWork == null && websiteFtp == null && websiteOther == null;
+  }
+
+
+
 }

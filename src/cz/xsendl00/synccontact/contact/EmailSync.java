@@ -66,6 +66,14 @@ public class EmailSync extends AbstractType implements ContactInterface {
     this.mobileMail = Constants.MOBILE_MAIL;
   }
 
+  /**
+   * Check if Email s value are NULL.
+   * @return true is null, false not null
+   */
+  public boolean isNull() {
+    return homeMail == null && mobileMail == null && otherMail == null && workMail == null;
+  }
+
   public static ContentValues compare(EmailSync em1, EmailSync em2) {
     ContentValues values = new ContentValues();
     if (em1 == null && em2 != null) { // update from LDAP
@@ -229,5 +237,61 @@ public class EmailSync extends AbstractType implements ContactInterface {
       }
     }
     return ops.size() > 0 ? ops : null;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((homeMail == null) ? 0 : homeMail.hashCode());
+    result = prime * result + ((mobileMail == null) ? 0 : mobileMail.hashCode());
+    result = prime * result + ((otherMail == null) ? 0 : otherMail.hashCode());
+    result = prime * result + ((workMail == null) ? 0 : workMail.hashCode());
+    return result;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    EmailSync other = (EmailSync) obj;
+    if (homeMail == null) {
+      if (other.homeMail != null) {
+        return false;
+      }
+    } else if (!homeMail.equals(other.homeMail)) {
+      return false;
+    }
+    if (mobileMail == null) {
+      if (other.mobileMail != null) {
+        return false;
+      }
+    } else if (!mobileMail.equals(other.mobileMail)) {
+      return false;
+    }
+    if (otherMail == null) {
+      if (other.otherMail != null) {
+        return false;
+      }
+    } else if (!otherMail.equals(other.otherMail)) {
+      return false;
+    }
+    if (workMail == null) {
+      if (other.workMail != null) {
+        return false;
+      }
+    } else if (!workMail.equals(other.workMail)) {
+      return false;
+    }
+    return true;
   }
 }

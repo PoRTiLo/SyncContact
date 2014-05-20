@@ -213,17 +213,6 @@ public class ContactFragment extends Fragment implements
       ContactRow p = contactManager.getContactsLocal().get(pos);
       if (p.isSync() != isChecked) {
         p.setSync(isChecked);
-        // if grou pchecked and contact in this group is not checked, group shoul be no checked
-//        if (isChecked) {
-//          for (String idGroup : p.getGroupsId()) {
-//            for (GroupRow groupRow : contactManager.getGroupsLocal()) {
-//              if (groupRow.getId().equals(idGroup) && groupRow.isSync()) {
-//                groupRow.setSync(!isChecked);
-//                break;
-//              }
-//            }
-//          }
-//        }
         ArrayList<ContactRow> contacts = new ArrayList<ContactRow>();
         contacts.add(p);
         updateDB(contacts, isChecked);

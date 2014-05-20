@@ -4,11 +4,15 @@ import java.util.ArrayList;
 
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
-import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Event;
-import android.provider.ContactsContract.CommonDataKinds.Relation;
+import android.provider.ContactsContract.Data;
 import cz.xsendl00.synccontact.utils.Constants;
 
+/**
+ * A data kind representing an event.
+ *
+ * @author portilo
+ */
 public class EventSync extends AbstractType implements ContactInterface {
 
   private String eventOther;
@@ -45,6 +49,7 @@ public class EventSync extends AbstractType implements ContactInterface {
         + eventBirthday + ", eventAnniversary=" + eventAnniversary + "]";
   }
 
+  @Override
   public void defaultValue() {
     this.eventOther = Constants.EVENT_OTHER;
     this.eventBirthday = Constants.EVENT_BIRTHDAY;
@@ -186,5 +191,58 @@ public class EventSync extends AbstractType implements ContactInterface {
       }
     }
     return ops.size() > 0 ? ops : null;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((eventAnniversary == null) ? 0 : eventAnniversary.hashCode());
+    result = prime * result + ((eventBirthday == null) ? 0 : eventBirthday.hashCode());
+    result = prime * result + ((eventOther == null) ? 0 : eventOther.hashCode());
+    return result;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    EventSync other = (EventSync) obj;
+    if (eventAnniversary == null) {
+      if (other.eventAnniversary != null) {
+        return false;
+      }
+    } else if (!eventAnniversary.equals(other.eventAnniversary)) {
+      return false;
+    }
+    if (eventBirthday == null) {
+      if (other.eventBirthday != null) {
+        return false;
+      }
+    } else if (!eventBirthday.equals(other.eventBirthday)) {
+      return false;
+    }
+    if (eventOther == null) {
+      if (other.eventOther != null) {
+        return false;
+      }
+    } else if (!eventOther.equals(other.eventOther)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public boolean isNull() {
+    return eventOther == null && eventBirthday == null && eventAnniversary == null;
   }
 }

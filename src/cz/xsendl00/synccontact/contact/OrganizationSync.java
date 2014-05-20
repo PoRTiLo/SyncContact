@@ -652,5 +652,199 @@ public class OrganizationSync extends AbstractType implements ContactInterface {
     return ops.size() > 0 ? ops : null;
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result
+        + ((organizationOtherCompany == null) ? 0 : organizationOtherCompany.hashCode());
+    result = prime * result
+        + ((organizationOtherDepartment == null) ? 0 : organizationOtherDepartment.hashCode());
+    result = prime
+        * result
+        + ((organizationOtherJobDescription == null)
+            ? 0
+            : organizationOtherJobDescription.hashCode());
+    result = prime
+        * result
+        + ((organizationOtherOfficeLocation == null)
+            ? 0
+            : organizationOtherOfficeLocation.hashCode());
+    result = prime * result
+        + ((organizationOtherPhoneticName == null) ? 0 : organizationOtherPhoneticName.hashCode());
+    result = prime
+        * result
+        + ((organizationOtherPhoneticNameStyle == null)
+            ? 0
+            : organizationOtherPhoneticNameStyle.hashCode());
+    result = prime * result
+        + ((organizationOtherSymbol == null) ? 0 : organizationOtherSymbol.hashCode());
+    result = prime * result
+        + ((organizationOtherTitle == null) ? 0 : organizationOtherTitle.hashCode());
+    result = prime * result
+        + ((organizationWorkCompany == null) ? 0 : organizationWorkCompany.hashCode());
+    result = prime * result
+        + ((organizationWorkDepartment == null) ? 0 : organizationWorkDepartment.hashCode());
+    result = prime
+        * result
+        + ((organizationWorkJobDescription == null) ? 0 : organizationWorkJobDescription.hashCode());
+    result = prime
+        * result
+        + ((organizationWorkOfficeLocation == null) ? 0 : organizationWorkOfficeLocation.hashCode());
+    result = prime * result
+        + ((organizationWorkPhoneticName == null) ? 0 : organizationWorkPhoneticName.hashCode());
+    result = prime
+        * result
+        + ((organizationWorkPhoneticNameStyle == null)
+            ? 0
+            : organizationWorkPhoneticNameStyle.hashCode());
+    result = prime * result
+        + ((organizationWorkSymbol == null) ? 0 : organizationWorkSymbol.hashCode());
+    result = prime * result
+        + ((organizationWorkTitle == null) ? 0 : organizationWorkTitle.hashCode());
+    return result;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    OrganizationSync other = (OrganizationSync) obj;
+    if (organizationOtherCompany == null) {
+      if (other.organizationOtherCompany != null) {
+        return false;
+      }
+    } else if (!organizationOtherCompany.equals(other.organizationOtherCompany)) {
+      return false;
+    }
+    if (organizationOtherDepartment == null) {
+      if (other.organizationOtherDepartment != null) {
+        return false;
+      }
+    } else if (!organizationOtherDepartment.equals(other.organizationOtherDepartment)) {
+      return false;
+    }
+    if (organizationOtherJobDescription == null) {
+      if (other.organizationOtherJobDescription != null) {
+        return false;
+      }
+    } else if (!organizationOtherJobDescription.equals(other.organizationOtherJobDescription)) {
+      return false;
+    }
+    if (organizationOtherOfficeLocation == null) {
+      if (other.organizationOtherOfficeLocation != null) {
+        return false;
+      }
+    } else if (!organizationOtherOfficeLocation.equals(other.organizationOtherOfficeLocation)) {
+      return false;
+    }
+    if (organizationOtherPhoneticName == null) {
+      if (other.organizationOtherPhoneticName != null) {
+        return false;
+      }
+    } else if (!organizationOtherPhoneticName.equals(other.organizationOtherPhoneticName)) {
+      return false;
+    }
+    if (organizationOtherPhoneticNameStyle == null) {
+      if (other.organizationOtherPhoneticNameStyle != null) {
+        return false;
+      }
+    } else if (!organizationOtherPhoneticNameStyle.equals(other.organizationOtherPhoneticNameStyle)) {
+      return false;
+    }
+    if (organizationOtherSymbol == null) {
+      if (other.organizationOtherSymbol != null) {
+        return false;
+      }
+    } else if (!organizationOtherSymbol.equals(other.organizationOtherSymbol)) {
+      return false;
+    }
+    if (organizationOtherTitle == null) {
+      if (other.organizationOtherTitle != null) {
+        return false;
+      }
+    } else if (!organizationOtherTitle.equals(other.organizationOtherTitle)) {
+      return false;
+    }
+    if (organizationWorkCompany == null) {
+      if (other.organizationWorkCompany != null) {
+        return false;
+      }
+    } else if (!organizationWorkCompany.equals(other.organizationWorkCompany)) {
+      return false;
+    }
+    if (organizationWorkDepartment == null) {
+      if (other.organizationWorkDepartment != null) {
+        return false;
+      }
+    } else if (!organizationWorkDepartment.equals(other.organizationWorkDepartment)) {
+      return false;
+    }
+    if (organizationWorkJobDescription == null) {
+      if (other.organizationWorkJobDescription != null) {
+        return false;
+      }
+    } else if (!organizationWorkJobDescription.equals(other.organizationWorkJobDescription)) {
+      return false;
+    }
+    if (organizationWorkOfficeLocation == null) {
+      if (other.organizationWorkOfficeLocation != null) {
+        return false;
+      }
+    } else if (!organizationWorkOfficeLocation.equals(other.organizationWorkOfficeLocation)) {
+      return false;
+    }
+    if (organizationWorkPhoneticName == null) {
+      if (other.organizationWorkPhoneticName != null) {
+        return false;
+      }
+    } else if (!organizationWorkPhoneticName.equals(other.organizationWorkPhoneticName)) {
+      return false;
+    }
+    if (organizationWorkPhoneticNameStyle == null) {
+      if (other.organizationWorkPhoneticNameStyle != null) {
+        return false;
+      }
+    } else if (!organizationWorkPhoneticNameStyle.equals(other.organizationWorkPhoneticNameStyle)) {
+      return false;
+    }
+    if (organizationWorkSymbol == null) {
+      if (other.organizationWorkSymbol != null) {
+        return false;
+      }
+    } else if (!organizationWorkSymbol.equals(other.organizationWorkSymbol)) {
+      return false;
+    }
+    if (organizationWorkTitle == null) {
+      if (other.organizationWorkTitle != null) {
+        return false;
+      }
+    } else if (!organizationWorkTitle.equals(other.organizationWorkTitle)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public boolean isNull() {
+    return organizationWorkCompany == null && organizationWorkTitle == null && organizationWorkDepartment == null
+        && organizationWorkJobDescription == null && organizationWorkSymbol == null
+        && organizationWorkPhoneticName == null && organizationWorkOfficeLocation == null
+        && organizationWorkPhoneticNameStyle == null && organizationOtherCompany == null
+        && organizationOtherTitle == null && organizationOtherDepartment == null
+        && organizationOtherJobDescription == null && organizationOtherSymbol == null
+        && organizationOtherPhoneticName == null && organizationOtherOfficeLocation == null
+        && organizationOtherPhoneticNameStyle == null;
+  }
+
 
 }

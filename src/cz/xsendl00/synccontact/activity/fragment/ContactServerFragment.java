@@ -8,7 +8,6 @@ import org.androidannotations.annotations.EFragment;
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -82,14 +81,12 @@ public class ContactServerFragment extends Fragment implements
     HelperSQL db = new HelperSQL(activity);
     List<ContactRow> contactRowDb = db.getContactsSync();
     int countSelect = 0;
-    for (ContactRow contactRow : contactManager.getContactsServer()) {
+    for (ContactRow contactRowServer : contactManager.getContactsServer()) {
       int i = 0;
       boolean found = false;
       for (ContactRow contactRow2 : contactRowDb) {
-        Log.i(TAG, "contactRowdb:" + contactRow2.toString());
-        Log.i(TAG, "contactRowServer:" + contactRow.toString());
-        if (contactRow.getName().equals(contactRow2.getName())) {
-          contactRow.setSync(true);
+        if (contactRowServer.getName() != null && contactRowServer.getName().equals(contactRow2.getName())) {
+          contactRowServer.setSync(true);
           contactRowDb.remove(i);
           found = true;
           countSelect++;
@@ -98,7 +95,7 @@ public class ContactServerFragment extends Fragment implements
         i++;
       }
       if (!found) {
-        contactRow.setSync(false);
+        contactRowServer.setSync(false);
       }
     }
     selectAll = countSelect == contactManager.getContactsServer().size();

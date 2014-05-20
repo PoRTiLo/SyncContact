@@ -299,4 +299,75 @@ public class NicknameSync extends AbstractType implements ContactInterface {
     }
     return ops.size() > 0 ? ops : null;
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((nicknameDefault == null) ? 0 : nicknameDefault.hashCode());
+    result = prime * result + ((nicknameInitials == null) ? 0 : nicknameInitials.hashCode());
+    result = prime * result + ((nicknameMaiden == null) ? 0 : nicknameMaiden.hashCode());
+    result = prime * result + ((nicknameOther == null) ? 0 : nicknameOther.hashCode());
+    result = prime * result + ((nicknameShort == null) ? 0 : nicknameShort.hashCode());
+    return result;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    NicknameSync other = (NicknameSync) obj;
+    if (nicknameDefault == null) {
+      if (other.nicknameDefault != null) {
+        return false;
+      }
+    } else if (!nicknameDefault.equals(other.nicknameDefault)) {
+      return false;
+    }
+    if (nicknameInitials == null) {
+      if (other.nicknameInitials != null) {
+        return false;
+      }
+    } else if (!nicknameInitials.equals(other.nicknameInitials)) {
+      return false;
+    }
+    if (nicknameMaiden == null) {
+      if (other.nicknameMaiden != null) {
+        return false;
+      }
+    } else if (!nicknameMaiden.equals(other.nicknameMaiden)) {
+      return false;
+    }
+    if (nicknameOther == null) {
+      if (other.nicknameOther != null) {
+        return false;
+      }
+    } else if (!nicknameOther.equals(other.nicknameOther)) {
+      return false;
+    }
+    if (nicknameShort == null) {
+      if (other.nicknameShort != null) {
+        return false;
+      }
+    } else if (!nicknameShort.equals(other.nicknameShort)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public boolean isNull() {
+    return nicknameDefault == null && nicknameOther == null && nicknameMaiden == null
+        && nicknameShort == null && nicknameInitials == null;
+  }
+
 }

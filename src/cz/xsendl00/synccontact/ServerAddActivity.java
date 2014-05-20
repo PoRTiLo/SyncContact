@@ -149,6 +149,7 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
     passEditText.setHint(getResources().getString(R.string.add_account_password));
     passEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
     passEditText.setGravity(Gravity.CENTER_VERTICAL);
+    passEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
   }
 
   private void createPortText() {
@@ -224,17 +225,6 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
     }
   }
 
-  /*
-   * private void fillValueFromIntent() { final Intent intent = getIntent(); this.accountData = new
-   * AccountData(); this.accountData.setPort(intent.getIntExtra(Constants.PAR_PORT, 389));
-   * this.accountData.setHost(intent.getStringExtra(Constants.PAR_HOST));
-   * this.accountData.setBaseDn(intent.getStringExtra(Constants.PAR_BASEDN));
-   * this.accountData.setName(intent.getStringExtra(Constants.PAR_USERNAME));
-   * this.accountData.setPassword(intent.getStringExtra(Constants.PAR_PASSWORD));
-   * this.accountData.setEncryption(intent.getIntExtra(Constants.PAR_ENCRYPTION, 0));
-   * this.accountData.setNewAccount(intent.getBooleanExtra(Constants.PAR_IS_ADDING_NEW_ACCOUNT,
-   * true)); //this.accountData.setNewAccount(this.accountData.getName() == null); }
-   */
   /**
    * Call this by click on next in Add activity. This function try connect to server and get base
    * info from them.
@@ -242,21 +232,22 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
    * @param view view.
    */
   public void createConnection(View view) {
-    contactManager.getAccountData().setName(nameEditText.getText().toString());
+    AccountData accountData = new AccountData();
+    accountData.setName(nameEditText.getText().toString());
     try {
-      contactManager.getAccountData().setPort(Integer.parseInt(portEditText.getText().toString()));
+      accountData.setPort(Integer.parseInt(portEditText.getText().toString()));
     } catch (NumberFormatException nfe) {
-      contactManager.getAccountData().setPort(Integer.parseInt(Constants.STARTTLS));
+      accountData.setPort(Integer.parseInt(Constants.STARTTLS));
     }
-    contactManager.getAccountData().setHost(hostEditText.getText().toString());
-    contactManager.getAccountData().setBaseDn(dnEditText.getText().toString());
-    contactManager.getAccountData().setPassword(passEditText.getText().toString());
-    contactManager.getAccountData().setEncryption(encryptionSpinner.getSelectedItemPosition());
+    accountData.setHost(hostEditText.getText().toString());
+    accountData.setBaseDn(dnEditText.getText().toString());
+    accountData.setPassword(passEditText.getText().toString());
+    accountData.setEncryption(encryptionSpinner.getSelectedItemPosition());
 
     // show progressBar
     showProgressBar(view);
 
-    authThread = ServerUtilities.attemptAuth(new ServerInstance(contactManager.getAccountData()),
+    authThread = ServerUtilities.attemptAuth(new ServerInstance(accountData),
         handler, ServerAddActivity.this, false);
   }
 
@@ -283,11 +274,11 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
   }
 
   /**
-   * Call after
+   * Call after check server connection.
    *
-   * @param baseDNs
-   * @param result
-   * @param message
+   * @param baseDNs base DN LDAP.
+   * @param result true/false - connect successfully
+   * @param message message about error
    */
   public void onAuthenticationResult(String[] baseDNs, boolean result, String message) {
     Log.i(TAG, "onAuthenticationResult(" + result + ")");
@@ -298,6 +289,16 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
     if (result) {
       if (baseDNs != null) {
         contactManager.getAccountData().setBaseDNs(baseDNs);
+        contactManager.getAccountData().setName(nameEditText.getText().toString());
+        try {
+          contactManager.getAccountData().setPort(Integer.parseInt(portEditText.getText().toString()));
+        } catch (NumberFormatException nfe) {
+          contactManager.getAccountData().setPort(Integer.parseInt(Constants.STARTTLS));
+        }
+        contactManager.getAccountData().setHost(hostEditText.getText().toString());
+        contactManager.getAccountData().setBaseDn(dnEditText.getText().toString());
+        contactManager.getAccountData().setPassword(passEditText.getText().toString());
+        contactManager.getAccountData().setEncryption(encryptionSpinner.getSelectedItemPosition());
         // now save account
         saveAccount();
       }

@@ -158,13 +158,15 @@ public class ContactsServerActivity extends Activity {
   }
 
   public void onImportCompleted() {
-    Editor editor = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit();
-    editor.putBoolean(Constants.PREFS_START_FIRST, false);
-    editor.commit();
-    Intent intent = new Intent(this, MainActivity_.class);
-    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
-        | Intent.FLAG_ACTIVITY_NEW_TASK);
-    startActivity(intent);
+    if (first) {
+      Editor editor = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit();
+      editor.putBoolean(Constants.PREFS_START_FIRST, false);
+      editor.commit();
+      Intent intent = new Intent(this, MainActivity_.class);
+      intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
+          | Intent.FLAG_ACTIVITY_NEW_TASK);
+      startActivity(intent);
+    }
   }
 
   /**
@@ -259,7 +261,7 @@ public class ContactsServerActivity extends Activity {
     boolean mayInterruptIfRunning = true;
     BackgroundExecutor.cancelAll("loadData", mayInterruptIfRunning);
     Log.i(TAG, "back press - delete");
-    setRefreshActionButtonState(false);
+    //setRefreshActionButtonState(false);
   }
 
   @Override

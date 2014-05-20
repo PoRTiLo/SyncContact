@@ -1162,4 +1162,257 @@ public class ImSync extends AbstractType implements ContactInterface {
     }
     return ops.size() > 0 ? ops : null;
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((imHomeAim == null) ? 0 : imHomeAim.hashCode());
+    result = prime * result + ((imHomeGoogleTalk == null) ? 0 : imHomeGoogleTalk.hashCode());
+    result = prime * result + ((imHomeIcq == null) ? 0 : imHomeIcq.hashCode());
+    result = prime * result + ((imHomeJabber == null) ? 0 : imHomeJabber.hashCode());
+    result = prime * result + ((imHomeMsn == null) ? 0 : imHomeMsn.hashCode());
+    result = prime * result + ((imHomeNetmeeting == null) ? 0 : imHomeNetmeeting.hashCode());
+    result = prime * result + ((imHomeQq == null) ? 0 : imHomeQq.hashCode());
+    result = prime * result + ((imHomeSkype == null) ? 0 : imHomeSkype.hashCode());
+    result = prime * result + ((imHomeYahoo == null) ? 0 : imHomeYahoo.hashCode());
+    result = prime * result + ((imOtherAim == null) ? 0 : imOtherAim.hashCode());
+    result = prime * result + ((imOtherGoogleTalk == null) ? 0 : imOtherGoogleTalk.hashCode());
+    result = prime * result + ((imOtherIcq == null) ? 0 : imOtherIcq.hashCode());
+    result = prime * result + ((imOtherJabber == null) ? 0 : imOtherJabber.hashCode());
+    result = prime * result + ((imOtherMsn == null) ? 0 : imOtherMsn.hashCode());
+    result = prime * result + ((imOtherNetmeeting == null) ? 0 : imOtherNetmeeting.hashCode());
+    result = prime * result + ((imOtherQq == null) ? 0 : imOtherQq.hashCode());
+    result = prime * result + ((imOtherSkype == null) ? 0 : imOtherSkype.hashCode());
+    result = prime * result + ((imOtherYahoo == null) ? 0 : imOtherYahoo.hashCode());
+    result = prime * result + ((imWorkAim == null) ? 0 : imWorkAim.hashCode());
+    result = prime * result + ((imWorkGoogleTalk == null) ? 0 : imWorkGoogleTalk.hashCode());
+    result = prime * result + ((imWorkIcq == null) ? 0 : imWorkIcq.hashCode());
+    result = prime * result + ((imWorkJabber == null) ? 0 : imWorkJabber.hashCode());
+    result = prime * result + ((imWorkMsn == null) ? 0 : imWorkMsn.hashCode());
+    result = prime * result + ((imWorkNetmeeting == null) ? 0 : imWorkNetmeeting.hashCode());
+    result = prime * result + ((imWorkQq == null) ? 0 : imWorkQq.hashCode());
+    result = prime * result + ((imWorkSkype == null) ? 0 : imWorkSkype.hashCode());
+    result = prime * result + ((imWorkYahoo == null) ? 0 : imWorkYahoo.hashCode());
+    return result;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    ImSync other = (ImSync) obj;
+    if (imHomeAim == null) {
+      if (other.imHomeAim != null) {
+        return false;
+      }
+    } else if (!imHomeAim.equals(other.imHomeAim)) {
+      return false;
+    }
+    if (imHomeGoogleTalk == null) {
+      if (other.imHomeGoogleTalk != null) {
+        return false;
+      }
+    } else if (!imHomeGoogleTalk.equals(other.imHomeGoogleTalk)) {
+      return false;
+    }
+    if (imHomeIcq == null) {
+      if (other.imHomeIcq != null) {
+        return false;
+      }
+    } else if (!imHomeIcq.equals(other.imHomeIcq)) {
+      return false;
+    }
+    if (imHomeJabber == null) {
+      if (other.imHomeJabber != null) {
+        return false;
+      }
+    } else if (!imHomeJabber.equals(other.imHomeJabber)) {
+      return false;
+    }
+    if (imHomeMsn == null) {
+      if (other.imHomeMsn != null) {
+        return false;
+      }
+    } else if (!imHomeMsn.equals(other.imHomeMsn)) {
+      return false;
+    }
+    if (imHomeNetmeeting == null) {
+      if (other.imHomeNetmeeting != null) {
+        return false;
+      }
+    } else if (!imHomeNetmeeting.equals(other.imHomeNetmeeting)) {
+      return false;
+    }
+    if (imHomeQq == null) {
+      if (other.imHomeQq != null) {
+        return false;
+      }
+    } else if (!imHomeQq.equals(other.imHomeQq)) {
+      return false;
+    }
+    if (imHomeSkype == null) {
+      if (other.imHomeSkype != null) {
+        return false;
+      }
+    } else if (!imHomeSkype.equals(other.imHomeSkype)) {
+      return false;
+    }
+    if (imHomeYahoo == null) {
+      if (other.imHomeYahoo != null) {
+        return false;
+      }
+    } else if (!imHomeYahoo.equals(other.imHomeYahoo)) {
+      return false;
+    }
+    if (imOtherAim == null) {
+      if (other.imOtherAim != null) {
+        return false;
+      }
+    } else if (!imOtherAim.equals(other.imOtherAim)) {
+      return false;
+    }
+    if (imOtherGoogleTalk == null) {
+      if (other.imOtherGoogleTalk != null) {
+        return false;
+      }
+    } else if (!imOtherGoogleTalk.equals(other.imOtherGoogleTalk)) {
+      return false;
+    }
+    if (imOtherIcq == null) {
+      if (other.imOtherIcq != null) {
+        return false;
+      }
+    } else if (!imOtherIcq.equals(other.imOtherIcq)) {
+      return false;
+    }
+    if (imOtherJabber == null) {
+      if (other.imOtherJabber != null) {
+        return false;
+      }
+    } else if (!imOtherJabber.equals(other.imOtherJabber)) {
+      return false;
+    }
+    if (imOtherMsn == null) {
+      if (other.imOtherMsn != null) {
+        return false;
+      }
+    } else if (!imOtherMsn.equals(other.imOtherMsn)) {
+      return false;
+    }
+    if (imOtherNetmeeting == null) {
+      if (other.imOtherNetmeeting != null) {
+        return false;
+      }
+    } else if (!imOtherNetmeeting.equals(other.imOtherNetmeeting)) {
+      return false;
+    }
+    if (imOtherQq == null) {
+      if (other.imOtherQq != null) {
+        return false;
+      }
+    } else if (!imOtherQq.equals(other.imOtherQq)) {
+      return false;
+    }
+    if (imOtherSkype == null) {
+      if (other.imOtherSkype != null) {
+        return false;
+      }
+    } else if (!imOtherSkype.equals(other.imOtherSkype)) {
+      return false;
+    }
+    if (imOtherYahoo == null) {
+      if (other.imOtherYahoo != null) {
+        return false;
+      }
+    } else if (!imOtherYahoo.equals(other.imOtherYahoo)) {
+      return false;
+    }
+    if (imWorkAim == null) {
+      if (other.imWorkAim != null) {
+        return false;
+      }
+    } else if (!imWorkAim.equals(other.imWorkAim)) {
+      return false;
+    }
+    if (imWorkGoogleTalk == null) {
+      if (other.imWorkGoogleTalk != null) {
+        return false;
+      }
+    } else if (!imWorkGoogleTalk.equals(other.imWorkGoogleTalk)) {
+      return false;
+    }
+    if (imWorkIcq == null) {
+      if (other.imWorkIcq != null) {
+        return false;
+      }
+    } else if (!imWorkIcq.equals(other.imWorkIcq)) {
+      return false;
+    }
+    if (imWorkJabber == null) {
+      if (other.imWorkJabber != null) {
+        return false;
+      }
+    } else if (!imWorkJabber.equals(other.imWorkJabber)) {
+      return false;
+    }
+    if (imWorkMsn == null) {
+      if (other.imWorkMsn != null) {
+        return false;
+      }
+    } else if (!imWorkMsn.equals(other.imWorkMsn)) {
+      return false;
+    }
+    if (imWorkNetmeeting == null) {
+      if (other.imWorkNetmeeting != null) {
+        return false;
+      }
+    } else if (!imWorkNetmeeting.equals(other.imWorkNetmeeting)) {
+      return false;
+    }
+    if (imWorkQq == null) {
+      if (other.imWorkQq != null) {
+        return false;
+      }
+    } else if (!imWorkQq.equals(other.imWorkQq)) {
+      return false;
+    }
+    if (imWorkSkype == null) {
+      if (other.imWorkSkype != null) {
+        return false;
+      }
+    } else if (!imWorkSkype.equals(other.imWorkSkype)) {
+      return false;
+    }
+    if (imWorkYahoo == null) {
+      if (other.imWorkYahoo != null) {
+        return false;
+      }
+    } else if (!imWorkYahoo.equals(other.imWorkYahoo)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public boolean isNull() {
+    return imHomeAim == null && imHomeGoogleTalk == null && imHomeIcq == null && imHomeJabber == null
+        && imHomeMsn == null && imHomeNetmeeting == null && imHomeQq == null && imHomeSkype == null
+        && imHomeYahoo == null && imWorkAim == null && imWorkGoogleTalk == null && imWorkIcq == null
+        && imWorkJabber == null && imWorkMsn == null && imWorkNetmeeting == null && imWorkQq == null
+        && imWorkSkype == null && imWorkYahoo == null && imOtherAim == null && imOtherGoogleTalk == null
+        && imOtherIcq == null && imOtherJabber == null && imOtherMsn == null && imOtherNetmeeting == null
+        && imOtherQq == null && imOtherSkype == null && imOtherYahoo == null;
+  }
+
+
 }

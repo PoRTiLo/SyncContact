@@ -302,7 +302,7 @@ public class ContactManager {
         new ServerInstance(accountData), context, handler));
     // sort contact by name
     Collections.sort(contactsServer, new RowComparator());
-    groupsServerInit = true;
+    contactsServerInit = true;
 
     util.stopTime(TAG, "initContactsServer");
   }

@@ -120,4 +120,43 @@ public class NoteSync extends AbstractType implements ContactInterface {
     }
     return ops.size() > 0 ? ops : null;
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((notes == null) ? 0 : notes.hashCode());
+    return result;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    NoteSync other = (NoteSync) obj;
+    if (notes == null) {
+      if (other.notes != null) {
+        return false;
+      }
+    } else if (!notes.equals(other.notes)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public boolean isNull() {
+    return notes == null;
+  }
+
+
 }

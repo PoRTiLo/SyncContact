@@ -104,7 +104,7 @@ public class Mapping {
 
       for (ContactRow contactRow : list) {
         if (dirtys.contains(contactRow.getId())) {
-          GoogleContact googleContact = mappingContactFromDB(contentResolver, contactRow.getUuid(),
+          GoogleContact googleContact = mappingContactFromDB(contentResolver, contactRow.getId(),
               contactRow.getUuid());
           dirtyContacts.put(contactRow.getUuid(), googleContact);
         }
@@ -949,514 +949,571 @@ public class Mapping {
       contact.getStructuredName().setDisplayName(
           new AndroidDB().fetchContactName(contentResolver, id));
     }
+
+    //Log.i(TAG, contact.toString());
     return contact;
   }
 
+  /**
+   * Create {@link GoogleContact} from data from server.
+   * @param user data from server
+   * @return new {@link GoogleContact}
+   */
   public static GoogleContact mappingContactFromLDAP(ReadOnlyEntry user) {
-    GoogleContact c = GoogleContact.defaultValue();
-    c.setUuid(user.hasAttribute(Constants.UUID) ? user.getAttributeValue(Constants.UUID) : null);
+    GoogleContact contact = GoogleContact.defaultValue();
+    contact.setUuid(user.hasAttribute(Constants.UUID) ? user.getAttributeValue(Constants.UUID) : null);
     // email
-    c.getEmail().setHomeMail(
-        user.hasAttribute(c.getEmail().getHomeMail()) ? user.getAttributeValue(c.getEmail()
+    contact.getEmail().setHomeMail(
+        user.hasAttribute(contact.getEmail().getHomeMail()) ? user.getAttributeValue(contact.getEmail()
             .getHomeMail()) : null);
-    c.getEmail().setMobileMail(
-        user.hasAttribute(c.getEmail().getMobileMail()) ? user.getAttributeValue(c.getEmail()
+    contact.getEmail().setMobileMail(
+        user.hasAttribute(contact.getEmail().getMobileMail()) ? user.getAttributeValue(contact.getEmail()
             .getMobileMail()) : null);
-    c.getEmail().setOtherMail(
-        user.hasAttribute(c.getEmail().getOtherMail()) ? user.getAttributeValue(c.getEmail()
+    contact.getEmail().setOtherMail(
+        user.hasAttribute(contact.getEmail().getOtherMail()) ? user.getAttributeValue(contact.getEmail()
             .getOtherMail()) : null);
-    c.getEmail().setWorkMail(
-        user.hasAttribute(c.getEmail().getWorkMail()) ? user.getAttributeValue(c.getEmail()
+    contact.getEmail().setWorkMail(
+        user.hasAttribute(contact.getEmail().getWorkMail()) ? user.getAttributeValue(contact.getEmail()
             .getWorkMail()) : null);
+    if (contact.getEmail().isNull()) {
+      contact.setEmail(null);
+    }
     // event
-    c.getEvent().setEventAnniversary(
-        user.hasAttribute(c.getEvent().getEventAnniversary()) ? user.getAttributeValue(c.getEvent()
+    contact.getEvent().setEventAnniversary(
+        user.hasAttribute(contact.getEvent().getEventAnniversary()) ? user.getAttributeValue(contact.getEvent()
             .getEventAnniversary()) : null);
-    c.getEvent().setEventBirthday(
-        user.hasAttribute(c.getEvent().getEventBirthday()) ? user.getAttributeValue(c.getEvent()
+    contact.getEvent().setEventBirthday(
+        user.hasAttribute(contact.getEvent().getEventBirthday()) ? user.getAttributeValue(contact.getEvent()
             .getEventBirthday()) : null);
-    c.getEvent().setEventOther(
-        user.hasAttribute(c.getEvent().getEventOther()) ? user.getAttributeValue(c.getEvent()
+    contact.getEvent().setEventOther(
+        user.hasAttribute(contact.getEvent().getEventOther()) ? user.getAttributeValue(contact.getEvent()
             .getEventOther()) : null);
-    // identity
-    c.getIdentity().setIdentityNamespace(
-        user.hasAttribute(c.getIdentity().getIdentityNamespace())
-            ? user.getAttributeValue(c.getIdentity().getIdentityNamespace())
-            : null);
-    c.getIdentity().setIdentityText(
-        user.hasAttribute(c.getIdentity().getIdentityText())
-            ? user.getAttributeValue(c.getIdentity().getIdentityText())
-            : null);
-    // im
-    c.getImSync().setImHomeAim(
-        user.hasAttribute(c.getImSync().getImHomeAim()) ? user.getAttributeValue(c.getImSync()
-            .getImHomeAim()) : null);
-    c.getImSync().setImHomeGoogleTalk(
-        user.hasAttribute(c.getImSync().getImHomeGoogleTalk())
-            ? user.getAttributeValue(c.getImSync().getImHomeGoogleTalk())
-            : null);
-    c.getImSync().setImHomeIcq(
-        user.hasAttribute(c.getImSync().getImHomeIcq()) ? user.getAttributeValue(c.getImSync()
-            .getImHomeIcq()) : null);
-    c.getImSync().setImHomeJabber(
-        user.hasAttribute(c.getImSync().getImHomeJabber()) ? user.getAttributeValue(c.getImSync()
-            .getImHomeJabber()) : null);
-    c.getImSync().setImHomeMsn(
-        user.hasAttribute(c.getImSync().getImHomeMsn()) ? user.getAttributeValue(c.getImSync()
-            .getImHomeMsn()) : null);
-    c.getImSync().setImHomeNetmeeting(
-        user.hasAttribute(c.getImSync().getImHomeNetmeeting())
-            ? user.getAttributeValue(c.getImSync().getImHomeNetmeeting())
-            : null);
-    c.getImSync().setImHomeQq(
-        user.hasAttribute(c.getImSync().getImHomeQq()) ? user.getAttributeValue(c.getImSync()
-            .getImHomeQq()) : null);
-    c.getImSync().setImHomeSkype(
-        user.hasAttribute(c.getImSync().getImHomeSkype()) ? user.getAttributeValue(c.getImSync()
-            .getImHomeSkype()) : null);
-    c.getImSync().setImHomeYahoo(
-        user.hasAttribute(c.getImSync().getImHomeYahoo()) ? user.getAttributeValue(c.getImSync()
-            .getImHomeYahoo()) : null);
-    c.getImSync().setImOtherAim(
-        user.hasAttribute(c.getImSync().getImOtherAim()) ? user.getAttributeValue(c.getImSync()
-            .getImOtherAim()) : null);
-    c.getImSync().setImOtherGoogleTalk(
-        user.hasAttribute(c.getImSync().getImOtherGoogleTalk())
-            ? user.getAttributeValue(c.getImSync().getImOtherGoogleTalk())
-            : null);
-    c.getImSync().setImOtherIcq(
-        user.hasAttribute(c.getImSync().getImOtherIcq()) ? user.getAttributeValue(c.getImSync()
-            .getImOtherIcq()) : null);
-    c.getImSync().setImOtherJabber(
-        user.hasAttribute(c.getImSync().getImOtherJabber()) ? user.getAttributeValue(c.getImSync()
-            .getImOtherJabber()) : null);
-    c.getImSync().setImOtherMsn(
-        user.hasAttribute(c.getImSync().getImOtherMsn()) ? user.getAttributeValue(c.getImSync()
-            .getImOtherMsn()) : null);
-    c.getImSync().setImOtherNetmeeting(
-        user.hasAttribute(c.getImSync().getImOtherNetmeeting())
-            ? user.getAttributeValue(c.getImSync().getImOtherNetmeeting())
-            : null);
-    c.getImSync().setImOtherQq(
-        user.hasAttribute(c.getImSync().getImOtherQq()) ? user.getAttributeValue(c.getImSync()
-            .getImOtherQq()) : null);
-    c.getImSync().setImOtherSkype(
-        user.hasAttribute(c.getImSync().getImOtherSkype()) ? user.getAttributeValue(c.getImSync()
-            .getImOtherSkype()) : null);
-    c.getImSync().setImOtherYahoo(
-        user.hasAttribute(c.getImSync().getImOtherYahoo()) ? user.getAttributeValue(c.getImSync()
-            .getImOtherYahoo()) : null);
-    c.getImSync().setImWorkAim(
-        user.hasAttribute(c.getImSync().getImWorkAim()) ? user.getAttributeValue(c.getImSync()
-            .getImWorkAim()) : null);
-    c.getImSync().setImWorkGoogleTalk(
-        user.hasAttribute(c.getImSync().getImWorkGoogleTalk())
-            ? user.getAttributeValue(c.getImSync().getImWorkGoogleTalk())
-            : null);
-    c.getImSync().setImWorkIcq(
-        user.hasAttribute(c.getImSync().getImWorkIcq()) ? user.getAttributeValue(c.getImSync()
-            .getImWorkIcq()) : null);
-    c.getImSync().setImWorkJabber(
-        user.hasAttribute(c.getImSync().getImWorkJabber()) ? user.getAttributeValue(c.getImSync()
-            .getImWorkJabber()) : null);
-    c.getImSync().setImWorkMsn(
-        user.hasAttribute(c.getImSync().getImWorkMsn()) ? user.getAttributeValue(c.getImSync()
-            .getImWorkMsn()) : null);
-    c.getImSync().setImWorkNetmeeting(
-        user.hasAttribute(c.getImSync().getImWorkNetmeeting())
-            ? user.getAttributeValue(c.getImSync().getImWorkNetmeeting())
-            : null);
-    c.getImSync().setImWorkQq(
-        user.hasAttribute(c.getImSync().getImWorkQq()) ? user.getAttributeValue(c.getImSync()
-            .getImWorkQq()) : null);
-    c.getImSync().setImWorkSkype(
-        user.hasAttribute(c.getImSync().getImWorkSkype()) ? user.getAttributeValue(c.getImSync()
-            .getImWorkSkype()) : null);
-    c.getImSync().setImWorkYahoo(
-        user.hasAttribute(c.getImSync().getImWorkYahoo()) ? user.getAttributeValue(c.getImSync()
-            .getImWorkYahoo()) : null);
-    // nickname
-    c.getNickname().setNicknameDefault(
-        user.hasAttribute(c.getNickname().getNicknameDefault())
-            ? user.getAttributeValue(c.getNickname().getNicknameDefault())
-            : null);
-    c.getNickname().setNicknameInitials(
-        user.hasAttribute(c.getNickname().getNicknameInitials())
-            ? user.getAttributeValue(c.getNickname().getNicknameInitials())
-            : null);
-    c.getNickname().setNicknameMaiden(
-        user.hasAttribute(c.getNickname().getNicknameMaiden())
-            ? user.getAttributeValue(c.getNickname().getNicknameMaiden())
-            : null);
-    c.getNickname().setNicknameOther(
-        user.hasAttribute(c.getNickname().getNicknameOther())
-            ? user.getAttributeValue(c.getNickname().getNicknameOther())
-            : null);
-    c.getNickname().setNicknameShort(
-        user.hasAttribute(c.getNickname().getNicknameShort())
-            ? user.getAttributeValue(c.getNickname().getNicknameShort())
-            : null);
-    // notes
-    c.getNote().setNotes(
-        user.hasAttribute(c.getNote().getNotes())
-            ? user.getAttributeValue(c.getNote().getNotes())
-            : null);
-    // organization
-    c.getOrganization().setOrganizationOtherCompany(
-        user.hasAttribute(c.getOrganization().getOrganizationOtherCompany())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationOtherCompany())
-            : null);
-    c.getOrganization().setOrganizationOtherDepartment(
-        user.hasAttribute(c.getOrganization().getOrganizationOtherDepartment())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationOtherDepartment())
-            : null);
-    c.getOrganization().setOrganizationOtherJobDescription(
-        user.hasAttribute(c.getOrganization().getOrganizationOtherJobDescription())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationOtherJobDescription())
-            : null);
-    c.getOrganization().setOrganizationOtherOfficeLocation(
-        user.hasAttribute(c.getOrganization().getOrganizationOtherOfficeLocation())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationOtherOfficeLocation())
-            : null);
-    c.getOrganization().setOrganizationOtherPhoneticName(
-        user.hasAttribute(c.getOrganization().getOrganizationOtherPhoneticName())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationOtherPhoneticName())
-            : null);
-    c.getOrganization().setOrganizationOtherPhoneticNameStyle(
-        user.hasAttribute(c.getOrganization().getOrganizationOtherPhoneticNameStyle())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationOtherPhoneticNameStyle())
-            : null);
-    c.getOrganization().setOrganizationOtherSymbol(
-        user.hasAttribute(c.getOrganization().getOrganizationOtherSymbol())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationOtherSymbol())
-            : null);
-    c.getOrganization().setOrganizationOtherTitle(
-        user.hasAttribute(c.getOrganization().getOrganizationOtherTitle())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationOtherTitle())
-            : null);
-    c.getOrganization().setOrganizationWorkCompany(
-        user.hasAttribute(c.getOrganization().getOrganizationWorkCompany())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationWorkCompany())
-            : null);
-    c.getOrganization().setOrganizationWorkDepartment(
-        user.hasAttribute(c.getOrganization().getOrganizationWorkDepartment())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationWorkDepartment())
-            : null);
-    c.getOrganization().setOrganizationWorkJobDescription(
-        user.hasAttribute(c.getOrganization().getOrganizationWorkJobDescription())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationWorkJobDescription())
-            : null);
-    c.getOrganization().setOrganizationWorkOfficeLocation(
-        user.hasAttribute(c.getOrganization().getOrganizationWorkOfficeLocation())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationWorkOfficeLocation())
-            : null);
-    c.getOrganization().setOrganizationWorkPhoneticName(
-        user.hasAttribute(c.getOrganization().getOrganizationWorkPhoneticName())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationWorkPhoneticName())
-            : null);
-    c.getOrganization().setOrganizationWorkPhoneticNameStyle(
-        user.hasAttribute(c.getOrganization().getOrganizationWorkPhoneticNameStyle())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationWorkPhoneticNameStyle())
-            : null);
-    c.getOrganization().setOrganizationWorkSymbol(
-        user.hasAttribute(c.getOrganization().getOrganizationWorkSymbol())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationWorkSymbol())
-            : null);
-    c.getOrganization().setOrganizationWorkTitle(
-        user.hasAttribute(c.getOrganization().getOrganizationWorkTitle())
-            ? user.getAttributeValue(c.getOrganization().getOrganizationWorkTitle())
-            : null);
-    // phone
-    c.getPhone().setPhoneAssistant(
-        user.hasAttribute(c.getPhone().getPhoneAssistant()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneAssistant()) : null);
-    c.getPhone().setPhoneCallback(
-        user.hasAttribute(c.getPhone().getPhoneCallback()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneCallback()) : null);
-    c.getPhone().setPhoneCar(
-        user.hasAttribute(c.getPhone().getPhoneCar()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneCar()) : null);
-    c.getPhone().setPhoneCompany(
-        user.hasAttribute(c.getPhone().getPhoneCompany()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneCompany()) : null);
-    c.getPhone().setPhoneFaxHome(
-        user.hasAttribute(c.getPhone().getPhoneFaxHome()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneFaxHome()) : null);
-    c.getPhone().setPhoneFaxWork(
-        user.hasAttribute(c.getPhone().getPhoneFaxWork()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneFaxWork()) : null);
-    c.getPhone().setPhoneHome(
-        user.hasAttribute(c.getPhone().getPhoneHome()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneHome()) : null);
-    c.getPhone().setPhoneISDN(
-        user.hasAttribute(c.getPhone().getPhoneISDN()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneISDN()) : null);
-    c.getPhone().setPhoneMain(
-        user.hasAttribute(c.getPhone().getPhoneMain()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneMain()) : null);
-    c.getPhone().setPhoneMMS(
-        user.hasAttribute(c.getPhone().getPhoneMMS()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneMMS()) : null);
-    c.getPhone().setPhoneMobile(
-        user.hasAttribute(c.getPhone().getPhoneMobile()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneMobile()) : null);
-    c.getPhone().setPhoneOther(
-        user.hasAttribute(c.getPhone().getPhoneOther()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneOther()) : null);
-    c.getPhone().setPhoneOtherFax(
-        user.hasAttribute(c.getPhone().getPhoneOtherFax()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneOtherFax()) : null);
-    c.getPhone().setPhonePager(
-        user.hasAttribute(c.getPhone().getPhonePager()) ? user.getAttributeValue(c.getPhone()
-            .getPhonePager()) : null);
-    c.getPhone().setPhoneRadio(
-        user.hasAttribute(c.getPhone().getPhoneRadio()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneRadio()) : null);
-    c.getPhone().setPhoneTelex(
-        user.hasAttribute(c.getPhone().getPhoneTelex()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneTelex()) : null);
-    c.getPhone().setPhoneTTYTDD(
-        user.hasAttribute(c.getPhone().getPhoneTTYTDD()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneTTYTDD()) : null);
-    c.getPhone().setPhoneWork(
-        user.hasAttribute(c.getPhone().getPhoneWork()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneWork()) : null);
-    c.getPhone().setPhoneWorkMobile(
-        user.hasAttribute(c.getPhone().getPhoneWorkMobile()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneWorkMobile()) : null);
-    c.getPhone().setPhoneWorkPager(
-        user.hasAttribute(c.getPhone().getPhoneWorkPager()) ? user.getAttributeValue(c.getPhone()
-            .getPhoneWorkPager()) : null);
-    // relation
-    c.getRelation().setRelationAssistant(
-        user.hasAttribute(c.getRelation().getRelationAssistant())
-            ? user.getAttributeValue(c.getRelation().getRelationAssistant())
-            : null);
-    c.getRelation().setRelationBrother(
-        user.hasAttribute(c.getRelation().getRelationBrother())
-            ? user.getAttributeValue(c.getRelation().getRelationBrother())
-            : null);
-    c.getRelation().setRelationChild(
-        user.hasAttribute(c.getRelation().getRelationChild())
-            ? user.getAttributeValue(c.getRelation().getRelationChild())
-            : null);
-    c.getRelation().setRelationDomesticPartner(
-        user.hasAttribute(c.getRelation().getRelationDomesticPartner())
-            ? user.getAttributeValue(c.getRelation().getRelationDomesticPartner())
-            : null);
-    c.getRelation().setRelationFather(
-        user.hasAttribute(c.getRelation().getRelationFather())
-            ? user.getAttributeValue(c.getRelation().getRelationFather())
-            : null);
-    c.getRelation().setRelationFriend(
-        user.hasAttribute(c.getRelation().getRelationFriend())
-            ? user.getAttributeValue(c.getRelation().getRelationFriend())
-            : null);
-    c.getRelation().setRelationManager(
-        user.hasAttribute(c.getRelation().getRelationManager())
-            ? user.getAttributeValue(c.getRelation().getRelationManager())
-            : null);
-    c.getRelation().setRelationMother(
-        user.hasAttribute(c.getRelation().getRelationMother())
-            ? user.getAttributeValue(c.getRelation().getRelationMother())
-            : null);
-    c.getRelation().setRelationParent(
-        user.hasAttribute(c.getRelation().getRelationParent())
-            ? user.getAttributeValue(c.getRelation().getRelationParent())
-            : null);
-    c.getRelation().setRelationPartner(
-        user.hasAttribute(c.getRelation().getRelationPartner())
-            ? user.getAttributeValue(c.getRelation().getRelationPartner())
-            : null);
-    c.getRelation().setRelationRefferedBy(
-        user.hasAttribute(c.getRelation().getRelationRefferedBy())
-            ? user.getAttributeValue(c.getRelation().getRelationRefferedBy())
-            : null);
-    c.getRelation().setRelationRelative(
-        user.hasAttribute(c.getRelation().getRelationRelative())
-            ? user.getAttributeValue(c.getRelation().getRelationRelative())
-            : null);
-    c.getRelation().setRelationSister(
-        user.hasAttribute(c.getRelation().getRelationSister())
-            ? user.getAttributeValue(c.getRelation().getRelationSister())
-            : null);
-    c.getRelation().setRelationSpouse(
-        user.hasAttribute(c.getRelation().getRelationSpouse())
-            ? user.getAttributeValue(c.getRelation().getRelationSpouse())
-            : null);
-    // sipaddress
-    c.getSipAddress().setHomeSip(
-        user.hasAttribute(c.getSipAddress().getHomeSip())
-            ? user.getAttributeValue(c.getSipAddress().getHomeSip())
-            : null);
-    c.getSipAddress().setOtherSip(
-        user.hasAttribute(c.getSipAddress().getOtherSip())
-            ? user.getAttributeValue(c.getSipAddress().getOtherSip())
-            : null);
-    c.getSipAddress().setWorkSip(
-        user.hasAttribute(c.getSipAddress().getWorkSip())
-            ? user.getAttributeValue(c.getSipAddress().getWorkSip())
-            : null);
-    // structuredname
-    c.getStructuredName().setDisplayName(
-        user.hasAttribute(c.getStructuredName().getDisplayName())
-            ? user.getAttributeValue(c.getStructuredName().getDisplayName())
-            : null);
-    c.getStructuredName().setFamilyName(
-        user.hasAttribute(c.getStructuredName().getFamilyName())
-            ? user.getAttributeValue(c.getStructuredName().getFamilyName())
-            : null);
-    c.getStructuredName().setGivenName(
-        user.hasAttribute(c.getStructuredName().getGivenName())
-            ? user.getAttributeValue(c.getStructuredName().getGivenName())
-            : null);
-    c.getStructuredName().setMiddleName(
-        user.hasAttribute(c.getStructuredName().getMiddleName())
-            ? user.getAttributeValue(c.getStructuredName().getMiddleName())
-            : null);
-    c.getStructuredName().setNamePrefix(
-        user.hasAttribute(c.getStructuredName().getNamePrefix())
-            ? user.getAttributeValue(c.getStructuredName().getNamePrefix())
-            : null);
-    c.getStructuredName().setNameSuffix(
-        user.hasAttribute(c.getStructuredName().getNameSuffix())
-            ? user.getAttributeValue(c.getStructuredName().getNameSuffix())
-            : null);
-    c.getStructuredName().setPhoneticFamilyName(
-        user.hasAttribute(c.getStructuredName().getPhoneticFamilyName())
-            ? user.getAttributeValue(c.getStructuredName().getPhoneticFamilyName())
-            : null);
-    c.getStructuredName().setPhoneticGivenName(
-        user.hasAttribute(c.getStructuredName().getPhoneticGivenName())
-            ? user.getAttributeValue(c.getStructuredName().getPhoneticGivenName())
-            : null);
-    c.getStructuredName().setPhoneticMiddleName(
-        user.hasAttribute(c.getStructuredName().getPhoneticMiddleName())
-            ? user.getAttributeValue(c.getStructuredName().getPhoneticMiddleName())
-            : null);
-    // structured postal
-    c.getStructuredPostal().setHomeCity(
-        user.hasAttribute(c.getStructuredPostal().getHomeCity())
-            ? user.getAttributeValue(c.getStructuredPostal().getHomeCity())
-            : null);
-    c.getStructuredPostal().setHomeCountry(
-        user.hasAttribute(c.getStructuredPostal().getHomeCountry())
-            ? user.getAttributeValue(c.getStructuredPostal().getHomeCountry())
-            : null);
-    c.getStructuredPostal().setHomeFormattedAddress(
-        user.hasAttribute(c.getStructuredPostal().getHomeFormattedAddress())
-            ? user.getAttributeValue(c.getStructuredPostal().getHomeFormattedAddress())
-            : null);
-    c.getStructuredPostal().setHomeNeighborhood(
-        user.hasAttribute(c.getStructuredPostal().getHomeNeighborhood())
-            ? user.getAttributeValue(c.getStructuredPostal().getHomeNeighborhood())
-            : null);
-    c.getStructuredPostal().setHomePOBox(
-        user.hasAttribute(c.getStructuredPostal().getHomePOBox())
-            ? user.getAttributeValue(c.getStructuredPostal().getHomePOBox())
-            : null);
-    c.getStructuredPostal().setHomePostalCode(
-        user.hasAttribute(c.getStructuredPostal().getHomePostalCode())
-            ? user.getAttributeValue(c.getStructuredPostal().getHomePostalCode())
-            : null);
-    c.getStructuredPostal().setHomeRegion(
-        user.hasAttribute(c.getStructuredPostal().getHomeRegion())
-            ? user.getAttributeValue(c.getStructuredPostal().getHomeRegion())
-            : null);
-    c.getStructuredPostal().setHomeStreet(
-        user.hasAttribute(c.getStructuredPostal().getHomeStreet())
-            ? user.getAttributeValue(c.getStructuredPostal().getHomeStreet())
-            : null);
-    c.getStructuredPostal().setWorkCity(
-        user.hasAttribute(c.getStructuredPostal().getWorkCity())
-            ? user.getAttributeValue(c.getStructuredPostal().getWorkCity())
-            : null);
-    c.getStructuredPostal().setWorkCountry(
-        user.hasAttribute(c.getStructuredPostal().getWorkCountry())
-            ? user.getAttributeValue(c.getStructuredPostal().getWorkCountry())
-            : null);
-    c.getStructuredPostal().setWorkFormattedAddress(
-        user.hasAttribute(c.getStructuredPostal().getWorkFormattedAddress())
-            ? user.getAttributeValue(c.getStructuredPostal().getWorkFormattedAddress())
-            : null);
-    c.getStructuredPostal().setWorkNeighborhood(
-        user.hasAttribute(c.getStructuredPostal().getWorkNeighborhood())
-            ? user.getAttributeValue(c.getStructuredPostal().getWorkNeighborhood())
-            : null);
-    c.getStructuredPostal().setWorkPOBox(
-        user.hasAttribute(c.getStructuredPostal().getWorkPOBox())
-            ? user.getAttributeValue(c.getStructuredPostal().getWorkPOBox())
-            : null);
-    c.getStructuredPostal().setWorkPostalCode(
-        user.hasAttribute(c.getStructuredPostal().getWorkPostalCode())
-            ? user.getAttributeValue(c.getStructuredPostal().getWorkPostalCode())
-            : null);
-    c.getStructuredPostal().setWorkRegion(
-        user.hasAttribute(c.getStructuredPostal().getWorkRegion())
-            ? user.getAttributeValue(c.getStructuredPostal().getWorkRegion())
-            : null);
-    c.getStructuredPostal().setWorkStreet(
-        user.hasAttribute(c.getStructuredPostal().getWorkStreet())
-            ? user.getAttributeValue(c.getStructuredPostal().getWorkStreet())
-            : null);
-    c.getStructuredPostal().setOtherCity(
-        user.hasAttribute(c.getStructuredPostal().getOtherCity())
-            ? user.getAttributeValue(c.getStructuredPostal().getOtherCity())
-            : null);
-    c.getStructuredPostal().setOtherCountry(
-        user.hasAttribute(c.getStructuredPostal().getOtherCountry())
-            ? user.getAttributeValue(c.getStructuredPostal().getOtherCountry())
-            : null);
-    c.getStructuredPostal().setOtherFormattedAddress(
-        user.hasAttribute(c.getStructuredPostal().getOtherFormattedAddress())
-            ? user.getAttributeValue(c.getStructuredPostal().getOtherFormattedAddress())
-            : null);
-    c.getStructuredPostal().setOtherNeighborhood(
-        user.hasAttribute(c.getStructuredPostal().getOtherNeighborhood())
-            ? user.getAttributeValue(c.getStructuredPostal().getOtherNeighborhood())
-            : null);
-    c.getStructuredPostal().setOtherPOBox(
-        user.hasAttribute(c.getStructuredPostal().getOtherPOBox())
-            ? user.getAttributeValue(c.getStructuredPostal().getOtherPOBox())
-            : null);
-    c.getStructuredPostal().setOtherPostalCode(
-        user.hasAttribute(c.getStructuredPostal().getOtherPostalCode())
-            ? user.getAttributeValue(c.getStructuredPostal().getOtherPostalCode())
-            : null);
-    c.getStructuredPostal().setOtherRegion(
-        user.hasAttribute(c.getStructuredPostal().getOtherRegion())
-            ? user.getAttributeValue(c.getStructuredPostal().getOtherRegion())
-            : null);
-    c.getStructuredPostal().setOtherStreet(
-        user.hasAttribute(c.getStructuredPostal().getOtherStreet())
-            ? user.getAttributeValue(c.getStructuredPostal().getOtherStreet())
-            : null);
-    // website
-    c.getWebsite().setWebsiteBlog(
-        user.hasAttribute(c.getWebsite().getWebsiteBlog()) ? user.getAttributeValue(c.getWebsite()
-            .getWebsiteBlog()) : null);
-    c.getWebsite().setWebsiteFtp(
-        user.hasAttribute(c.getWebsite().getWebsiteFtp()) ? user.getAttributeValue(c.getWebsite()
-            .getWebsiteFtp()) : null);
-    c.getWebsite().setWebsiteHome(
-        user.hasAttribute(c.getWebsite().getWebsiteHome()) ? user.getAttributeValue(c.getWebsite()
-            .getWebsiteHome()) : null);
-    c.getWebsite().setWebsiteHomepage(
-        user.hasAttribute(c.getWebsite().getWebsiteHomepage())
-            ? user.getAttributeValue(c.getWebsite().getWebsiteHomepage())
-            : null);
-    c.getWebsite().setWebsiteOther(
-        user.hasAttribute(c.getWebsite().getWebsiteOther()) ? user.getAttributeValue(c.getWebsite()
-            .getWebsiteOther()) : null);
-    c.getWebsite().setWebsiteProfile(
-        user.hasAttribute(c.getWebsite().getWebsiteProfile())
-            ? user.getAttributeValue(c.getWebsite().getWebsiteProfile())
-            : null);
-    c.getWebsite().setWebsiteWork(
-        user.hasAttribute(c.getWebsite().getWebsiteWork()) ? user.getAttributeValue(c.getWebsite()
-            .getWebsiteWork()) : null);
+    if (contact.getEvent().isNull()) {
+      contact.setEvent(null);
+    }
 
-    return c;
+    // identity
+    contact.getIdentity().setIdentityNamespace(
+        user.hasAttribute(contact.getIdentity().getIdentityNamespace())
+            ? user.getAttributeValue(contact.getIdentity().getIdentityNamespace())
+            : null);
+    contact.getIdentity().setIdentityText(
+        user.hasAttribute(contact.getIdentity().getIdentityText())
+            ? user.getAttributeValue(contact.getIdentity().getIdentityText())
+            : null);
+    if (contact.getIdentity().isNull()) {
+      contact.setIdentity(null);
+    }
+
+    // im
+    contact.getImSync().setImHomeAim(
+        user.hasAttribute(contact.getImSync().getImHomeAim()) ? user.getAttributeValue(contact.getImSync()
+            .getImHomeAim()) : null);
+    contact.getImSync().setImHomeGoogleTalk(
+        user.hasAttribute(contact.getImSync().getImHomeGoogleTalk())
+            ? user.getAttributeValue(contact.getImSync().getImHomeGoogleTalk())
+            : null);
+    contact.getImSync().setImHomeIcq(
+        user.hasAttribute(contact.getImSync().getImHomeIcq()) ? user.getAttributeValue(contact.getImSync()
+            .getImHomeIcq()) : null);
+    contact.getImSync().setImHomeJabber(
+        user.hasAttribute(contact.getImSync().getImHomeJabber()) ? user.getAttributeValue(contact.getImSync()
+            .getImHomeJabber()) : null);
+    contact.getImSync().setImHomeMsn(
+        user.hasAttribute(contact.getImSync().getImHomeMsn()) ? user.getAttributeValue(contact.getImSync()
+            .getImHomeMsn()) : null);
+    contact.getImSync().setImHomeNetmeeting(
+        user.hasAttribute(contact.getImSync().getImHomeNetmeeting())
+            ? user.getAttributeValue(contact.getImSync().getImHomeNetmeeting())
+            : null);
+    contact.getImSync().setImHomeQq(
+        user.hasAttribute(contact.getImSync().getImHomeQq()) ? user.getAttributeValue(contact.getImSync()
+            .getImHomeQq()) : null);
+    contact.getImSync().setImHomeSkype(
+        user.hasAttribute(contact.getImSync().getImHomeSkype()) ? user.getAttributeValue(contact.getImSync()
+            .getImHomeSkype()) : null);
+    contact.getImSync().setImHomeYahoo(
+        user.hasAttribute(contact.getImSync().getImHomeYahoo()) ? user.getAttributeValue(contact.getImSync()
+            .getImHomeYahoo()) : null);
+    contact.getImSync().setImOtherAim(
+        user.hasAttribute(contact.getImSync().getImOtherAim()) ? user.getAttributeValue(contact.getImSync()
+            .getImOtherAim()) : null);
+    contact.getImSync().setImOtherGoogleTalk(
+        user.hasAttribute(contact.getImSync().getImOtherGoogleTalk())
+            ? user.getAttributeValue(contact.getImSync().getImOtherGoogleTalk())
+            : null);
+    contact.getImSync().setImOtherIcq(
+        user.hasAttribute(contact.getImSync().getImOtherIcq()) ? user.getAttributeValue(contact.getImSync()
+            .getImOtherIcq()) : null);
+    contact.getImSync().setImOtherJabber(
+        user.hasAttribute(contact.getImSync().getImOtherJabber()) ? user.getAttributeValue(contact.getImSync()
+            .getImOtherJabber()) : null);
+    contact.getImSync().setImOtherMsn(
+        user.hasAttribute(contact.getImSync().getImOtherMsn()) ? user.getAttributeValue(contact.getImSync()
+            .getImOtherMsn()) : null);
+    contact.getImSync().setImOtherNetmeeting(
+        user.hasAttribute(contact.getImSync().getImOtherNetmeeting())
+            ? user.getAttributeValue(contact.getImSync().getImOtherNetmeeting())
+            : null);
+    contact.getImSync().setImOtherQq(
+        user.hasAttribute(contact.getImSync().getImOtherQq()) ? user.getAttributeValue(contact.getImSync()
+            .getImOtherQq()) : null);
+    contact.getImSync().setImOtherSkype(
+        user.hasAttribute(contact.getImSync().getImOtherSkype()) ? user.getAttributeValue(contact.getImSync()
+            .getImOtherSkype()) : null);
+    contact.getImSync().setImOtherYahoo(
+        user.hasAttribute(contact.getImSync().getImOtherYahoo()) ? user.getAttributeValue(contact.getImSync()
+            .getImOtherYahoo()) : null);
+    contact.getImSync().setImWorkAim(
+        user.hasAttribute(contact.getImSync().getImWorkAim()) ? user.getAttributeValue(contact.getImSync()
+            .getImWorkAim()) : null);
+    contact.getImSync().setImWorkGoogleTalk(
+        user.hasAttribute(contact.getImSync().getImWorkGoogleTalk())
+            ? user.getAttributeValue(contact.getImSync().getImWorkGoogleTalk())
+            : null);
+    contact.getImSync().setImWorkIcq(
+        user.hasAttribute(contact.getImSync().getImWorkIcq()) ? user.getAttributeValue(contact.getImSync()
+            .getImWorkIcq()) : null);
+    contact.getImSync().setImWorkJabber(
+        user.hasAttribute(contact.getImSync().getImWorkJabber()) ? user.getAttributeValue(contact.getImSync()
+            .getImWorkJabber()) : null);
+    contact.getImSync().setImWorkMsn(
+        user.hasAttribute(contact.getImSync().getImWorkMsn()) ? user.getAttributeValue(contact.getImSync()
+            .getImWorkMsn()) : null);
+    contact.getImSync().setImWorkNetmeeting(
+        user.hasAttribute(contact.getImSync().getImWorkNetmeeting())
+            ? user.getAttributeValue(contact.getImSync().getImWorkNetmeeting())
+            : null);
+    contact.getImSync().setImWorkQq(
+        user.hasAttribute(contact.getImSync().getImWorkQq()) ? user.getAttributeValue(contact.getImSync()
+            .getImWorkQq()) : null);
+    contact.getImSync().setImWorkSkype(
+        user.hasAttribute(contact.getImSync().getImWorkSkype()) ? user.getAttributeValue(contact.getImSync()
+            .getImWorkSkype()) : null);
+    contact.getImSync().setImWorkYahoo(
+        user.hasAttribute(contact.getImSync().getImWorkYahoo()) ? user.getAttributeValue(contact.getImSync()
+            .getImWorkYahoo()) : null);
+    if (contact.getImSync().isNull()) {
+      contact.setImSync(null);
+    }
+
+    // nickname
+    contact.getNickname().setNicknameDefault(
+        user.hasAttribute(contact.getNickname().getNicknameDefault())
+            ? user.getAttributeValue(contact.getNickname().getNicknameDefault())
+            : null);
+    contact.getNickname().setNicknameInitials(
+        user.hasAttribute(contact.getNickname().getNicknameInitials())
+            ? user.getAttributeValue(contact.getNickname().getNicknameInitials())
+            : null);
+    contact.getNickname().setNicknameMaiden(
+        user.hasAttribute(contact.getNickname().getNicknameMaiden())
+            ? user.getAttributeValue(contact.getNickname().getNicknameMaiden())
+            : null);
+    contact.getNickname().setNicknameOther(
+        user.hasAttribute(contact.getNickname().getNicknameOther())
+            ? user.getAttributeValue(contact.getNickname().getNicknameOther())
+            : null);
+    contact.getNickname().setNicknameShort(
+        user.hasAttribute(contact.getNickname().getNicknameShort())
+            ? user.getAttributeValue(contact.getNickname().getNicknameShort())
+            : null);
+    if (contact.getNickname().isNull()) {
+      contact.setNickname(null);
+    }
+
+    // notes
+    contact.getNote().setNotes(
+        user.hasAttribute(contact.getNote().getNotes())
+            ? user.getAttributeValue(contact.getNote().getNotes())
+            : null);
+    if (contact.getNote().isNull()) {
+      contact.setNote(null);
+
+    }
+    // organization
+    contact.getOrganization().setOrganizationOtherCompany(
+        user.hasAttribute(contact.getOrganization().getOrganizationOtherCompany())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationOtherCompany())
+            : null);
+    contact.getOrganization().setOrganizationOtherDepartment(
+        user.hasAttribute(contact.getOrganization().getOrganizationOtherDepartment())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationOtherDepartment())
+            : null);
+    contact.getOrganization().setOrganizationOtherJobDescription(
+        user.hasAttribute(contact.getOrganization().getOrganizationOtherJobDescription())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationOtherJobDescription())
+            : null);
+    contact.getOrganization().setOrganizationOtherOfficeLocation(
+        user.hasAttribute(contact.getOrganization().getOrganizationOtherOfficeLocation())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationOtherOfficeLocation())
+            : null);
+    contact.getOrganization().setOrganizationOtherPhoneticName(
+        user.hasAttribute(contact.getOrganization().getOrganizationOtherPhoneticName())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationOtherPhoneticName())
+            : null);
+    contact.getOrganization().setOrganizationOtherPhoneticNameStyle(
+        user.hasAttribute(contact.getOrganization().getOrganizationOtherPhoneticNameStyle())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationOtherPhoneticNameStyle())
+            : null);
+    contact.getOrganization().setOrganizationOtherSymbol(
+        user.hasAttribute(contact.getOrganization().getOrganizationOtherSymbol())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationOtherSymbol())
+            : null);
+    contact.getOrganization().setOrganizationOtherTitle(
+        user.hasAttribute(contact.getOrganization().getOrganizationOtherTitle())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationOtherTitle())
+            : null);
+    contact.getOrganization().setOrganizationWorkCompany(
+        user.hasAttribute(contact.getOrganization().getOrganizationWorkCompany())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationWorkCompany())
+            : null);
+    contact.getOrganization().setOrganizationWorkDepartment(
+        user.hasAttribute(contact.getOrganization().getOrganizationWorkDepartment())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationWorkDepartment())
+            : null);
+    contact.getOrganization().setOrganizationWorkJobDescription(
+        user.hasAttribute(contact.getOrganization().getOrganizationWorkJobDescription())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationWorkJobDescription())
+            : null);
+    contact.getOrganization().setOrganizationWorkOfficeLocation(
+        user.hasAttribute(contact.getOrganization().getOrganizationWorkOfficeLocation())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationWorkOfficeLocation())
+            : null);
+    contact.getOrganization().setOrganizationWorkPhoneticName(
+        user.hasAttribute(contact.getOrganization().getOrganizationWorkPhoneticName())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationWorkPhoneticName())
+            : null);
+    contact.getOrganization().setOrganizationWorkPhoneticNameStyle(
+        user.hasAttribute(contact.getOrganization().getOrganizationWorkPhoneticNameStyle())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationWorkPhoneticNameStyle())
+            : null);
+    contact.getOrganization().setOrganizationWorkSymbol(
+        user.hasAttribute(contact.getOrganization().getOrganizationWorkSymbol())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationWorkSymbol())
+            : null);
+    contact.getOrganization().setOrganizationWorkTitle(
+        user.hasAttribute(contact.getOrganization().getOrganizationWorkTitle())
+            ? user.getAttributeValue(contact.getOrganization().getOrganizationWorkTitle())
+            : null);
+    if (contact.getOrganization().isNull()) {
+      contact.setOrganization(null);
+    }
+
+    // phone
+    contact.getPhone().setPhoneAssistant(
+        user.hasAttribute(contact.getPhone().getPhoneAssistant()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneAssistant()) : null);
+    contact.getPhone().setPhoneCallback(
+        user.hasAttribute(contact.getPhone().getPhoneCallback()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneCallback()) : null);
+    contact.getPhone().setPhoneCar(
+        user.hasAttribute(contact.getPhone().getPhoneCar()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneCar()) : null);
+    contact.getPhone().setPhoneCompany(
+        user.hasAttribute(contact.getPhone().getPhoneCompany()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneCompany()) : null);
+    contact.getPhone().setPhoneFaxHome(
+        user.hasAttribute(contact.getPhone().getPhoneFaxHome()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneFaxHome()) : null);
+    contact.getPhone().setPhoneFaxWork(
+        user.hasAttribute(contact.getPhone().getPhoneFaxWork()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneFaxWork()) : null);
+    contact.getPhone().setPhoneHome(
+        user.hasAttribute(contact.getPhone().getPhoneHome()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneHome()) : null);
+    contact.getPhone().setPhoneISDN(
+        user.hasAttribute(contact.getPhone().getPhoneISDN()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneISDN()) : null);
+    contact.getPhone().setPhoneMain(
+        user.hasAttribute(contact.getPhone().getPhoneMain()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneMain()) : null);
+    contact.getPhone().setPhoneMMS(
+        user.hasAttribute(contact.getPhone().getPhoneMMS()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneMMS()) : null);
+    contact.getPhone().setPhoneMobile(
+        user.hasAttribute(contact.getPhone().getPhoneMobile()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneMobile()) : null);
+    contact.getPhone().setPhoneOther(
+        user.hasAttribute(contact.getPhone().getPhoneOther()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneOther()) : null);
+    contact.getPhone().setPhoneOtherFax(
+        user.hasAttribute(contact.getPhone().getPhoneOtherFax()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneOtherFax()) : null);
+    contact.getPhone().setPhonePager(
+        user.hasAttribute(contact.getPhone().getPhonePager()) ? user.getAttributeValue(contact.getPhone()
+            .getPhonePager()) : null);
+    contact.getPhone().setPhoneRadio(
+        user.hasAttribute(contact.getPhone().getPhoneRadio()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneRadio()) : null);
+    contact.getPhone().setPhoneTelex(
+        user.hasAttribute(contact.getPhone().getPhoneTelex()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneTelex()) : null);
+    contact.getPhone().setPhoneTTYTDD(
+        user.hasAttribute(contact.getPhone().getPhoneTTYTDD()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneTTYTDD()) : null);
+    contact.getPhone().setPhoneWork(
+        user.hasAttribute(contact.getPhone().getPhoneWork()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneWork()) : null);
+    contact.getPhone().setPhoneWorkMobile(
+        user.hasAttribute(contact.getPhone().getPhoneWorkMobile()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneWorkMobile()) : null);
+    contact.getPhone().setPhoneWorkPager(
+        user.hasAttribute(contact.getPhone().getPhoneWorkPager()) ? user.getAttributeValue(contact.getPhone()
+            .getPhoneWorkPager()) : null);
+    if (contact.getPhone().isNull()) {
+      contact.setPhone(null);
+    }
+
+    // relation
+    contact.getRelation().setRelationAssistant(
+        user.hasAttribute(contact.getRelation().getRelationAssistant())
+            ? user.getAttributeValue(contact.getRelation().getRelationAssistant())
+            : null);
+    contact.getRelation().setRelationBrother(
+        user.hasAttribute(contact.getRelation().getRelationBrother())
+            ? user.getAttributeValue(contact.getRelation().getRelationBrother())
+            : null);
+    contact.getRelation().setRelationChild(
+        user.hasAttribute(contact.getRelation().getRelationChild())
+            ? user.getAttributeValue(contact.getRelation().getRelationChild())
+            : null);
+    contact.getRelation().setRelationDomesticPartner(
+        user.hasAttribute(contact.getRelation().getRelationDomesticPartner())
+            ? user.getAttributeValue(contact.getRelation().getRelationDomesticPartner())
+            : null);
+    contact.getRelation().setRelationFather(
+        user.hasAttribute(contact.getRelation().getRelationFather())
+            ? user.getAttributeValue(contact.getRelation().getRelationFather())
+            : null);
+    contact.getRelation().setRelationFriend(
+        user.hasAttribute(contact.getRelation().getRelationFriend())
+            ? user.getAttributeValue(contact.getRelation().getRelationFriend())
+            : null);
+    contact.getRelation().setRelationManager(
+        user.hasAttribute(contact.getRelation().getRelationManager())
+            ? user.getAttributeValue(contact.getRelation().getRelationManager())
+            : null);
+    contact.getRelation().setRelationMother(
+        user.hasAttribute(contact.getRelation().getRelationMother())
+            ? user.getAttributeValue(contact.getRelation().getRelationMother())
+            : null);
+    contact.getRelation().setRelationParent(
+        user.hasAttribute(contact.getRelation().getRelationParent())
+            ? user.getAttributeValue(contact.getRelation().getRelationParent())
+            : null);
+    contact.getRelation().setRelationPartner(
+        user.hasAttribute(contact.getRelation().getRelationPartner())
+            ? user.getAttributeValue(contact.getRelation().getRelationPartner())
+            : null);
+    contact.getRelation().setRelationRefferedBy(
+        user.hasAttribute(contact.getRelation().getRelationRefferedBy())
+            ? user.getAttributeValue(contact.getRelation().getRelationRefferedBy())
+            : null);
+    contact.getRelation().setRelationRelative(
+        user.hasAttribute(contact.getRelation().getRelationRelative())
+            ? user.getAttributeValue(contact.getRelation().getRelationRelative())
+            : null);
+    contact.getRelation().setRelationSister(
+        user.hasAttribute(contact.getRelation().getRelationSister())
+            ? user.getAttributeValue(contact.getRelation().getRelationSister())
+            : null);
+    contact.getRelation().setRelationSpouse(
+        user.hasAttribute(contact.getRelation().getRelationSpouse())
+            ? user.getAttributeValue(contact.getRelation().getRelationSpouse())
+            : null);
+    if (contact.getRelation().isNull()) {
+      contact.setRelation(null);
+    }
+
+    // sipaddress
+    contact.getSipAddress().setHomeSip(
+        user.hasAttribute(contact.getSipAddress().getHomeSip())
+            ? user.getAttributeValue(contact.getSipAddress().getHomeSip())
+            : null);
+    contact.getSipAddress().setOtherSip(
+        user.hasAttribute(contact.getSipAddress().getOtherSip())
+            ? user.getAttributeValue(contact.getSipAddress().getOtherSip())
+            : null);
+    contact.getSipAddress().setWorkSip(
+        user.hasAttribute(contact.getSipAddress().getWorkSip())
+            ? user.getAttributeValue(contact.getSipAddress().getWorkSip())
+            : null);
+    if (contact.getSipAddress().isNull()) {
+      contact.setSipAddress(null);
+    }
+
+    // structuredname
+    contact.getStructuredName().setDisplayName(
+        user.hasAttribute(contact.getStructuredName().getDisplayName())
+            ? user.getAttributeValue(contact.getStructuredName().getDisplayName())
+            : null);
+    contact.getStructuredName().setFamilyName(
+        user.hasAttribute(contact.getStructuredName().getFamilyName())
+            ? user.getAttributeValue(contact.getStructuredName().getFamilyName())
+            : null);
+    contact.getStructuredName().setGivenName(
+        user.hasAttribute(contact.getStructuredName().getGivenName())
+            ? user.getAttributeValue(contact.getStructuredName().getGivenName())
+            : null);
+    contact.getStructuredName().setMiddleName(
+        user.hasAttribute(contact.getStructuredName().getMiddleName())
+            ? user.getAttributeValue(contact.getStructuredName().getMiddleName())
+            : null);
+    contact.getStructuredName().setNamePrefix(
+        user.hasAttribute(contact.getStructuredName().getNamePrefix())
+            ? user.getAttributeValue(contact.getStructuredName().getNamePrefix())
+            : null);
+    contact.getStructuredName().setNameSuffix(
+        user.hasAttribute(contact.getStructuredName().getNameSuffix())
+            ? user.getAttributeValue(contact.getStructuredName().getNameSuffix())
+            : null);
+    contact.getStructuredName().setPhoneticFamilyName(
+        user.hasAttribute(contact.getStructuredName().getPhoneticFamilyName())
+            ? user.getAttributeValue(contact.getStructuredName().getPhoneticFamilyName())
+            : null);
+    contact.getStructuredName().setPhoneticGivenName(
+        user.hasAttribute(contact.getStructuredName().getPhoneticGivenName())
+            ? user.getAttributeValue(contact.getStructuredName().getPhoneticGivenName())
+            : null);
+    contact.getStructuredName().setPhoneticMiddleName(
+        user.hasAttribute(contact.getStructuredName().getPhoneticMiddleName())
+            ? user.getAttributeValue(contact.getStructuredName().getPhoneticMiddleName())
+            : null);
+    if (contact.getStructuredName().isNull()) {
+      contact.setStructuredName(null);
+    }
+
+    // structured postal
+    contact.getStructuredPostal().setHomeCity(
+        user.hasAttribute(contact.getStructuredPostal().getHomeCity())
+            ? user.getAttributeValue(contact.getStructuredPostal().getHomeCity())
+            : null);
+    contact.getStructuredPostal().setHomeCountry(
+        user.hasAttribute(contact.getStructuredPostal().getHomeCountry())
+            ? user.getAttributeValue(contact.getStructuredPostal().getHomeCountry())
+            : null);
+    contact.getStructuredPostal().setHomeFormattedAddress(
+        user.hasAttribute(contact.getStructuredPostal().getHomeFormattedAddress())
+            ? user.getAttributeValue(contact.getStructuredPostal().getHomeFormattedAddress())
+            : null);
+    contact.getStructuredPostal().setHomeNeighborhood(
+        user.hasAttribute(contact.getStructuredPostal().getHomeNeighborhood())
+            ? user.getAttributeValue(contact.getStructuredPostal().getHomeNeighborhood())
+            : null);
+    contact.getStructuredPostal().setHomePOBox(
+        user.hasAttribute(contact.getStructuredPostal().getHomePOBox())
+            ? user.getAttributeValue(contact.getStructuredPostal().getHomePOBox())
+            : null);
+    contact.getStructuredPostal().setHomePostalCode(
+        user.hasAttribute(contact.getStructuredPostal().getHomePostalCode())
+            ? user.getAttributeValue(contact.getStructuredPostal().getHomePostalCode())
+            : null);
+    contact.getStructuredPostal().setHomeRegion(
+        user.hasAttribute(contact.getStructuredPostal().getHomeRegion())
+            ? user.getAttributeValue(contact.getStructuredPostal().getHomeRegion())
+            : null);
+    contact.getStructuredPostal().setHomeStreet(
+        user.hasAttribute(contact.getStructuredPostal().getHomeStreet())
+            ? user.getAttributeValue(contact.getStructuredPostal().getHomeStreet())
+            : null);
+    contact.getStructuredPostal().setWorkCity(
+        user.hasAttribute(contact.getStructuredPostal().getWorkCity())
+            ? user.getAttributeValue(contact.getStructuredPostal().getWorkCity())
+            : null);
+    contact.getStructuredPostal().setWorkCountry(
+        user.hasAttribute(contact.getStructuredPostal().getWorkCountry())
+            ? user.getAttributeValue(contact.getStructuredPostal().getWorkCountry())
+            : null);
+    contact.getStructuredPostal().setWorkFormattedAddress(
+        user.hasAttribute(contact.getStructuredPostal().getWorkFormattedAddress())
+            ? user.getAttributeValue(contact.getStructuredPostal().getWorkFormattedAddress())
+            : null);
+    contact.getStructuredPostal().setWorkNeighborhood(
+        user.hasAttribute(contact.getStructuredPostal().getWorkNeighborhood())
+            ? user.getAttributeValue(contact.getStructuredPostal().getWorkNeighborhood())
+            : null);
+    contact.getStructuredPostal().setWorkPOBox(
+        user.hasAttribute(contact.getStructuredPostal().getWorkPOBox())
+            ? user.getAttributeValue(contact.getStructuredPostal().getWorkPOBox())
+            : null);
+    contact.getStructuredPostal().setWorkPostalCode(
+        user.hasAttribute(contact.getStructuredPostal().getWorkPostalCode())
+            ? user.getAttributeValue(contact.getStructuredPostal().getWorkPostalCode())
+            : null);
+    contact.getStructuredPostal().setWorkRegion(
+        user.hasAttribute(contact.getStructuredPostal().getWorkRegion())
+            ? user.getAttributeValue(contact.getStructuredPostal().getWorkRegion())
+            : null);
+    contact.getStructuredPostal().setWorkStreet(
+        user.hasAttribute(contact.getStructuredPostal().getWorkStreet())
+            ? user.getAttributeValue(contact.getStructuredPostal().getWorkStreet())
+            : null);
+    contact.getStructuredPostal().setOtherCity(
+        user.hasAttribute(contact.getStructuredPostal().getOtherCity())
+            ? user.getAttributeValue(contact.getStructuredPostal().getOtherCity())
+            : null);
+    contact.getStructuredPostal().setOtherCountry(
+        user.hasAttribute(contact.getStructuredPostal().getOtherCountry())
+            ? user.getAttributeValue(contact.getStructuredPostal().getOtherCountry())
+            : null);
+    contact.getStructuredPostal().setOtherFormattedAddress(
+        user.hasAttribute(contact.getStructuredPostal().getOtherFormattedAddress())
+            ? user.getAttributeValue(contact.getStructuredPostal().getOtherFormattedAddress())
+            : null);
+    contact.getStructuredPostal().setOtherNeighborhood(
+        user.hasAttribute(contact.getStructuredPostal().getOtherNeighborhood())
+            ? user.getAttributeValue(contact.getStructuredPostal().getOtherNeighborhood())
+            : null);
+    contact.getStructuredPostal().setOtherPOBox(
+        user.hasAttribute(contact.getStructuredPostal().getOtherPOBox())
+            ? user.getAttributeValue(contact.getStructuredPostal().getOtherPOBox())
+            : null);
+    contact.getStructuredPostal().setOtherPostalCode(
+        user.hasAttribute(contact.getStructuredPostal().getOtherPostalCode())
+            ? user.getAttributeValue(contact.getStructuredPostal().getOtherPostalCode())
+            : null);
+    contact.getStructuredPostal().setOtherRegion(
+        user.hasAttribute(contact.getStructuredPostal().getOtherRegion())
+            ? user.getAttributeValue(contact.getStructuredPostal().getOtherRegion())
+            : null);
+    contact.getStructuredPostal().setOtherStreet(
+        user.hasAttribute(contact.getStructuredPostal().getOtherStreet())
+            ? user.getAttributeValue(contact.getStructuredPostal().getOtherStreet())
+            : null);
+    if (contact.getStructuredPostal().isNull()) {
+      contact.setStructuredPostal(null);
+    }
+
+    // website
+    contact.getWebsite().setWebsiteBlog(
+        user.hasAttribute(contact.getWebsite().getWebsiteBlog()) ? user.getAttributeValue(contact.getWebsite()
+            .getWebsiteBlog()) : null);
+    contact.getWebsite().setWebsiteFtp(
+        user.hasAttribute(contact.getWebsite().getWebsiteFtp()) ? user.getAttributeValue(contact.getWebsite()
+            .getWebsiteFtp()) : null);
+    contact.getWebsite().setWebsiteHome(
+        user.hasAttribute(contact.getWebsite().getWebsiteHome()) ? user.getAttributeValue(contact.getWebsite()
+            .getWebsiteHome()) : null);
+    contact.getWebsite().setWebsiteHomepage(
+        user.hasAttribute(contact.getWebsite().getWebsiteHomepage())
+            ? user.getAttributeValue(contact.getWebsite().getWebsiteHomepage())
+            : null);
+    contact.getWebsite().setWebsiteOther(
+        user.hasAttribute(contact.getWebsite().getWebsiteOther()) ? user.getAttributeValue(contact.getWebsite()
+            .getWebsiteOther()) : null);
+    contact.getWebsite().setWebsiteProfile(
+        user.hasAttribute(contact.getWebsite().getWebsiteProfile())
+            ? user.getAttributeValue(contact.getWebsite().getWebsiteProfile())
+            : null);
+    contact.getWebsite().setWebsiteWork(
+        user.hasAttribute(contact.getWebsite().getWebsiteWork()) ? user.getAttributeValue(contact.getWebsite()
+            .getWebsiteWork()) : null);
+    if (contact.getWebsite().isNull()) {
+      contact.setWebsite(null);
+    }
+
+    return contact;
   }
 
   private static List<Modification> fillModification(GoogleContact gc) {
@@ -1635,8 +1692,11 @@ public class Mapping {
       }
     }
 
-    if (gc.getNote().getNotes() != null) {
-      mod.add(new Modification(ModificationType.REPLACE, Constants.NOTES, gc.getNote().getNotes()));
+    NoteSync noteSync = gc.getNote();
+    if (noteSync != null) {
+      if (noteSync.getNotes() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.NOTES, gc.getNote().getNotes()));
+      }
     }
 
     OrganizationSync or = gc.getOrganization();

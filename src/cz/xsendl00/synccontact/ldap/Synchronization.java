@@ -76,21 +76,29 @@ public class Synchronization {
   public void synchronization(final ServerInstance ldapServer, final Context context) throws RemoteException, OperationApplicationException {
     init(context);
 
-    // TODO jsendler 19.05.2014: reinitialize database, find out changes
-
-    // get sync user
-    utils.startTime(TAG, "get local sync contacts");
-    List<ContactRow> contactsId = helperSQL.getSyncContacts();
-    utils.stopTime(TAG, "get local sync contacts size :" + contactsId.size());
-
-    // get contact with dirty flag
-    utils.startTime(TAG, "get local dirty contacts");
-    Map<String, GoogleContact> contactsDirty = mapping.fetchDirtyContacts(context.getContentResolver(), contactsId);
-    utils.stopTime(TAG, "get local dirty contacts size :" + contactsDirty.size());
-
-    // get timestamp last synchronization
+ // get timestamp last synchronization
     String timestamp = helperSQL.newerTimestamp();
     Log.i(TAG, "Last time synchonization : " + timestamp);
+
+    // TODO jsendler 19.05.2014: reinitialize database, find out changes
+    final Map<String, GoogleContact> contactsDirty = new HashMap<String, GoogleContact>();
+    Thread readLocalThread = new Thread(new Runnable() {
+
+      @Override
+      public void run() {
+        // get sync user
+        Utils readUtil = new Utils();
+        readUtil.startTime(TAG, "get local sync contacts");
+        List<ContactRow> contactsId = helperSQL.getSyncContacts();
+        readUtil.stopTime(TAG, "get local sync contacts size :" + contactsId.size());
+
+        // get contact with dirty flag
+        readUtil.startTime(TAG, "get local dirty contacts");
+        contactsDirty.putAll(mapping.fetchDirtyContacts(context.getContentResolver(), contactsId));
+        readUtil.stopTime(TAG, "get local dirty contacts size :" + contactsDirty.size());
+      }
+    });
+    readLocalThread.start();
 
     //TODO: only contacts synchonizitions??
     // get contacts from server which are newer than timestamp
@@ -99,6 +107,12 @@ public class Synchronization {
         ServerUtilities.fetchModifyContactsLDAP(ldapServer, context, handler, timestamp);
     utils.stopTime(TAG, "get server newer contacts size : " + contactsServer.size());
 
+
+    try {
+      readLocalThread.join();
+    } catch (InterruptedException e1) {
+      e1.printStackTrace();
+    }
 
     // intersection local change and LDAP change
     utils.startTime(TAG, "intersection localContacts :" + contactsDirty.size()
@@ -115,13 +129,30 @@ public class Synchronization {
     // difference LDAP change and intersection, must be update on DB
     utils.startTime(TAG, "difference serveContacts : "
         + contactsServer.size() + ", intersection : " + intersection.size());
-    final Map<String, GoogleContact> difference2Database = difference(contactsServer, intersection);
-    utils.stopTime(TAG, "difference serveContacts : " + difference2Database.size());
+    final Map<String, GoogleContact> difference2Local = difference(contactsServer, intersection);
+    utils.stopTime(TAG, "difference serveContacts : " + difference2Local.size());
 
-    // merge contact
-
-    // update db syncContact.db
-
+    utils.startTime(TAG, "conflict");
+    Map<String, GoogleContact> conflictServer = new HashMap<String, GoogleContact>();
+    //Map<String, GoogleContact> conflictLocal = new HashMap<String, GoogleContact>();
+    for (Map.Entry<String, GoogleContact> entry : intersection.entrySet()) {
+      GoogleContact localContact = contactsDirty.get(entry.getKey());
+      GoogleContact serverContact = contactsServer.get(entry.getKey());
+      if (localContact.equals(serverContact)) {
+        difference2Local.put(entry.getKey(), entry.getValue());
+        difference2Server.put(entry.getKey(), entry.getValue());
+      } else {
+        conflictServer.put(entry.getKey(), serverContact);
+        //conflictLocal.put(entry.getKey(), localContact);
+      }
+    }
+    utils.stopTime(TAG, "conflictServer : "  + conflictServer.size());
+    // merge contact - > use data from server
+    difference2Local.putAll(conflictServer);
+//    //difference2Server.putAll(conflictServer);
+//
+//    // update db syncContact.db
+//
     // update db contact.db
     Utils utilLocal = new Utils();
     utilLocal.startTime(TAG, "update local contacts");
@@ -130,7 +161,7 @@ public class Synchronization {
       @Override
       public void run() {
         try {
-          androidDB.updateContactsDb(context, difference2Database);
+          androidDB.updateContactsDb(context, difference2Local);
         } catch (RemoteException e) {
           e.printStackTrace();
         } catch (OperationApplicationException e) {
@@ -140,26 +171,27 @@ public class Synchronization {
     });
     localThread.start();
     utilLocal.stopTime(TAG, "update local contacts");
-
-    // update server contacts
-    Utils utilServer = new Utils();
-    utilServer.startTime(TAG, "update server contacts");
-    Thread serverThread = new Thread(new Runnable() {
-
-      @Override
-      public void run() {
-        serverUtilities.updateContactsServer(ldapServer, context, handler, difference2Server); // differenceDirty
-      }
-    });
-    serverThread.start();
-    utilServer.stopTime(TAG, "update server contacts");
+//
+//    // update server contacts
+//    Utils utilServer = new Utils();
+//    utilServer.startTime(TAG, "update server contacts");
+//    Thread serverThread = new Thread(new Runnable() {
+//
+//      @Override
+//      public void run() {
+//        serverUtilities.updateContactsServer(ldapServer, context, handler, difference2Server); // differenceDirty
+//      }
+//    });
+//    serverThread.start();
+//    utilServer.stopTime(TAG, "update server contacts");
 
 
 
     // set new timestamp
     timestamp = utils.createTimestamp();
-    helperSQL.updateContacts(difference2Server, timestamp);
-    helperSQL.updateContacts(difference2Database, timestamp);
+    Log.i(TAG, "new timestamp:" + timestamp);
+    helperSQL.updateContacts(contactsDirty, timestamp);
+    //helperSQL.updateContacts(difference2Local, timestamp);
 
     // set dirty flag to disable (0)
   }
@@ -207,6 +239,7 @@ public class Synchronization {
     // // set dirty flag to disable (0)
     // //db.updateContacts(differenceDirty, timestamp);
   }
+
 
   /**
    * Intersection based same UUID.

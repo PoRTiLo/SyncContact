@@ -215,4 +215,60 @@ public class SipAddressSync extends AbstractType implements ContactInterface {
     }
     return ops.size() > 0 ? ops : null;
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((homeSip == null) ? 0 : homeSip.hashCode());
+    result = prime * result + ((otherSip == null) ? 0 : otherSip.hashCode());
+    result = prime * result + ((workSip == null) ? 0 : workSip.hashCode());
+    return result;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    SipAddressSync other = (SipAddressSync) obj;
+    if (homeSip == null) {
+      if (other.homeSip != null) {
+        return false;
+      }
+    } else if (!homeSip.equals(other.homeSip)) {
+      return false;
+    }
+    if (otherSip == null) {
+      if (other.otherSip != null) {
+        return false;
+      }
+    } else if (!otherSip.equals(other.otherSip)) {
+      return false;
+    }
+    if (workSip == null) {
+      if (other.workSip != null) {
+        return false;
+      }
+    } else if (!workSip.equals(other.workSip)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public boolean isNull() {
+    return workSip == null && homeSip == null && otherSip == null ;
+  }
+
+
+
 }

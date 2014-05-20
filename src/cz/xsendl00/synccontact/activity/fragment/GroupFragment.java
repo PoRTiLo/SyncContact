@@ -242,19 +242,9 @@ public class GroupFragment extends Fragment implements
     HelperSQL db = new HelperSQL(getActivity());
     for (GroupRow groupRow : groups) {
       final String id = groupRow.getId();
-
       db.updateGroupSync(groupRow);
       List<ContactRow> list = contactManager.getGroupsContacts().get(id);
       db.updateContactsSync(list, isChecked);
-
-//      if (getActivity() != null) {
-//        final Set<String> list = new ContactRow().fetchGroupMembersId(contentResolver, id);
-//        if (list != null) {
-//          db.updateContactsSync(list, isChecked);
-//        }
-//      } else {
-//        Log.i(TAG, "je nulllllll");
-//      }
     }
   }
 

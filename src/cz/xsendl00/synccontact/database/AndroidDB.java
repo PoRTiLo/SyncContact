@@ -62,18 +62,20 @@ public class AndroidDB {
       Log.i(TAG, "uuid:: " + entry.getKey() + " mapping to:" + id);
       GoogleContact googleContact = mapping.mappingContactFromDB(context.getContentResolver(), id,
           entry.getKey());
+      Log.i(TAG, "local:" + googleContact.toString());
+      Log.i(TAG, "server:" + entry.getValue().toString());
       Log.i(TAG, "z db se vzal: " + entry.getValue().getStructuredName().getDisplayName());
       op.addAll(GoogleContact.createOperationUpdate(googleContact, entry.getValue()));
     }
     for (ContentProviderOperation o : op) {
       Log.i(TAG, o.toString());
     }
-    // Log.i(TAG, String.valueOf(op.size()));
-    // ContentProviderResult[] contactUri =
-    // context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, op);
-    // for (ContentProviderResult a : contactUri) {
-    // Log.i(TAG, "res:" + a);
-    // }
+     Log.i(TAG, String.valueOf(op.size()));
+     ContentProviderResult[] contactUri =
+     context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, op);
+     for (ContentProviderResult a : contactUri) {
+     Log.i(TAG, "res:" + a);
+     }
 
     return true;
   }

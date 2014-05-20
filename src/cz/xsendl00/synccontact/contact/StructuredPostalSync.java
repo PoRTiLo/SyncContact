@@ -733,4 +733,236 @@ public class StructuredPostalSync extends AbstractType implements ContactInterfa
     }
     return value;
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((homeCity == null) ? 0 : homeCity.hashCode());
+    result = prime * result + ((homeCountry == null) ? 0 : homeCountry.hashCode());
+    result = prime * result
+        + ((homeFormattedAddress == null) ? 0 : homeFormattedAddress.hashCode());
+    result = prime * result + ((homeNeighborhood == null) ? 0 : homeNeighborhood.hashCode());
+    result = prime * result + ((homePOBox == null) ? 0 : homePOBox.hashCode());
+    result = prime * result + ((homePostalCode == null) ? 0 : homePostalCode.hashCode());
+    result = prime * result + ((homeRegion == null) ? 0 : homeRegion.hashCode());
+    result = prime * result + ((homeStreet == null) ? 0 : homeStreet.hashCode());
+    result = prime * result + ((otherCity == null) ? 0 : otherCity.hashCode());
+    result = prime * result + ((otherCountry == null) ? 0 : otherCountry.hashCode());
+    result = prime * result
+        + ((otherFormattedAddress == null) ? 0 : otherFormattedAddress.hashCode());
+    result = prime * result + ((otherNeighborhood == null) ? 0 : otherNeighborhood.hashCode());
+    result = prime * result + ((otherPOBox == null) ? 0 : otherPOBox.hashCode());
+    result = prime * result + ((otherPostalCode == null) ? 0 : otherPostalCode.hashCode());
+    result = prime * result + ((otherRegion == null) ? 0 : otherRegion.hashCode());
+    result = prime * result + ((otherStreet == null) ? 0 : otherStreet.hashCode());
+    result = prime * result + ((workCity == null) ? 0 : workCity.hashCode());
+    result = prime * result + ((workCountry == null) ? 0 : workCountry.hashCode());
+    result = prime * result
+        + ((workFormattedAddress == null) ? 0 : workFormattedAddress.hashCode());
+    result = prime * result + ((workNeighborhood == null) ? 0 : workNeighborhood.hashCode());
+    result = prime * result + ((workPOBox == null) ? 0 : workPOBox.hashCode());
+    result = prime * result + ((workPostalCode == null) ? 0 : workPostalCode.hashCode());
+    result = prime * result + ((workRegion == null) ? 0 : workRegion.hashCode());
+    result = prime * result + ((workStreet == null) ? 0 : workStreet.hashCode());
+    return result;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    StructuredPostalSync other = (StructuredPostalSync) obj;
+    if (homeCity == null) {
+      if (other.homeCity != null) {
+        return false;
+      }
+    } else if (!homeCity.equals(other.homeCity)) {
+      return false;
+    }
+    if (homeCountry == null) {
+      if (other.homeCountry != null) {
+        return false;
+      }
+    } else if (!homeCountry.equals(other.homeCountry)) {
+      return false;
+    }
+    if (homeFormattedAddress == null) {
+      if (other.homeFormattedAddress != null) {
+        return false;
+      }
+    } else if (!homeFormattedAddress.equals(other.homeFormattedAddress)) {
+      return false;
+    }
+    if (homeNeighborhood == null) {
+      if (other.homeNeighborhood != null) {
+        return false;
+      }
+    } else if (!homeNeighborhood.equals(other.homeNeighborhood)) {
+      return false;
+    }
+    if (homePOBox == null) {
+      if (other.homePOBox != null) {
+        return false;
+      }
+    } else if (!homePOBox.equals(other.homePOBox)) {
+      return false;
+    }
+    if (homePostalCode == null) {
+      if (other.homePostalCode != null) {
+        return false;
+      }
+    } else if (!homePostalCode.equals(other.homePostalCode)) {
+      return false;
+    }
+    if (homeRegion == null) {
+      if (other.homeRegion != null) {
+        return false;
+      }
+    } else if (!homeRegion.equals(other.homeRegion)) {
+      return false;
+    }
+    if (homeStreet == null) {
+      if (other.homeStreet != null) {
+        return false;
+      }
+    } else if (!homeStreet.equals(other.homeStreet)) {
+      return false;
+    }
+    if (otherCity == null) {
+      if (other.otherCity != null) {
+        return false;
+      }
+    } else if (!otherCity.equals(other.otherCity)) {
+      return false;
+    }
+    if (otherCountry == null) {
+      if (other.otherCountry != null) {
+        return false;
+      }
+    } else if (!otherCountry.equals(other.otherCountry)) {
+      return false;
+    }
+    if (otherFormattedAddress == null) {
+      if (other.otherFormattedAddress != null) {
+        return false;
+      }
+    } else if (!otherFormattedAddress.equals(other.otherFormattedAddress)) {
+      return false;
+    }
+    if (otherNeighborhood == null) {
+      if (other.otherNeighborhood != null) {
+        return false;
+      }
+    } else if (!otherNeighborhood.equals(other.otherNeighborhood)) {
+      return false;
+    }
+    if (otherPOBox == null) {
+      if (other.otherPOBox != null) {
+        return false;
+      }
+    } else if (!otherPOBox.equals(other.otherPOBox)) {
+      return false;
+    }
+    if (otherPostalCode == null) {
+      if (other.otherPostalCode != null) {
+        return false;
+      }
+    } else if (!otherPostalCode.equals(other.otherPostalCode)) {
+      return false;
+    }
+    if (otherRegion == null) {
+      if (other.otherRegion != null) {
+        return false;
+      }
+    } else if (!otherRegion.equals(other.otherRegion)) {
+      return false;
+    }
+    if (otherStreet == null) {
+      if (other.otherStreet != null) {
+        return false;
+      }
+    } else if (!otherStreet.equals(other.otherStreet)) {
+      return false;
+    }
+    if (workCity == null) {
+      if (other.workCity != null) {
+        return false;
+      }
+    } else if (!workCity.equals(other.workCity)) {
+      return false;
+    }
+    if (workCountry == null) {
+      if (other.workCountry != null) {
+        return false;
+      }
+    } else if (!workCountry.equals(other.workCountry)) {
+      return false;
+    }
+    if (workFormattedAddress == null) {
+      if (other.workFormattedAddress != null) {
+        return false;
+      }
+    } else if (!workFormattedAddress.equals(other.workFormattedAddress)) {
+      return false;
+    }
+    if (workNeighborhood == null) {
+      if (other.workNeighborhood != null) {
+        return false;
+      }
+    } else if (!workNeighborhood.equals(other.workNeighborhood)) {
+      return false;
+    }
+    if (workPOBox == null) {
+      if (other.workPOBox != null) {
+        return false;
+      }
+    } else if (!workPOBox.equals(other.workPOBox)) {
+      return false;
+    }
+    if (workPostalCode == null) {
+      if (other.workPostalCode != null) {
+        return false;
+      }
+    } else if (!workPostalCode.equals(other.workPostalCode)) {
+      return false;
+    }
+    if (workRegion == null) {
+      if (other.workRegion != null) {
+        return false;
+      }
+    } else if (!workRegion.equals(other.workRegion)) {
+      return false;
+    }
+    if (workStreet == null) {
+      if (other.workStreet != null) {
+        return false;
+      }
+    } else if (!workStreet.equals(other.workStreet)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public boolean isNull() {
+    return homeStreet == null && homePOBox == null && homeCity == null && homeRegion == null
+        && homePostalCode == null && homeCountry == null && workStreet == null && workPOBox == null
+        && workCity == null && workRegion == null && workPostalCode == null && workCountry == null
+        && workFormattedAddress == null && homeFormattedAddress == null && workNeighborhood == null
+        && homeNeighborhood == null && otherNeighborhood == null && otherStreet == null
+        && otherCity == null && otherPOBox == null && otherRegion == null && otherPostalCode == null
+        && otherCountry == null && otherFormattedAddress == null;
+  }
+
+
 }
