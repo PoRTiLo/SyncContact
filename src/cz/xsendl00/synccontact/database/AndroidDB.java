@@ -32,10 +32,52 @@ import cz.xsendl00.synccontact.utils.Mapping;
 public class AndroidDB {
 
   @Bean
-  Mapping mapping;
+  protected Mapping mapping;
 
   private static final String TAG = "AndroidDB";
   private static final int MAX_OPERATIONS_IYELD = 500;
+
+  /**
+   * Clear dirty bit in raw_contact.
+   *
+   * @param context context
+   * @param contactsDirty contactsDirty list of contact for set dirty bit to 0
+   */
+  public void cleanModifyStatus(final Context context,
+      final Map<String, GoogleContact> contactsDirty) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    int count = 0;
+    for (Map.Entry<String, GoogleContact> entry : contactsDirty.entrySet()) {
+      if (count < MAX_OPERATIONS_IYELD) {
+        ops.add(ContentProviderOperation.newUpdate(
+            ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI,
+                Integer.valueOf(entry.getValue().getId())))
+            .withValue(RawContacts.DIRTY, 0)
+            .build());
+        count = 0;
+      } else {
+        ops.add(ContentProviderOperation.newUpdate(
+            ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI,
+                Integer.valueOf(entry.getValue().getId())))
+            .withValue(RawContacts.DIRTY, 0)
+            .withYieldAllowed(true)
+            .build());
+      }
+      count++;
+    }
+    try {
+      ContentProviderResult[] con = context.getContentResolver().applyBatch(
+          ContactsContract.AUTHORITY, ops);
+      Log.i(TAG, " cleanModifyStatus done: " + con.length);
+      for (ContentProviderResult cn : con) {
+        Log.i(TAG, cn.toString());
+      }
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    } catch (OperationApplicationException e) {
+      e.printStackTrace();
+    }
+  }
 
   /**
    * Update Contacts.
@@ -47,14 +89,13 @@ public class AndroidDB {
    * @throws OperationApplicationException OperationApplicationException
    * @throws RemoteException RemoteException
    */
-  public boolean updateContactsDb(final Context context, final Map<String, GoogleContact> differenceLDAP)
-      throws RemoteException, OperationApplicationException {
+  public boolean updateContactsDb(final Context context,
+      final Map<String, GoogleContact> differenceLDAP) throws RemoteException,
+      OperationApplicationException {
 
     ArrayList<ContentProviderOperation> op = new ArrayList<ContentProviderOperation>();
-
     // for every contact do:
     for (Map.Entry<String, GoogleContact> entry : differenceLDAP.entrySet()) {
-      //Log.i(TAG, "zpracovava se: " + entry.getValue().getStructuredName().getDisplayName());
       HelperSQL helperSQL = new HelperSQL(context);
       // get raw_id from local database
       String id = helperSQL.getContactId(entry.getKey());
@@ -67,18 +108,24 @@ public class AndroidDB {
       Log.i(TAG, "z db se vzal: " + entry.getValue().getStructuredName().getDisplayName());
       op.addAll(GoogleContact.createOperationUpdate(googleContact, entry.getValue()));
     }
-    for (ContentProviderOperation o : op) {
-      Log.i(TAG, o.toString());
+    try {
+      for (ContentProviderOperation o : op) {
+        Log.i(TAG, o.toString());
+      }
+      Log.i(TAG, String.valueOf(op.size()));
+      ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(
+          ContactsContract.AUTHORITY, op);
+      for (ContentProviderResult a : contactUri) {
+        Log.i(TAG, "res:" + a);
+      }
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    } catch (OperationApplicationException e) {
+      e.printStackTrace();
     }
-     Log.i(TAG, String.valueOf(op.size()));
-     ContentProviderResult[] contactUri =
-     context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, op);
-     for (ContentProviderResult a : contactUri) {
-     Log.i(TAG, "res:" + a);
-     }
-
     return true;
   }
+
 
   /**
    * Import contact to new SyncContact account.
@@ -174,7 +221,7 @@ public class AndroidDB {
 
 
   /**
-   * get contact Id by raw id.
+   * Get contact Id by raw id.
    *
    * @param context context
    * @param idRaw idRaw
@@ -202,17 +249,19 @@ public class AndroidDB {
 
 
   /**
+   * Get display name from table raw_contact.
    *
-   * @param contentResolver
-   * @param idRaw
-   * @return
+   * @param contentResolver contentResolver
+   * @param idRaw id contact
+   * @return name
    */
   public String fetchContactName(ContentResolver contentResolver, String idRaw) {
     String name = null;
     Cursor cursor = null;
     try {
       cursor = contentResolver.query(RawContacts.CONTENT_URI,
-          new String[]{RawContacts.DISPLAY_NAME_PRIMARY}, RawContacts._ID + "=?", new String[]{idRaw}, null);
+          new String[]{RawContacts.DISPLAY_NAME_PRIMARY}, RawContacts._ID + "=?",
+          new String[]{idRaw}, null);
       while (cursor.moveToNext()) {
         name = cursor.getString(cursor.getColumnIndex(RawContacts.DISPLAY_NAME_PRIMARY));
         break;
@@ -220,16 +269,38 @@ public class AndroidDB {
     } catch (Exception ex) {
       ex.printStackTrace();
     } finally {
-      try {
-        if (cursor != null && !cursor.isClosed()) {
-          cursor.close();
-        }
-      } catch (Exception ex) {
-        ex.printStackTrace();
+      if (cursor != null && !cursor.isClosed()) {
+        cursor.close();
       }
     }
     return name;
   }
+
+  /**
+   * Get deleted contacts id.
+   * @param contentResolver contentResolver
+   * @return list of ids deleted contacts
+   */
+  public List<String> fetchContactsDeleted(ContentResolver contentResolver) {
+    List<String> deletedContacts = new ArrayList<String>();
+    Cursor cursor = null;
+    try {
+      cursor = contentResolver.query(RawContacts.CONTENT_URI,
+          new String[]{RawContacts._ID}, RawContacts.DELETED + "<>0",
+          null, null);
+      while (cursor.moveToNext()) {
+        deletedContacts.add(cursor.getString(cursor.getColumnIndex(RawContacts._ID)));
+      }
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    } finally {
+      if (cursor != null && !cursor.isClosed()) {
+        cursor.close();
+      }
+    }
+    return deletedContacts;
+  }
+
 
   /**
    * Fetch all contact from contact provider database.
@@ -256,12 +327,8 @@ public class AndroidDB {
     } catch (Exception ex) {
       ex.printStackTrace();
     } finally {
-      try {
-        if (cursor != null && !cursor.isClosed()) {
-          cursor.close();
-        }
-      } catch (Exception ex) {
-        ex.printStackTrace();
+      if (cursor != null && !cursor.isClosed()) {
+        cursor.close();
       }
     }
     return contacts;

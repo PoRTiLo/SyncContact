@@ -52,42 +52,25 @@ import cz.xsendl00.synccontact.contact.StructuredNameSync;
 import cz.xsendl00.synccontact.contact.StructuredPostalSync;
 import cz.xsendl00.synccontact.contact.WebsiteSync;
 import cz.xsendl00.synccontact.database.AndroidDB;
-import cz.xsendl00.synccontact.database.HelperSQL;
 
+/**
+ * Mapping objects to other objects.
+ */
 @EBean
 public class Mapping {
 
   private static final String TAG = "Mapping";
-
-  // TODO: nemam tam byt RawContacts._ID + "=? AND " + RawContacts.DIRTY + "=?",
-  public static List<String> fetchDirtyContacts(Context context) {
-    HelperSQL db = new HelperSQL(context);
-    List<String> list = db.getSyncContactsId();
-    List<String> dirtyContactsId = new ArrayList<String>();
-    for (String id : list) {
-      // Log.i(TAG, id);
-      Cursor c = context.getContentResolver().query(RawContacts.CONTENT_URI,
-          new String[]{RawContacts._ID},
-          RawContacts.CONTACT_ID + "=? AND " + RawContacts.DIRTY + "=?",
-          new String[]{id.toString(), "1"}, null);
-      while (c.moveToNext()) {
-        // Log.i(TAG, c.getString(c.getColumnIndex(RawContacts._ID)));
-        dirtyContactsId.add(c.getString(c.getColumnIndex(RawContacts._ID)));
-      }
-      c.close();
-    }
-    return dirtyContactsId;
-  }
 
   /**
    * Fetch contact selected like modified. In database SYNC = 1;
    *
    * @param contentResolver contentResolver
    * @param list list of synchronization contacts.
+   * @param ids list of deleted local contacts
    * @return map of UUID and googleContact.
    */
-  public Map<String, GoogleContact> fetchDirtyContacts(ContentResolver contentResolver,
-      List<ContactRow> list) {
+  public Map<String, GoogleContact> fetchDirtyContacts(final ContentResolver contentResolver,
+      final List<ContactRow> list, List<String> ids) {
     Map<String, GoogleContact> dirtyContacts = new HashMap<String, GoogleContact>();
     Cursor cursor = null;
     try {
@@ -95,17 +78,22 @@ public class Mapping {
       cursor = contentResolver.query(RawContacts.CONTENT_URI, new String[]{RawContacts._ID},
           RawContacts.DIRTY + "=?", new String[]{"1"}, null);
       List<String> dirtys = new ArrayList<String>();
+
       while (cursor.moveToNext()) {
         dirtys.add(cursor.getString(cursor.getColumnIndex(RawContacts._ID)));
       }
       if (cursor != null && !cursor.isClosed()) {
         cursor.close();
       }
-
+      List<String> deletedContacts = new AndroidDB().fetchContactsDeleted(contentResolver);
+      ids.addAll(deletedContacts);
       for (ContactRow contactRow : list) {
         if (dirtys.contains(contactRow.getId())) {
-          GoogleContact googleContact = mappingContactFromDB(contentResolver, contactRow.getId(),
-              contactRow.getUuid());
+          GoogleContact googleContact = mappingContactFromDB(contentResolver, contactRow.getId(), contactRow.getUuid());
+          if (deletedContacts.contains(contactRow.getId())) {
+            googleContact.setDeleted(true);
+            googleContact.setSynchronize(false);
+          }
           dirtyContacts.put(contactRow.getUuid(), googleContact);
         }
       }
@@ -322,24 +310,28 @@ public class Mapping {
   }
 
   /**
-   * @param gc
-   * @param baseDn
-   * @return
+   * Create add request for adding new contact to server.
+   * @param googleContact googleContact
+   * @param baseDn baseDn
+   * @return request
    */
-  public AddRequest mappingAddRequest(GoogleContact gc, String baseDn) {
+  public AddRequest mappingAddRequest(GoogleContact googleContact, String baseDn) {
 
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-
     attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GOOGLE));
-    attributes.add(new Attribute(Constants.UUID, gc.getUuid()));
+    attributes.add(new Attribute(Constants.UUID, googleContact.getUuid()));
+    String sync = googleContact.isSynchronize() ? "TRUE" : "FALSE";
+    attributes.add(new Attribute(Constants.LDAP_SYNCHRONIZE, sync));
+    String deleted = googleContact.isDeleted() ? "TRUE" : "FALSE";
+    attributes.add(new Attribute(Constants.LDAP_DELETED, deleted));
 
-    ArrayList<Attribute> attributesTemp = fillAttribute(gc);
+    ArrayList<Attribute> attributesTemp = fillAttribute(googleContact);
     if (attributesTemp != null && !attributesTemp.isEmpty()) {
       attributes.addAll(attributesTemp);
     }
     // TODO:predtim 2
     if (attributes != null && attributes.size() > 1) {
-      AddRequest addRequest = new AddRequest(Constants.UUID + "=" + gc.getUuid().toString() + ","
+      AddRequest addRequest = new AddRequest(Constants.UUID + "=" + googleContact.getUuid().toString() + ","
           + Constants.ACCOUNT_OU_PEOPLE + baseDn, attributes);
       // Log.i(TAG, "AddRequest : " + addRequest.toLDIFString());
       return addRequest;
@@ -383,12 +375,27 @@ public class Mapping {
     }
   }
 
-  public static ModifyRequest mappingRequest(GoogleContact gc, String baseDn) {
-    List<Modification> mod;
-    mod = fillModification(gc);
+  public ModifyRequest mappingRequestModifyDeleted(GoogleContact googleContact, String baseDn) {
+    List<Modification> modifications = new ArrayList<Modification>();
+    modifications.add(new Modification(ModificationType.REPLACE, Constants.LDAP_SYNCHRONIZE, googleContact.getSynchronize()));
+    modifications.add(new Modification(ModificationType.REPLACE, Constants.LDAP_DELETED, googleContact.getDeleted()));
+    ModifyRequest modifyRequest = new ModifyRequest(Constants.UUID + "="
+          + googleContact.getUuid().toString() + "," + Constants.ACCOUNT_OU_PEOPLE + baseDn, modifications);
+       Log.i(TAG, "ModifyRequest : " + modifyRequest.toLDIFString());
+    return modifyRequest;
+  }
+
+  public ModifyRequest mappingRequest(GoogleContact googleContact, String baseDn) {
+    List<Modification> mod = fillModification(googleContact);
     if (mod != null && mod.size() > 0) {
+      mod.add(new Modification(ModificationType.REPLACE, Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GOOGLE));
+      mod.add(new Modification(ModificationType.REPLACE, Constants.UUID, googleContact.getUuid()));
+      mod.add(new Modification(ModificationType.REPLACE, Constants.LDAP_SYNCHRONIZE, googleContact.getSynchronize()));
+      mod.add(new Modification(ModificationType.REPLACE, Constants.LDAP_DELETED, googleContact.getDeleted()));
+
+
       ModifyRequest modifyRequest = new ModifyRequest(Constants.UUID + "="
-          + gc.getUuid().toString() + "," + Constants.ACCOUNT_OU_PEOPLE + baseDn, mod);
+          + googleContact.getUuid().toString() + "," + Constants.ACCOUNT_OU_PEOPLE + baseDn, mod);
       // Log.i(TAG, "ModifyRequest : " + modifyRequest.toLDIFString());
       return modifyRequest;
     } else {
@@ -429,13 +436,18 @@ public class Mapping {
     return attributes;
   }
 
-  private static ArrayList<Attribute> fillAttribute(GoogleContact gc) {
+  /**
+   * Create Attribute list from {@link GoogleContact}.
+   * @param googleContact googleContact
+   * @return list of attributes
+   */
+  private ArrayList<Attribute> fillAttribute(GoogleContact googleContact) {
 
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 
     // Log.i(TAG, "fillAttribute : " + gc.toString());
 
-    EmailSync e = gc.getEmail();
+    EmailSync e = googleContact.getEmail();
     if (e != null) {
       if (e.getHomeMail() != null) {
         attributes.add(new Attribute(Constants.HOME_MAIL, e.getHomeMail()));
@@ -451,7 +463,7 @@ public class Mapping {
       }
     }
 
-    EventSync ev = gc.getEvent();
+    EventSync ev = googleContact.getEvent();
     if (ev != null) {
       if (ev.getEventAnniversary() != null) {
         attributes.add(new Attribute(Constants.EVENT_ANNIVERSARY, ev.getEventAnniversary()));
@@ -464,7 +476,7 @@ public class Mapping {
       }
     }
 
-    IdentitySync id = gc.getIdentity();
+    IdentitySync id = googleContact.getIdentity();
     if (id != null) {
       if (id.getIdentityNamespace() != null) {
         attributes.add(new Attribute(Constants.IDENTITY_NAMESPACE, id.getIdentityNamespace()));
@@ -474,7 +486,7 @@ public class Mapping {
       }
     }
 
-    ImSync im = gc.getImSync();
+    ImSync im = googleContact.getImSync();
     if (im != null) {
       if (im.getImHomeAim() != null) {
         attributes.add(new Attribute(Constants.IM_HOME_AIM, im.getImHomeAim()));
@@ -561,7 +573,7 @@ public class Mapping {
       }
     }
 
-    NicknameSync ni = gc.getNickname();
+    NicknameSync ni = googleContact.getNickname();
     if (ni != null) {
       if (ni.getNicknameDefault() != null) {
         attributes.add(new Attribute(Constants.NICKNAME_DEFAULT, ni.getNicknameDefault()));
@@ -580,14 +592,14 @@ public class Mapping {
       }
     }
 
-    NoteSync noteSync = gc.getNote();
+    NoteSync noteSync = googleContact.getNote();
     if (noteSync != null) {
       if (noteSync.getNotes() != null) {
         attributes.add(new Attribute(Constants.NOTES, noteSync.getNotes()));
       }
     }
 
-    OrganizationSync or = gc.getOrganization();
+    OrganizationSync or = googleContact.getOrganization();
     if (or != null) {
       if (or.getOrganizationOtherCompany() != null) {
         attributes.add(new Attribute(Constants.ORGANIZATION_OTHER_COMPANY,
@@ -656,7 +668,7 @@ public class Mapping {
       }
     }
 
-    PhoneSync ph = gc.getPhone();
+    PhoneSync ph = googleContact.getPhone();
     if (ph != null) {
       if (ph.getPhoneAssistant() != null) {
         attributes.add(new Attribute(Constants.PHONE_ASSISTANT, ph.getPhoneAssistant()));
@@ -720,7 +732,7 @@ public class Mapping {
       }
     }
 
-    RelationSync re = gc.getRelation();
+    RelationSync re = googleContact.getRelation();
     if (re != null) {
       if (re.getRelationAssistant() != null) {
         attributes.add(new Attribute(Constants.RELATION_ASSISTANT, re.getRelationAssistant()));
@@ -767,7 +779,7 @@ public class Mapping {
       }
     }
 
-    SipAddressSync si = gc.getSipAddress();
+    SipAddressSync si = googleContact.getSipAddress();
     if (si != null) {
       if (si.getHomeSip() != null) {
         attributes.add(new Attribute(Constants.HOME_SIP, si.getHomeSip()));
@@ -780,7 +792,7 @@ public class Mapping {
       }
     }
 
-    StructuredNameSync sn = gc.getStructuredName();
+    StructuredNameSync sn = googleContact.getStructuredName();
     if (sn != null) {
       if (sn.getDisplayName() != null) {
         attributes.add(new Attribute(Constants.DISPLAY_NAME, sn.getDisplayName()));
@@ -811,7 +823,7 @@ public class Mapping {
       }
     }
 
-    StructuredPostalSync sp = gc.getStructuredPostal();
+    StructuredPostalSync sp = googleContact.getStructuredPostal();
     if (sp != null) {
       if (sp.getHomeCity() != null) {
         attributes.add(new Attribute(Constants.HOME_CITY, sp.getHomeCity()));
@@ -888,7 +900,7 @@ public class Mapping {
       }
     }
 
-    WebsiteSync we = gc.getWebsite();
+    WebsiteSync we = googleContact.getWebsite();
     if (we != null) {
       if (we.getWebsiteBlog() != null) {
         attributes.add(new Attribute(Constants.WEBSITE_BLOG, we.getWebsiteBlog()));
@@ -931,6 +943,7 @@ public class Mapping {
       contact = new GoogleContact();
       contact.setId(id);
       contact.setUuid(uuid);
+      contact.setSynchronize(true);
       while (cursor.moveToNext()) {
         fillContact(cursor, contact);
       }
@@ -962,6 +975,10 @@ public class Mapping {
   public static GoogleContact mappingContactFromLDAP(ReadOnlyEntry user) {
     GoogleContact contact = GoogleContact.defaultValue();
     contact.setUuid(user.hasAttribute(Constants.UUID) ? user.getAttributeValue(Constants.UUID) : null);
+    contact.setDeleted(user.hasAttribute(Constants.LDAP_DELETED)
+        ? user.getAttributeValueAsBoolean(Constants.LDAP_DELETED) : false);
+    contact.setSynchronize(user.hasAttribute(Constants.LDAP_SYNCHRONIZE)
+        ? user.getAttributeValueAsBoolean(Constants.LDAP_SYNCHRONIZE) : false);
     // email
     contact.getEmail().setHomeMail(
         user.hasAttribute(contact.getEmail().getHomeMail()) ? user.getAttributeValue(contact.getEmail()
@@ -1519,35 +1536,35 @@ public class Mapping {
   private static List<Modification> fillModification(GoogleContact gc) {
     List<Modification> mod = new ArrayList<Modification>();
 
-    EmailSync e = gc.getEmail();
-    if (e != null) {
-      if (e.getHomeMail() != null) {
-        mod.add(new Modification(ModificationType.REPLACE, Constants.HOME_MAIL, e.getHomeMail()));
+    EmailSync emailSync = gc.getEmail();
+    if (emailSync != null) {
+      if (emailSync.getHomeMail() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.HOME_MAIL, emailSync.getHomeMail()));
       }
-      if (e.getMobileMail() != null) {
-        mod.add(new Modification(ModificationType.REPLACE, Constants.MOBILE_MAIL, e.getMobileMail()));
+      if (emailSync.getMobileMail() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.MOBILE_MAIL, emailSync.getMobileMail()));
       }
-      if (e.getOtherMail() != null) {
-        mod.add(new Modification(ModificationType.REPLACE, Constants.OTHER_MAIL, e.getOtherMail()));
+      if (emailSync.getOtherMail() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.OTHER_MAIL, emailSync.getOtherMail()));
       }
-      if (e.getWorkMail() != null) {
-        mod.add(new Modification(ModificationType.REPLACE, Constants.WORK_MAIL, e.getWorkMail()));
+      if (emailSync.getWorkMail() != null) {
+        mod.add(new Modification(ModificationType.REPLACE, Constants.WORK_MAIL, emailSync.getWorkMail()));
       }
     }
 
-    EventSync ev = gc.getEvent();
-    if (ev != null) {
-      if (ev.getEventAnniversary() != null) {
+    EventSync eventSync = gc.getEvent();
+    if (eventSync != null) {
+      if (eventSync.getEventAnniversary() != null) {
         mod.add(new Modification(ModificationType.REPLACE, Constants.EVENT_ANNIVERSARY,
-            ev.getEventAnniversary()));
+            eventSync.getEventAnniversary()));
       }
-      if (ev.getEventBirthday() != null) {
+      if (eventSync.getEventBirthday() != null) {
         mod.add(new Modification(ModificationType.REPLACE, Constants.EVENT_BIRTHDAY,
-            ev.getEventBirthday()));
+            eventSync.getEventBirthday()));
       }
-      if (ev.getEventOther() != null) {
+      if (eventSync.getEventOther() != null) {
         mod.add(new Modification(ModificationType.REPLACE, Constants.EVENT_OTHER,
-            ev.getEventOther()));
+            eventSync.getEventOther()));
       }
     }
 

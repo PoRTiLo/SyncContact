@@ -10,6 +10,7 @@ import org.androidannotations.annotations.UiThread;
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -70,9 +71,10 @@ public class GroupFragment extends Fragment implements
   @Override
   public void onResume() {
     super.onResume();
-    if (!contactManager.isContactsLocalInit() || !contactManager.isGroupsLocalInit()) {
-      initContactManager();
-    }
+    Log.i(TAG, "onResume");
+    //if (!contactManager.isContactsLocalInit() || !contactManager.isGroupsLocalInit()) {
+    //  initContactManager();
+    //}
     isSelectedAll();
     listRow = (ListView) getActivity().findViewById(R.id.list_group);
     adapter = new RowGroupAdapter(getActivity().getApplicationContext(),
@@ -104,9 +106,9 @@ public class GroupFragment extends Fragment implements
   @Override
   public void onPrepareOptionsMenu(Menu menu) {
     MenuItem item = menu.findItem(R.id.action_select);
-    String newText = !selectAll
-        ? getString(R.string.group_select_all)
-        : getString(R.string.group_select_no);
+    String newText = selectAll
+        ? getString(R.string.group_select_no)
+        : getString(R.string.group_select_all);
     item.setTitle(newText);
     super.onPrepareOptionsMenu(menu);
   }
@@ -212,21 +214,21 @@ public class GroupFragment extends Fragment implements
       for (ContactRow contactRow : list) {
         contactRow.setSync(isChecked);
       }
-//      if (getActivity() != null) {
-//        final Set<String> list = new ContactRow().fetchGroupMembersId(contentResolver, id);
-//        if (list != null) {
-//          for (String id1 : list) {
-//            for (ContactRow c : contactManager.getContactsLocal()) {
-//              if (c.getId().equals(id1)) {
-//                c.setSync(isChecked);
-//                break;
-//              }
-//            }
-//          }
-//        }
-//      } else {
-//        Log.i(TAG, "je nulllllll taky");
-//      }
+////      if (getActivity() != null) {
+////        final Set<String> list = new ContactRow().fetchGroupMembersId(contentResolver, id);
+////        if (list != null) {
+////          for (String id1 : list) {
+////            for (ContactRow c : contactManager.getContactsLocal()) {
+////              if (c.getId().equals(id1)) {
+////                c.setSync(isChecked);
+////                break;
+////              }
+////            }
+////          }
+////        }
+////      } else {
+////        Log.i(TAG, "je nulllllll taky");
+////      }
     }
   }
 
@@ -261,8 +263,8 @@ public class GroupFragment extends Fragment implements
    * Update adapter in main thread.
    */
   @UiThread
-  protected void updateAdapter() {
+  public void updateAdapter() {
     adapter.notifyDataSetChanged();
+    isSelectedAll();
   }
-
 }

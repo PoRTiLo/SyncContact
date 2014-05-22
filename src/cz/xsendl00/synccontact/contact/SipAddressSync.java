@@ -266,9 +266,7 @@ public class SipAddressSync extends AbstractType implements ContactInterface {
 
   @Override
   public boolean isNull() {
-    return workSip == null && homeSip == null && otherSip == null ;
+    return workSip == null && homeSip == null && otherSip == null;
   }
-
-
 
 }

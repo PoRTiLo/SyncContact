@@ -57,15 +57,16 @@ public class RowGroupAdapter extends BaseAdapter {
 
     LayoutInflater inflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 
-    if (convertView == null) {
-      convertView = inflater.inflate(R.layout.row_group, null);
+    View view = convertView;
+    if (view == null) {
+      view = inflater.inflate(R.layout.row_group, null);
       holder = new ViewHolder();
-      holder.groupName = (TextView) convertView.findViewById(R.id.row_group_name);
-      holder.groupSize = (TextView) convertView.findViewById(R.id.row_group_size);
-      holder.checkSync = (CheckBox) convertView.findViewById(R.id.row_group_sync);
-      convertView.setTag(holder);
+      holder.groupName = (TextView) view.findViewById(R.id.row_group_name);
+      holder.groupSize = (TextView) view.findViewById(R.id.row_group_size);
+      holder.checkSync = (CheckBox) view.findViewById(R.id.row_group_sync);
+      view.setTag(holder);
     } else {
-      holder = (ViewHolder) convertView.getTag();
+      holder = (ViewHolder) view.getTag();
     }
     holder.checkSync.setTag(position);
     holder.checkSync.setOnCheckedChangeListener(par);
@@ -73,6 +74,6 @@ public class RowGroupAdapter extends BaseAdapter {
     holder.groupName.setText(group.getName());
     holder.groupSize.setText("Number of contact: " + group.getSize());
     holder.checkSync.setChecked(group.isSync());
-    return convertView;
+    return view;
   }
 }

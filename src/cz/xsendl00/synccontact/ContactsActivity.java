@@ -1,20 +1,24 @@
 package cz.xsendl00.synccontact;
 
+import java.util.Set;
+
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
+import org.androidannotations.api.BackgroundExecutor;
 
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
-import cz.xsendl00.synccontact.activity.fragment.ContactFragment_;
-import cz.xsendl00.synccontact.activity.fragment.GroupFragment_;
+import cz.xsendl00.synccontact.activity.fragment.ContactFragment;
+import cz.xsendl00.synccontact.activity.fragment.GroupFragment;
 import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.utils.Constants;
 
@@ -26,6 +30,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 @EActivity(R.layout.activity_contacts)
 public class ContactsActivity extends Activity {
 
+  private static final String TAG = "ContactsActivity";
   /**
    * ProgressBar show by loading data.
    */
@@ -44,11 +49,14 @@ public class ContactsActivity extends Activity {
     first = intent.getBooleanExtra(Constants.INTENT_FIRST, false);
 
     contactManager = ContactManager.getInstance(getApplicationContext());
+    init();
     if (!contactManager.isContactsLocalInit() || !contactManager.isGroupsLocalInit()) {
       loadData();
     } else {
+      disableProgressbar();
       init();
     }
+
   }
 
   @Override
@@ -94,22 +102,43 @@ public class ContactsActivity extends Activity {
     actionBar.addTab(actionBar.newTab()
         .setText(getString(R.string.def_group))
         .setIcon(R.drawable.ic_action_group)
-        .setTabListener(new MyTabListener<GroupFragment_>(this, "GROUP", GroupFragment_.class)));
+        .setTabListener(new MyTabListener<GroupFragment>(this, "GROUP", GroupFragment.class)));
     actionBar.addTab(actionBar.newTab()
         .setText(getString(R.string.def_contact))
         .setIcon(R.drawable.ic_action_person)
-        .setTabListener(
-            new MyTabListener<ContactFragment_>(this, "CONTACT", ContactFragment_.class)));
-    linearLayoutProgress.setVisibility(View.GONE);
+        .setTabListener(new MyTabListener<ContactFragment>(this, "CONTACT", ContactFragment.class)));
+
   }
 
   /**
    * Do after data from database is loaded.
    */
-  @Background
+  @Background(id = "loadData")
   protected void loadData() {
+    Log.i(TAG, "Load data start");
     contactManager.initGroupsContacts();
+    refresh();
     init();
+    disableProgressbar();
+    Log.i(TAG, "Load data after initGroup");
+  }
+
+  @UiThread
+  public void refresh() {
+    GroupFragment groupFragment = (GroupFragment) getFragmentManager().findFragmentByTag("GROUP");
+    if (groupFragment != null) {
+      groupFragment.updateAdapter();
+    }
+
+    ContactFragment contactFragment = (ContactFragment) getFragmentManager().findFragmentByTag("CONTACT");
+    if (contactFragment != null) {
+      contactFragment.updateAdapter();
+    }
+  }
+
+  @UiThread
+  public void disableProgressbar() {
+    linearLayoutProgress.setVisibility(View.GONE);
   }
 
   /**
@@ -119,7 +148,7 @@ public class ContactsActivity extends Activity {
   public void reinitData() {
     setRefreshActionButtonState(true);
     contactManager.initGroupsContacts();
-    init();
+    refresh();
     setRefreshActionButtonState(false);
   }
 
@@ -141,4 +170,23 @@ public class ContactsActivity extends Activity {
   public boolean isFirst() {
     return first;
   }
+
+  /**
+   * If pressed back, background threads will be stopped.
+   */
+  @Override
+  public void onPause() {
+
+    Log.i(TAG, "onPause");
+
+    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+    for (Thread thread : threadSet) {
+      Log.i(TAG, thread.toString());
+    }
+    BackgroundExecutor.cancelAll("loadData", true);
+    Log.i(TAG, "onPause - delete");
+    // setRefreshActionButtonState(false);
+    super.onPause();
+  }
+
 }

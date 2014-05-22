@@ -307,4 +307,8 @@ public final class Constants {
 
   /** LDAP serach **/
   public static final String LDAP_MODIFY_TIME_STAMP = "modifyTimestamp";
+  public static final String LDAP_DELETED = "deleted";
+  public static final String LDAP_SYNCHRONIZE = "synchonize";
+  public static final String LDAP_ACCOUNT_PREVIOUS_TYPE = "accountTypePrevious";
+  public static final String LDAP_ACCOUNT_PREVIOUS_NAME = "accountNamePrevious";
 }

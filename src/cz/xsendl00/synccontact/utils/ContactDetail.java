@@ -39,10 +39,17 @@ public class ContactDetail {
       mSelectionArgs[0] = mLookupKey;
       cursor = contentResolver.query(Data.CONTENT_URI, PROJECTION, SELECTION, mSelectionArgs,
           SORT_ORDER);
+      //Uri rawContactUri = ContentUris.withAppendedId(RawContacts.CONTENT_URI, Integer.parseInt(mLookupKey));
+      //Uri entityUri = Uri.withAppendedPath(rawContactUri, Entity.CONTENT_DIRECTORY);
+      //cursor = contentResolver.query(entityUri,
+      //         new String[]{RawContacts.SOURCE_ID, Entity.DATA_ID, Entity.MIMETYPE, Entity.DATA1},
+      //         null, null, null);
       return cursor;
     } catch (Exception ex) {
       ex.printStackTrace();
     }
     return null;
   }
+
+
 }

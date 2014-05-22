@@ -2,6 +2,7 @@ package cz.xsendl00.synccontact;
 
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 
@@ -232,6 +233,10 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
    * @param view view.
    */
   public void createConnection(View view) {
+
+ // show progressBar
+    showProgressBar(view);
+
     AccountData accountData = new AccountData();
     accountData.setName(nameEditText.getText().toString());
     try {
@@ -244,8 +249,7 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
     accountData.setPassword(passEditText.getText().toString());
     accountData.setEncryption(encryptionSpinner.getSelectedItemPosition());
 
-    // show progressBar
-    showProgressBar(view);
+
 
     authThread = ServerUtilities.attemptAuth(new ServerInstance(accountData),
         handler, ServerAddActivity.this, false);
@@ -308,7 +312,8 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
     }
   }
 
-  private void saveAccount() {
+  @Background
+  protected void saveAccount() {
     // final Account account = new Account(accountData.getHost(), Constants.ACCOUNT_TYPE);
     final Account account = new Account(Constants.ACCOUNT_NAME, Constants.ACCOUNT_TYPE);
 

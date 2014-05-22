@@ -129,20 +129,9 @@ public class ContactManager {
     Utils util = new Utils();
     util.startTime(TAG, "initGroupsContacts");
     groupsContacts = new HashMap<String, List<ContactRow>>();
-    // TODO: initGroup and initGroup in new thread andd it finish call
-
     initGroup();
-
     initContact();
-
     isContactInGroup();
-    // new Thread(new Runnable() {
-    //
-    // @Override
-    // public void run() {
-    // isContactInGroup();
-    // }
-    // }).start();
     util.stopTime(TAG, "initGroupsContacts");
   }
 
@@ -380,7 +369,7 @@ public class ContactManager {
   /**
    * Get synchronization contact in list. Contact get from contacList or load from database.
    *
-   * @return
+   * @return synchronizations contacts
    */
   public List<ContactRow> getContactListSync() {
     if (contactsLocalReload) {
@@ -494,6 +483,9 @@ public class ContactManager {
   }
 
   public Map<String, List<ContactRow>> getGroupsContacts() {
+    if (groupsContacts == null) {
+      initGroupsContacts();
+    }
     return groupsContacts;
   }
 }

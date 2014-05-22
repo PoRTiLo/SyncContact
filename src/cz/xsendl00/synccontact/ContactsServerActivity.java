@@ -135,6 +135,7 @@ public class ContactsServerActivity extends Activity {
     setRefreshActionButtonState(true);
     contactManager.initContactsServer(handler);
     contactManager.initGroupsServer(handler);
+    fragmnetCall();
     setRefreshActionButtonState(false);
   }
 
@@ -270,4 +271,24 @@ public class ContactsServerActivity extends Activity {
     boolean mayInterruptIfRunning = true;
     BackgroundExecutor.cancelAll("loadData", mayInterruptIfRunning);
   }
+
+  //@Override
+  //public void onActivityResult(int requestCode, int resultCode, Intent data) {
+  @UiThread
+  public void fragmnetCall() {
+//    Toast.makeText(this, "Photo Intent Goes Here", Toast.LENGTH_SHORT).show();
+
+   // if(data != null) {
+        //Toast.makeText(this, "It's not empty", Toast.LENGTH_SHORT).show();
+
+    //     if (resultCode == RESULT_OK) {
+           ContactServerFragment f1 = (ContactServerFragment) getFragmentManager().findFragmentByTag("CONTACT_LDAP");
+              f1.updateAdapter(); // Your method   of the fragment
+
+//            }
+
+   // } else {
+   //     Toast.makeText(this, "It's empty", Toast.LENGTH_SHORT).show();
+   // }
+}
 }

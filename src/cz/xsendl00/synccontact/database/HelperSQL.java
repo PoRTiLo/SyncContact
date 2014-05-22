@@ -213,7 +213,7 @@ public class HelperSQL extends SQLiteOpenHelper {
   }
 
   public GroupRow getGroupUuidName(String id) {
-    String selectQuery = "SELECT " + GROUP_KEY_UUID +", " + GROUP_KEY_GROUP + " FROM "
+    String selectQuery = "SELECT " + GROUP_KEY_UUID + ", " + GROUP_KEY_GROUP + " FROM "
           + GROUP_TABLE_NAME + " WHERE " + GROUP_KEY_ID_GROUP + " =" + id;
     SQLiteDatabase db = this.getWritableDatabase();
     Cursor cursor = db.rawQuery(selectQuery, null);
@@ -228,6 +228,7 @@ public class HelperSQL extends SQLiteOpenHelper {
     db.close();
     return result;
   }
+
   /**
    * Updating single group. Only SYNC
    * @param group Group for update
@@ -686,11 +687,31 @@ public class HelperSQL extends SQLiteOpenHelper {
   }
 
   // Deleting single contact
-  public void deleteContact(ContactRow contact) {
+  public void deleteContacts(List<String> contactsId) {
+    String sql = "DELETE FROM " + CONTACT_TABLE_NAME + " WHERE " + CONTACT_KEY_ID_CONTACT + "=?";
     SQLiteDatabase db = this.getWritableDatabase();
-    db.delete(CONTACT_TABLE_NAME, CONTACT_KEY_ID + " = ?",
-        new String[] { String.valueOf(contact.getIdTable()) });
-    db.close();
+    try {
+      db.beginTransaction();
+      SQLiteStatement stmt = db.compileStatement(sql);
+      for (String id : contactsId) {
+        stmt.bindString(1, id);
+        stmt.executeUpdateDelete();
+        stmt.clearBindings();
+      }
+      db.setTransactionSuccessful();
+
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    } finally {
+      try {
+        db.endTransaction();
+        if (db.isOpen()) {
+          db.close();
+        }
+      } catch (Exception ex) {
+        ex.printStackTrace();
+      }
+    }
   }
 
   /**

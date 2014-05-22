@@ -23,13 +23,14 @@ public class RowMergerAdapter extends BaseAdapter {
 
   private Context context;
   private List<ContactRow> data;
-  ViewHolder holder;
-  ContactsMergeActivity contactsMergeActivity;
+  private ViewHolder holder;
+  private ContactsMergeActivity contactsMergeActivity;
 
   /**
-   * @param context
-   * @param data
-   * @param activity
+   * Constructor.
+   * @param context context
+   * @param data data
+   * @param activity ContactsMergeActivity
    */
   public RowMergerAdapter(Context context, List<ContactRow> data, ContactsMergeActivity activity) {
     super();
@@ -56,9 +57,9 @@ public class RowMergerAdapter extends BaseAdapter {
   /* private view holder class */
   private class ViewHolder {
 
-    TextView nameLocal;
-    TextView nameServer;
-    CheckBox check;
+    private TextView nameLocal;
+    private TextView nameServer;
+    private CheckBox check;
   }
 
   @Override
@@ -67,15 +68,16 @@ public class RowMergerAdapter extends BaseAdapter {
 
     LayoutInflater inflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 
-    if (convertView == null) {
-      convertView = inflater.inflate(R.layout.row_merge, null);
+    View view  = convertView;
+    if (view == null) {
+      view = inflater.inflate(R.layout.row_merge, null);
       holder = new ViewHolder();
-      holder.nameLocal = (TextView) convertView.findViewById(R.id.merge_local_contact);
-      holder.nameServer = (TextView) convertView.findViewById(R.id.merge_ldap_contact);
-      holder.check = (CheckBox) convertView.findViewById(R.id.merge_sync);
-      convertView.setTag(holder);
+      holder.nameLocal = (TextView) view.findViewById(R.id.merge_local_contact);
+      holder.nameServer = (TextView) view.findViewById(R.id.merge_ldap_contact);
+      holder.check = (CheckBox) view.findViewById(R.id.merge_sync);
+      view.setTag(holder);
     } else {
-      holder = (ViewHolder) convertView.getTag();
+      holder = (ViewHolder) view.getTag();
     }
     holder.check.setTag(position);
     holder.check.setOnCheckedChangeListener(contactsMergeActivity);
@@ -83,6 +85,6 @@ public class RowMergerAdapter extends BaseAdapter {
     holder.nameServer.setText(contactRow.getName());
     holder.nameLocal.setText(contactRow.getName());
     holder.check.setChecked(contactRow.isSync());
-    return convertView;
+    return view;
   }
 }

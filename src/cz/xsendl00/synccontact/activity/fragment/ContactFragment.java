@@ -78,12 +78,12 @@ public class ContactFragment extends Fragment implements
   @Override
   public void onResume() {
     super.onResume();
-    if (!contactManager.isContactsLocalInit() || !contactManager.isGroupsLocalInit()) {
-      initContactManager();
-    }
+    //if (!contactManager.isContactsLocalInit() || !contactManager.isGroupsLocalInit()) {
+    //  initContactManager();
+    //}
     isSelectedAll();
-    listRow = (ListView) getActivity().findViewById(R.id.list_contact);
-    adapter = new RowContactAdapter(getActivity().getApplicationContext(),
+    listRow = (ListView) activity.findViewById(R.id.list_contact);
+    adapter = new RowContactAdapter(activity.getApplicationContext(),
         contactManager.getContactsLocal(), this);
     listRow.setAdapter(adapter);
     if (listRow != null) {
@@ -91,7 +91,10 @@ public class ContactFragment extends Fragment implements
 
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-          int idContact = androidDB.getIdContact(getActivity(), contactManager.getContactsLocal()
+          if (androidDB == null) {
+            androidDB = new AndroidDB();
+          }
+          int idContact = androidDB.getIdContact(activity, contactManager.getContactsLocal()
               .get(position)
               .getId());
           Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI,
@@ -122,7 +125,7 @@ public class ContactFragment extends Fragment implements
     Intent intent = null;
     switch (item.getItemId()) {
       case R.id.action_refresh:
-        ((ContactsActivity) getActivity()).reinitData();
+        activity.reinitData();
         break;
       case R.id.action_add_group:
         break;
@@ -149,7 +152,8 @@ public class ContactFragment extends Fragment implements
     return super.onOptionsItemSelected(item);
   }
 
-  private void isSelectedAll() {
+  @Background
+  public void isSelectedAll() {
     boolean isSelectAll = true;
     for (ContactRow contactRow : contactManager.getContactsLocal()) {
       if (!contactRow.isSync()) {
@@ -235,5 +239,6 @@ public class ContactFragment extends Fragment implements
   @UiThread
   public void updateAdapter() {
     adapter.notifyDataSetChanged();
+    isSelectedAll();
   }
 }

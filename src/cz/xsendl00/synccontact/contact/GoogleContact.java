@@ -34,10 +34,10 @@ public class GoogleContact {
   private String timestamp;
   private String uuid;
   private String id;
-  private boolean synchonize;
+  private boolean synchronize = false;
   private String accountNamePrevious;
   private String accountTypePrevious;
-  private boolean deleted;
+  private boolean deleted = false;
 
   /**
    * Initialize attributes.
@@ -398,18 +398,26 @@ public class GoogleContact {
     this.accountNamePrevious = accountNamePrevious;
   }
 
-  /**
-   * @return Returns the synchonize.
-   */
-  public boolean isSynchonize() {
-    return synchonize;
+  public String getDeleted() {
+    return deleted ? "TRUE" : "FALSE";
+  }
+
+  public String getSynchronize() {
+    return synchronize ? "TRUE" : "FALSE";
   }
 
   /**
-   * @param synchonize The synchonize to set.
+   * @return Returns the synchronize.
    */
-  public void setSynchonize(boolean synchonize) {
-    this.synchonize = synchonize;
+  public boolean isSynchronize() {
+    return synchronize;
+  }
+
+  /**
+   * @param synchronize The synchronize to set.
+   */
+  public void setSynchronize(boolean synchronize) {
+    this.synchronize = synchronize;
   }
 
   /**
@@ -448,7 +456,7 @@ public class GoogleContact {
         + organization + ",\n phone=" + phone + ",\n relation=" + relation + ",\n sipAddressSync="
         + sipAddressSync + ",\n structuredNameSync=" + structuredNameSync + ",\n structuredPostalSync="
         + structuredPostalSync + ",\n website=" + website + ", timestamp=" + timestamp + ", uuid="
-        + uuid + ", id=" + id + ", synchonize=" + synchonize + ", accountNamePrevious="
+        + uuid + ", id=" + id + ", synchronize=" + synchronize + ", accountNamePrevious="
         + accountNamePrevious + ", accountTypePrevious=" + accountTypePrevious + ", deleted="
         + deleted + "]";
   }
@@ -474,7 +482,7 @@ public class GoogleContact {
     result = prime * result + ((structuredNameSync == null) ? 0 : structuredNameSync.hashCode());
     result = prime * result
         + ((structuredPostalSync == null) ? 0 : structuredPostalSync.hashCode());
-    result = prime * result + (synchonize ? 1231 : 1237);
+    result = prime * result + (synchronize ? 1231 : 1237);
     result = prime * result + ((timestamp == null) ? 0 : timestamp.hashCode());
     result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
     result = prime * result + ((website == null) ? 0 : website.hashCode());
@@ -595,7 +603,7 @@ public class GoogleContact {
     } else if (!structuredPostalSync.equals(other.structuredPostalSync)) {
       return false;
     }
-    if (synchonize != other.synchonize) {
+    if (synchronize != other.synchronize) {
       return false;
     }
     if (timestamp == null) {

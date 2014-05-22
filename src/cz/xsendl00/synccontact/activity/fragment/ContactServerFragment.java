@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EFragment;
+import org.androidannotations.annotations.UiThread;
 
 import android.app.Fragment;
 import android.content.Intent;
@@ -157,4 +158,12 @@ public class ContactServerFragment extends Fragment implements
       }
     }
   }
+  /**
+   * Update adapter in main thread.
+   */
+  @UiThread
+  public void updateAdapter() {
+    adapter.notifyDataSetChanged();
+  }
+
 }

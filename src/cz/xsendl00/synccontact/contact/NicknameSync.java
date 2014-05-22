@@ -162,9 +162,9 @@ public class NicknameSync extends AbstractType implements ContactInterface {
   /**
    * @param id raw_contact id
    * @param value name of protocol
-   * @param protocol like {@link Nickname.PROTOCOl_AIM}
    * @param type like Nickname.TYPE_HOME
-   * @return
+   * @param create true/false
+   * @return ContentProviderOperation
    */
   public static ContentProviderOperation add(int id, String value, int type, boolean create) {
     if (create) {
