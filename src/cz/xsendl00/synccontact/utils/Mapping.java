@@ -33,7 +33,6 @@ import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.CommonDataKinds.Website;
 import android.provider.ContactsContract.Data;
-import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
 import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.contact.EmailSync;
@@ -65,37 +64,24 @@ public class Mapping {
    * Fetch contact selected like modified. In database SYNC = 1;
    *
    * @param contentResolver contentResolver
-   * @param list list of synchronization contacts.
-   * @param ids list of deleted local contacts
+   * @param modifiedContact list of synchronization contacts.
+   * @param deletedContact list of deleted local contacts
    * @return map of UUID and googleContact.
    */
   public Map<String, GoogleContact> fetchDirtyContacts(final ContentResolver contentResolver,
-      final List<ContactRow> list, List<String> ids) {
+      final List<ContactRow> modifiedContact, List<String> deletedContact) {
     Map<String, GoogleContact> dirtyContacts = new HashMap<String, GoogleContact>();
     Cursor cursor = null;
     try {
-      // get list id_raw of changed contacts
-      cursor = contentResolver.query(RawContacts.CONTENT_URI, new String[]{RawContacts._ID},
-          RawContacts.DIRTY + "=?", new String[]{"1"}, null);
-      List<String> dirtys = new ArrayList<String>();
-
-      while (cursor.moveToNext()) {
-        dirtys.add(cursor.getString(cursor.getColumnIndex(RawContacts._ID)));
-      }
-      if (cursor != null && !cursor.isClosed()) {
-        cursor.close();
-      }
-      List<String> deletedContacts = new AndroidDB().fetchContactsDeleted(contentResolver);
-      ids.addAll(deletedContacts);
-      for (ContactRow contactRow : list) {
-        if (dirtys.contains(contactRow.getId())) {
-          GoogleContact googleContact = mappingContactFromDB(contentResolver, contactRow.getId(), contactRow.getUuid());
-          if (deletedContacts.contains(contactRow.getId())) {
-            googleContact.setDeleted(true);
-            googleContact.setSynchronize(false);
-          }
-          dirtyContacts.put(contactRow.getUuid(), googleContact);
+      for (ContactRow contactRow : modifiedContact) {
+        GoogleContact googleContact = mappingContactFromDB(contentResolver,
+            contactRow.getId(), contactRow.getUuidFirst());
+        if (contactRow.isDeleted()) {
+          deletedContact.add(contactRow.getUuidFirst());
+          googleContact.setDeleted(true);
+          googleContact.setSynchronize(false);
         }
+        dirtyContacts.put(contactRow.getUuid(), googleContact);
       }
     } catch (Exception ex) {
       ex.printStackTrace();
@@ -283,6 +269,7 @@ public class Mapping {
     ldapAttributes.add(Constants.OTHER_COUNTRY);
     ldapAttributes.add(Constants.OTHER_FORMATTED_ADDRESS);
     ldapAttributes.add(Constants.UUID);
+    ldapAttributes.add(Constants.LDAP_MODIFY_TIME_STAMP);
 
     String[] ldapArray = new String[ldapAttributes.size()];
     ldapArray = ldapAttributes.toArray(ldapArray);
@@ -938,7 +925,7 @@ public class Mapping {
     try {
       cursor = new ContactDetail().fetchAllDataOfContact(contentResolver, id);
       contact = new GoogleContact();
-      contact.setId(id+"");
+      contact.setId(id);
       contact.setUuid(uuid);
       contact.setSynchronize(true);
       while (cursor.moveToNext()) {
@@ -976,6 +963,8 @@ public class Mapping {
         ? user.getAttributeValueAsBoolean(Constants.LDAP_DELETED) : false);
     contact.setSynchronize(user.hasAttribute(Constants.LDAP_SYNCHRONIZE)
         ? user.getAttributeValueAsBoolean(Constants.LDAP_SYNCHRONIZE) : false);
+    contact.setTimestamp(user.hasAttribute(Constants.LDAP_MODIFY_TIME_STAMP)
+        ? user.getAttributeValue(Constants.LDAP_MODIFY_TIME_STAMP) : null);
     // email
     contact.getEmail().setHomeMail(
         user.hasAttribute(contact.getEmail().getHomeMail()) ? user.getAttributeValue(contact.getEmail()

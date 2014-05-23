@@ -7,7 +7,6 @@ import org.androidannotations.annotations.EActivity;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
-import android.accounts.AccountManagerFuture;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -15,12 +14,10 @@ import android.content.Intent;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.utils.Constants;
@@ -83,19 +80,19 @@ public class ServerRemoveActivity extends Activity {
   @Background
   public void removeAccount() {
 
-
-    AccountManagerCallback<Boolean> callback = new AccountManagerCallback<Boolean>() {
-
-      @Override
-      public void run(AccountManagerFuture<Boolean> arg0) {
-        Log.i(TAG, "UCER S smazan");
-        ServerRemoveActivity.this.sendBack();
-      }
-    };
-    removeAccount(callback);
-    contactManager.setAccountData(null);
-    Toast toast = Toast.makeText(this, "Server connection/account was removed.", Toast.LENGTH_SHORT);
-    toast.show();
+    exportContactBack();
+//    AccountManagerCallback<Boolean> callback = new AccountManagerCallback<Boolean>() {
+//
+//      @Override
+//      public void run(AccountManagerFuture<Boolean> arg0) {
+//        Log.i(TAG, "UCER S smazan");
+//        ServerRemoveActivity.this.sendBack();
+//      }
+//    };
+//    removeAccount(callback);
+//    contactManager.setAccountData(null);
+    //Toast toast = Toast.makeText(this, "Server connection/account was removed.", Toast.LENGTH_SHORT);
+    //toast.show();
   }
 
   /**
@@ -107,8 +104,8 @@ public class ServerRemoveActivity extends Activity {
     AccountManager manager = AccountManager.get(ServerRemoveActivity.this);
     Account[] accounts = manager.getAccountsByType(Constants.ACCOUNT_TYPE);
     for (Account ac : accounts) {
-      exportContactBack();
-      manager.removeAccount(ac, accountManagerCallback, handler);
+      //exportContactBack();
+      //manager.removeAccount(ac, accountManagerCallback, handler);
       break;
     }
   }
@@ -118,11 +115,7 @@ public class ServerRemoveActivity extends Activity {
    */
   @Background
   public void exportContactBack() {
-    if (!contactManager.isContactsLocalInit() && !contactManager.isContactsLocalReload()) {
-      contactManager.reloadContact();
-    }
-    androidDB.exportContactsFromSyncAccount(ServerRemoveActivity.this,
-        contactManager.getContactsLocal());
+    androidDB.exportContactsFromSyncAccount(ServerRemoveActivity.this);
   }
 
   private void sendBack() {

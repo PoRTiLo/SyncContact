@@ -7,7 +7,9 @@ import android.content.ContentValues;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
+import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.utils.Constants;
+import cz.xsendl00.synccontact.utils.Utils;
 
 /**
  * A object of contact.
@@ -33,7 +35,7 @@ public class GoogleContact {
   private WebsiteSync website;
   private String timestamp;
   private String uuid;
-  private String id;
+  private Integer id;
   private boolean synchronize = false;
   private String accountNamePrevious;
   private String accountTypePrevious;
@@ -256,10 +258,12 @@ public class GoogleContact {
    * @param newGoogleContact The {@link GoogleContact}
    * @return list of ContentProviderOperation for adding new contact on based newGoogleContact.
    */
-  public ArrayList<ContentProviderOperation> createOperationNew(final GoogleContact oldGoogleContact, final GoogleContact newGoogleContact) {
+  public static ArrayList<ContentProviderOperation> createOperationNew(final GoogleContact oldGoogleContact, final GoogleContact newGoogleContact) {
 
-    Log.i(TAG, "con1:" + oldGoogleContact.toString());
-    Log.i(TAG, "con2:" + newGoogleContact.toString());
+    String str = oldGoogleContact == null ? "" : oldGoogleContact.toString();
+    String str1 = newGoogleContact == null ? "" : newGoogleContact.toString();
+    Log.i(TAG, "con1:" + str);
+    Log.i(TAG, "con2:" + str1);
 
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
 
@@ -267,6 +271,10 @@ public class GoogleContact {
     ops.add(ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
              .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE)
              .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
+             .withValue(RawContacts.SYNC1, "1")
+             .withValue(RawContacts.SYNC2, new Utils().createTimestamp())
+             .withValue(RawContacts.SYNC3, AndroidDB.SET_CONVERT)
+             .withValue(RawContacts.SYNC4, newGoogleContact.getUuid())
              .build());
     ops.addAll(createOperation(rawContactInsertIndex, oldGoogleContact, newGoogleContact, true));
 
@@ -280,7 +288,7 @@ public class GoogleContact {
     Log.i(TAG, "local:" + oldGoogleContact.toString());
     Log.i(TAG, "server:" + newGoogleContact.toString());
     try {
-      ops = createOperation(Integer.parseInt(oldGoogleContact.getId()), oldGoogleContact, newGoogleContact, false);
+      ops = createOperation(oldGoogleContact.getId(), oldGoogleContact, newGoogleContact, false);
     } catch (NumberFormatException ex) {
       ex.printStackTrace();
     } catch (NullPointerException e) {
@@ -376,11 +384,11 @@ public class GoogleContact {
     return ops;
   }
 
-  public String getId() {
+  public Integer getId() {
     return id;
   }
 
-  public void setId(String id) {
+  public void setId(Integer id) {
     this.id = id;
   }
 

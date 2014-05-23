@@ -25,20 +25,15 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ContentProviderResult;
 import android.content.Context;
 import android.content.Intent;
-import android.content.OperationApplicationException;
 import android.os.Handler;
-import android.os.RemoteException;
-import android.provider.ContactsContract;
 import android.util.Log;
 import cz.xsendl00.synccontact.InfoServerContactsActivity_;
 import cz.xsendl00.synccontact.R;
 import cz.xsendl00.synccontact.ServerActivity_;
 import cz.xsendl00.synccontact.ServerAddActivity_;
 import cz.xsendl00.synccontact.contact.GoogleContact;
-import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
@@ -253,38 +248,7 @@ public class ServerUtilities {
 
       for (SearchResultEntry e : searchResult.getSearchEntries()) {
         Log.i(TAG, e.toString());
-        final GoogleContact googleContact = Mapping.mappingContactFromLDAP(e);
-        new Thread(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              String id = null;
-              ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY,
-                  new GoogleContact().createOperationNew(new GoogleContact(), googleContact));
-              for (ContentProviderResult a : contactUri) {
-                if (id == null) {
-                  id = a.uri.getLastPathSegment();
-                }
-                Log.i(TAG, "id:" + id);
-                Log.i(TAG, "res:" + a.toString());
-              }
-              HelperSQL db = new HelperSQL(context);
-              //ContactRow contactRow = new ContactRow(id,
-              //    googleContact.getStructuredName().getDisplayName(), true, null, Constants.ACCOUNT_NAME,
-              //    Constants.ACCOUNT_TYPE, utils.createTimestamp(), googleContact.getUuid());
-              //List<ContactRow> contacts = new ArrayList<ContactRow>();
-              //contacts.add(contactRow);
-              //db.addContacts(contacts);
-            } catch (RemoteException e) {
-              e.printStackTrace();
-            } catch (OperationApplicationException e) {
-              e.printStackTrace();
-            }
-          }
-        }).start();
-        googleContactOut = googleContact;
-        break;
-
+        googleContactOut = Mapping.mappingContactFromLDAP(e);
       }
 
     } catch (LDAPException e) {
@@ -371,6 +335,7 @@ public class ServerUtilities {
         contactRow.setName(e.getAttributeValue(Constants.DISPLAY_NAME));
         contactsServer.add(contactRow);
       }
+      Log.i(TAG, "From server download contacts : " + searchResult.getSearchEntries().size());
     } catch (LDAPException e) {
       e.printStackTrace();
     } finally {
@@ -397,8 +362,8 @@ public class ServerUtilities {
       connection = ldapServer.getConnection(handler, context);
       Filter filters = Filter.createANDFilter(
           Filter.createEqualityFilter(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GOOGLE),
-          Filter.createEqualityFilter(Constants.LDAP_DELETED, "FALSE"),
-          Filter.createEqualityFilter(Constants.LDAP_SYNCHRONIZE, "TRUE"),
+          Filter.create("(" + Constants.LDAP_DELETED + "=FALSE)"),
+          Filter.create("(" + Constants.LDAP_SYNCHRONIZE + "=TRUE)"),
           Filter.create("(" + Constants.LDAP_MODIFY_TIME_STAMP + ">=" + timestamp + ")")
           );
       SearchResult searchResult = connection.search(
@@ -407,7 +372,7 @@ public class ServerUtilities {
           filters,
           Mapping.createAttributes());
       for (SearchResultEntry e : searchResult.getSearchEntries()) {
-        //Log.i(TAG, e.getAttributeValue(Constants.UUID) + ", has att:" + e.hasAttribute(Constants.UUID));
+        Log.i(TAG, e.getAttributeValue(Constants.UUID) + ", has att:" + e.hasAttribute(Constants.UUID));
         contactsServer.put(e.getAttributeValue(Constants.UUID), Mapping.mappingContactFromLDAP(e));
       }
     } catch (LDAPException e) {

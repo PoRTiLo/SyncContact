@@ -235,7 +235,7 @@ public class GroupFragment extends Fragment implements
    */
   @Background
   protected void initContactManager() {
-    contactManager.initGroupsContacts(); //.reloadManager();
+    contactManager.getLocalGroupsContacts(); //.reloadManager();
     updateAdapter();
   }
 

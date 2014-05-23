@@ -33,12 +33,14 @@ public class ServerInstance implements Serializable {
 
   /**
    * ServerInstance.
-   * @param accountData
+   * @param accountData accountData
    */
   public ServerInstance(final AccountData accountData) {
     this.accountData = new AccountData(accountData);
-    this.accountData.setName(((accountData.getName() == null) || (accountData.getName().length() == 0) ? null : accountData.getName()));
-    this.accountData.setPassword(((accountData.getPassword() == null) || (accountData.getPassword().length() == 0) ? null : accountData.getPassword()));
+    this.accountData.setName(accountData.getName() == null
+        || (accountData.getName().length() == 0) ? null : accountData.getName());
+    this.accountData.setPassword(accountData.getPassword() == null
+        || (accountData.getPassword().length() == 0) ? null : accountData.getPassword());
 
     this.accountData.setBaseDn(accountData.getBaseDn());
     this.accountData.setPort(accountData.getPort());

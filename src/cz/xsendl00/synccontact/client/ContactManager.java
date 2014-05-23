@@ -2,9 +2,7 @@ package cz.xsendl00.synccontact.client;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
@@ -12,11 +10,11 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.os.Handler;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
 import android.util.SparseArray;
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.database.AndroidDB;
-import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
 import cz.xsendl00.synccontact.utils.ContactRow;
@@ -37,24 +35,13 @@ public class ContactManager {
   private boolean localGroupsContactsInit = false;
   private boolean localContactsInit = false;
   private boolean localGroupsInit = false;
-  private static ContactManager instance = null;
-
-
-  private AccountData accountData;
-  private List<GroupRow> groupsLocal;
-  private List<ContactRow> contactsLocal;
-
-  private List<GroupRow> groupsServer;
-  private List<ContactRow> contactsServer;
-  // key id group
-  private Map<String, List<ContactRow>> groupsContacts;
-  private Context context;
-  private boolean groupsLocalInit = false;
-  private boolean contactsLocalInit = false;
   private boolean contactsServerInit = false;
   private boolean groupsServerInit = false;
-  private boolean contactsLocalReload = false;
-  private boolean groupsLocalReload = false;
+  private static ContactManager instance = null;
+  private AccountData accountData;
+  private List<GroupRow> groupsServer;
+  private List<ContactRow> contactsServer;
+  private Context context;
 
 
 
@@ -90,6 +77,18 @@ public class ContactManager {
       localContactsInit = true;
     }
     return localContacts;
+  }
+
+  public List<ContactRow> getLocalContactsSyncModified() { //boolean reload) {
+    //if (localContacts == null || !localContactsInit || reload) {
+      String where = RawContacts.SYNC1 + "=1 AND "  + RawContacts.DIRTY + "=1";
+      return ContactRow.fetchAllRawContact(context.getContentResolver(), where);
+      //localContactsInit = false;
+    //}
+    //for (ContactRow contactRow : getLocalContacts()) {
+    //  if (contactRow.isSync() )
+    //}
+    //return localContacts;
   }
 
   public SparseArray<List<ContactRow>> getLocalGroupsContacts() {
@@ -133,66 +132,53 @@ public class ContactManager {
     new AndroidDB().updateGroupsUuid(context, groupRows);
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  private void isContactInGroup() {
-    Utils util = new Utils();
-    util.startTime(TAG, "isContactInGroup");
-    for (Map.Entry<String, List<ContactRow>> entry : groupsContacts.entrySet()) {
-      if (!entry.getValue().isEmpty()) {
-        List<ContactRow> newList = new ArrayList<ContactRow>();
-        for (ContactRow contactRow : contactsLocal) {
-          if (entry.getValue().contains(contactRow)) {
-            contactRow.getGroupsId().add(entry.getKey());
-            newList.add(contactRow);
-          }
+  /**
+   * Get contacts from server, which are not in mobile.
+   * @return
+   */
+  public List<ContactRow> getServerContact2Import(boolean... reload) {
+    List<ContactRow> contactRows = new ArrayList<ContactRow>();
+    if (reload != null && reload.length > 0 && reload[0]) {
+      localContactsInit = false;
+    }
+    for (ContactRow contactRowServer : contactsServer) {
+      boolean found = false;
+      for (ContactRow contactRowLocal : getLocalContacts()) {
+        if (contactRowServer.getUuidFirst() != null
+            && contactRowServer.getUuid().equals(contactRowLocal.getUuidFirst())) {
+          found = true;
+          break;
         }
-        entry.getValue().clear();
-        entry.getValue().addAll(newList);
+      }
+      if (!found) {
+        contactRows.add(contactRowServer);
       }
     }
-    List<ContactRow> noInGroups = new ArrayList<ContactRow>();
-    for (ContactRow contactRow : contactsLocal) {
-      if (contactRow.getGroupsId() == null || contactRow.getGroupsId().isEmpty()) {
-        noInGroups.add(contactRow);
-      }
-    }
-    groupsContacts.put("default", noInGroups);
-
-    Thread updateContactIdGroupThread = new Thread(new Runnable() {
-
-      @Override
-      public void run() {
-        HelperSQL db = new HelperSQL(context);
-        //db.updateContactIdGroup(contactsLocal);
-      }
-    });
-    updateContactIdGroupThread.start();
-    util.stopTime(TAG, "isContactInGroup");
+    return contactRows;
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   /**
@@ -210,158 +196,7 @@ public class ContactManager {
   }
 
 
-  /**
-   * Initialize groups of contacts, groups and contacts.
-   */
-  public void initGroupsContacts() {
-    Utils util = new Utils();
-    util.startTime(TAG, "initGroupsContacts");
-    groupsContacts = new HashMap<String, List<ContactRow>>();
-    initGroup();
-    initContact();
-    isContactInGroup();
-    util.stopTime(TAG, "initGroupsContacts");
-  }
 
-  public void reloadInitGroupContacts() {
-
-    reloadContact();
-    reloadGroup();
-
-  }
-
-  public boolean isLoaded() {
-    return contactsLocalReload && groupsLocalReload;
-  }
-
-  /**
-   * Reload data in manager.
-   */
-  public void reloadManager() {
-    Thread reloadContact = new Thread(new Runnable() {
-
-      @Override
-      public void run() {
-        reloadContact();
-      }
-    });
-    reloadContact.start();
-
-    Thread reloadGroup = new Thread(new Runnable() {
-
-      @Override
-      public void run() {
-        reloadGroup();
-      }
-    });
-    reloadGroup.start();
-
-    try {
-      reloadGroup.join();
-      reloadContact.join();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-    for (Map.Entry<String, List<ContactRow>> entry : groupsContacts.entrySet()) {
-      for (GroupRow groupRow : groupsLocal) {
-        if (groupRow.getId().equals(entry.getKey()) && groupRow.getSize() > 0) {
-          entry.getValue().clear();
-          for (ContactRow contactRow : contactsLocal) {
-            if (contactRow.getGroupsId().contains(entry.getKey())) {
-              entry.getValue().add(contactRow);
-            }
-          }
-          break;
-        }
-      }
-    }
-  }
-
-  /**
-   * Reload data in manager. It run in new thread.
-   */
-  public void reloadManagerBackgroun() {
-
-    new Thread(new Runnable() {
-
-      @Override
-      public void run() {
-        reloadContact();
-      }
-    }).start();
-
-    new Thread(new Runnable() {
-
-      @Override
-      public void run() {
-        reloadGroup();
-      }
-    }).start();
-
-    new Thread(new Runnable() {
-
-      @Override
-      public void run() {
-        reloadGroup();
-      }
-    }).start();
-  }
-
-  /**
-   * Reload contact from local database.
-   */
-  public void reloadContact() {
-    Utils util = new Utils();
-    util.startTime(TAG, "reloadContact");
-    HelperSQL db = new HelperSQL(context);
-    contactsLocal = new ArrayList<ContactRow>();
-    //contactsLocal.addAll(db.getAllContacts());
-    setContactsLocalReload(true);
-    util.stopTime(TAG, "reloadContact");
-  }
-
-  /**
-   * Initialize contact. Get all contact from contact provider database and add them into local
-   * database. Add only if contact not exist.
-   */
-  public void initContact() {
-    Utils util = new Utils();
-    util.startTime(TAG, "initContact");
-    contactsLocal = new ArrayList<ContactRow>();
-    contactsLocal.addAll(new AndroidDB().fetchAllContact(context.getContentResolver()));
-    HelperSQL db = new HelperSQL(context);
-    //db.fillContacts(contactsLocal);
-    contactsLocalInit = true;
-    setContactsLocalReload(false);
-    util.stopTime(TAG, "initContact");
-  }
-
-  /**
-   * Initialize group from contact provider database.
-   */
-  public void initGroup() {
-    Utils util = new Utils();
-    util.startTime(TAG, "initGroup");
-    groupsLocal = new ArrayList<GroupRow>();
-    groupsLocal.addAll(GroupRow.fetchGroups(context.getContentResolver(), null));
-    Log.i(TAG, "groupsLocal size:" + groupsLocal.size());
-
-    for (GroupRow group : groupsLocal) {
-      //List<ContactRow> contacRows = new ContactRow().fetchGroupMembers(
-      //    context.getContentResolver(), group.getId());
-     // Collections.sort(contacRows, new RowComparator());
-      //groupsContacts.put(group.getId(), contacRows);
-     // group.setSize(contacRows.size());
-     // Log.i(TAG, "id:" + group.getId() + "group size:" + group.getSize() + contacRows.toString());
-    }
-
-    HelperSQL db = new HelperSQL(context);
-    //db.fillGroups(groupsLocal);
-    groupsLocalInit = true;
-    setGroupsLocalReload(false);
-
-    util.stopTime(TAG, "initGroup");
-  }
 
   /**
    * Download all contact (only uuid, name) from LDAP server.
@@ -400,42 +235,11 @@ public class ContactManager {
         handler));
     // sort contact by name
     Collections.sort(groupsServer, new RowComparator());
-    groupsServerInit = true;
+    setGroupsServerInit(true);
 
     util.stopTime(TAG, "initGroupsServer");
   }
 
-  /**
-   * Reload groups from local database.
-   */
-  public void reloadGroup() {
-    Utils util = new Utils();
-    util.startTime(TAG, "reloadGroup");
-    HelperSQL helperSQL = new HelperSQL(context);
-    groupsLocal = new ArrayList<GroupRow>();
-    //groupsLocal = helperSQL.getAllGroups();
-    setGroupsLocalReload(true);
-    util.stopTime(TAG, "reloadGroup");
-  }
-
-  /**
-   * Get contact from local database. If is null call {@link #reloadContact()}.
-   *
-   * @return list of ContactRow.
-   */
-  public List<ContactRow> getContactsLocal() {
-    if (contactsLocal == null) {
-      reloadContact();
-    }
-    return contactsLocal;
-  }
-
-  public List<GroupRow> getGroupsLocal() {
-    if (groupsLocal == null) {
-      reloadGroup();
-    }
-    return groupsLocal;
-  }
 
 
   public static void makeGroupVisible(String accountName, ContentResolver resolver) {
@@ -454,40 +258,6 @@ public class ContactManager {
     //}
   }
 
-  /**
-   * Get synchronization contact in list. Contact get from contacList or load from database.
-   *
-   * @return synchronizations contacts
-   */
-  public List<ContactRow> getContactListSync() {
-    if (contactsLocalReload) {
-      reloadContact();
-    }
-    List<ContactRow> syncContacts = new ArrayList<ContactRow>();
-    for (ContactRow contactRow : contactsLocal) {
-      if (contactRow.isSync()) {
-        syncContacts.add(contactRow);
-      }
-    }
-    return syncContacts;
-  }
-
-  public boolean isGroupsLocalInit() {
-    return groupsLocalInit;
-  }
-
-  public void setGroupsLocalInit(boolean groupListInit) {
-    this.groupsLocalInit = groupListInit;
-  }
-
-  public boolean isContactsLocalInit() {
-    return contactsLocalInit;
-  }
-
-  public void setContactListInit(boolean contactListInit) {
-    this.contactsLocalInit = contactListInit;
-  }
-
   public boolean isContactsServerInit() {
     return contactsServerInit;
   }
@@ -500,33 +270,6 @@ public class ContactManager {
     return contactsServer;
   }
 
-  /**
-   * @return Returns the groupsLocalReload.
-   */
-  public boolean isGroupsLocalReload() {
-    return groupsLocalReload;
-  }
-
-  /**
-   * @param groupsReloaded The groupsLocalReload to set.
-   */
-  public void setGroupsLocalReload(boolean groupsReloaded) {
-    this.groupsLocalReload = groupsReloaded;
-  }
-
-  /**
-   * @return Returns the contactsLocalReload.
-   */
-  public boolean isContactsLocalReload() {
-    return contactsLocalReload;
-  }
-
-  /**
-   * @param contactsReloaded The contactsLocalReload to set.
-   */
-  public void setContactsLocalReload(boolean contactsReloaded) {
-    this.contactsLocalReload = contactsReloaded;
-  }
 
   /**
    * @return Returns the accountData.
@@ -557,27 +300,6 @@ public class ContactManager {
   }
 
   /**
-   * @return Returns the groupsServerInit.
-   */
-  public boolean isGroupsServerInit() {
-    return groupsServerInit;
-  }
-
-  /**
-   * @param groupsServerInit The groupsServerInit to set.
-   */
-  public void setGroupsServerInit(boolean groupsServerInit) {
-    this.groupsServerInit = groupsServerInit;
-  }
-
-  public Map<String, List<ContactRow>> getGroupsContacts() {
-    if (groupsContacts == null) {
-      initGroupsContacts();
-    }
-    return groupsContacts;
-  }
-
-  /**
    * @return Returns the localContactsInit.
    */
   public boolean isLocalContactsInit() {
@@ -603,5 +325,19 @@ public class ContactManager {
    */
   public void setLocalGroupsInit(boolean localGroupsInit) {
     this.localGroupsInit = localGroupsInit;
+  }
+
+  /**
+   * @return Returns the groupsServerInit.
+   */
+  public boolean isGroupsServerInit() {
+    return groupsServerInit;
+  }
+
+  /**
+   * @param groupsServerInit The groupsServerInit to set.
+   */
+  public void setGroupsServerInit(boolean groupsServerInit) {
+    this.groupsServerInit = groupsServerInit;
   }
 }

@@ -4,7 +4,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.androidannotations.annotations.EBean;
 
@@ -80,6 +79,9 @@ public class Utils {
     } catch (ParseException e) {
       Log.e(TAG, "Can not formated timestamp from db to readable string :" + out);
       out = "No synchronization.";
+    } catch (NullPointerException e) {
+      e.printStackTrace();
+      out = "No synchronization.";
     }
     return out;
   }
@@ -90,19 +92,18 @@ public class Utils {
    * @param map2
    * @return
    */
-  public List<ContactRow> intersectionDifference(List<ContactRow> list1, final Map<String, ContactRow> map2) {
-    Log.i(TAG, "intersection: " + list1.size() + " to " + map2.size());
+  public List<ContactRow> intersectionDifference(List<ContactRow> list1, final List<ContactRow> list2) {
     List<ContactRow> list = new ArrayList<ContactRow>();
-
-    for (int pozicion = 0; pozicion < list1.size();) {
-      ContactRow contactRow = map2.get(list1.get(pozicion).getUuid());
-      if (contactRow != null) {
-        if (list1.get(pozicion).isSync() && !contactRow.isSync()) {
-          list.add(contactRow);
+    for (ContactRow contactRow1 : list1) {
+      boolean found = false;
+      for (ContactRow contactRow2 : list2) {
+        if (contactRow1.getUuidFirst().equals(contactRow2.getUuidFirst())) {
+          found = true;
+          break;
         }
-        list1.remove(pozicion);
-      } else {
-        pozicion++;
+      }
+      if (!found && contactRow1.isSync()) {
+        list.add(contactRow1);
       }
     }
     return list;
@@ -129,5 +130,17 @@ public class Utils {
      }
    }
    return list;
+ }
+
+ public static Thread performOnBackgroundThread(final Runnable runnable) {
+   final Thread t = new Thread() {
+
+     @Override
+     public void run() {
+       runnable.run();
+     }
+   };
+   t.start();
+   return t;
  }
 }

@@ -6,6 +6,8 @@ import org.androidannotations.annotations.EActivity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.NavUtils;
+import android.support.v4.app.TaskStackBuilder;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -54,7 +56,14 @@ public class InfoServerContactsActivity extends Activity {
         startActivity(intent);
         break;
       case android.R.id.home:
-        break;
+        Intent upIntent = NavUtils.getParentActivityIntent(this);
+        if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
+          TaskStackBuilder.create(this).addNextIntentWithParentStack(upIntent)
+              .startActivities();
+        } else {
+          NavUtils.navigateUpTo(this, upIntent);
+        }
+        return true;
       default:
         break;
     }

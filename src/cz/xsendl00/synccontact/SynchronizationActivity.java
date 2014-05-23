@@ -17,7 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import cz.xsendl00.synccontact.client.ContactManager;
-import cz.xsendl00.synccontact.database.HelperSQL;
+import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.Synchronization;
 import cz.xsendl00.synccontact.utils.Constants;
@@ -65,14 +65,13 @@ public class SynchronizationActivity extends Activity {
     new Thread(new Runnable() {
       @Override
       public void run() {
-        HelperSQL db = new HelperSQL(getApplicationContext());
-        //final String str = db.newerTimestamp();
-        //editTextTime.post(new Runnable() {
-        //  @Override
-        //  public void run() {
-        //    editTextTime.setText(utils.timestamptoDate(str));
-        //  }
-        //});
+        final String str = new AndroidDB().newerTimestamp(getContentResolver());
+        editTextTime.post(new Runnable() {
+          @Override
+          public void run() {
+            editTextTime.setText(utils.timestamptoDate(str));
+          }
+        });
       }
     }).start();
   }
@@ -146,7 +145,6 @@ public class SynchronizationActivity extends Activity {
       default:
         break;
     }
-
     return true;
   }
 

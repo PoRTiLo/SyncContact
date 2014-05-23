@@ -1,7 +1,5 @@
 package cz.xsendl00.synccontact.authenticator;
 
-import java.util.List;
-
 import android.accounts.AbstractAccountAuthenticator;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
@@ -15,12 +13,9 @@ import android.util.Log;
 import android.widget.Toast;
 import cz.xsendl00.synccontact.ServerAddActivity;
 import cz.xsendl00.synccontact.ServerAddActivity_;
-import cz.xsendl00.synccontact.database.AndroidDB;
-import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
 import cz.xsendl00.synccontact.utils.Constants;
-import cz.xsendl00.synccontact.utils.ContactRow;
 
 /**
  *
@@ -186,9 +181,9 @@ public class SyncAuthenticator extends AbstractAccountAuthenticator {
 
         @Override
         public void run() {
-          HelperSQL db = new HelperSQL(mContext);
-          List<ContactRow> contactRows = null;//db.getAllContacts();
-          new AndroidDB().exportContactsFromSyncAccount(mContext, contactRows);
+          //HelperSQL db = new HelperSQL(mContext);
+          //List<ContactRow> contactRows = null;//db.getAllContacts();
+          //new AndroidDB().exportContactsFromSyncAccount(mContext, contactRows);
         }
       });
       thread.start();

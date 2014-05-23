@@ -14,6 +14,26 @@ public class AbstractRow {
   protected Integer idTable;
   protected String lastSyncTime;
   protected boolean isConverted;
+  protected boolean deleted;
+
+
+
+  /**
+   * @return Returns the deleted.
+   */
+  public boolean isDeleted() {
+    return deleted;
+  }
+
+
+
+
+  /**
+   * @param deleted The deleted to set.
+   */
+  public void setDeleted(boolean deleted) {
+    this.deleted = deleted;
+  }
 
 
 

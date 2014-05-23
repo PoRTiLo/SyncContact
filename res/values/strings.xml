@@ -119,5 +119,7 @@
     <string name="menu_refresh">Refresh contacts</string>
     <string name="menu_select">Select all</string>
     <string name="menu_add_group">Add group</string>
+    <string name="menu_show_all">Show server\'s contacs all</string>
+    <string name="menu_show_imported">Show only impoted contacts</string>
 
 </resources>

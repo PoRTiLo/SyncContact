@@ -1,6 +1,6 @@
 package cz.xsendl00.synccontact;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
@@ -12,11 +12,15 @@ import org.androidannotations.api.BackgroundExecutor;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.ContentProviderResult;
 import android.content.Intent;
+import android.content.OperationApplicationException;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.RemoteException;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,7 +31,6 @@ import cz.xsendl00.synccontact.activity.fragment.GroupServerFragment;
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.contact.GoogleContact;
-import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
 import cz.xsendl00.synccontact.utils.Constants;
@@ -57,6 +60,7 @@ public class ContactsServerActivity extends Activity {
   private ContactManager contactManager;
   private boolean first = false;
   private Menu mMenu;
+  public boolean importAll = false;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -122,6 +126,7 @@ public class ContactsServerActivity extends Activity {
   protected void loadData() {
     contactManager.initContactsServer(handler);
     contactManager.initGroupsServer(handler);
+    contactManager.getServerContact2Import();
     init();
   }
 
@@ -133,6 +138,7 @@ public class ContactsServerActivity extends Activity {
     setRefreshActionButtonState(true);
     contactManager.initContactsServer(handler);
     contactManager.initGroupsServer(handler);
+    contactManager.getServerContact2Import();
     fragmnetCall();
     setRefreshActionButtonState(false);
   }
@@ -157,13 +163,14 @@ public class ContactsServerActivity extends Activity {
   }
 
   public void onImportCompleted() {
+    contactManager.setLocalContactsInit(false);
+    contactManager.getLocalContacts();
     if (first) {
       Editor editor = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit();
       editor.putBoolean(Constants.PREFS_START_FIRST, false);
       editor.commit();
       Intent intent = new Intent(this, MainActivity_.class);
-      intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
-          | Intent.FLAG_ACTIVITY_NEW_TASK);
+      intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
       startActivity(intent);
     }
   }
@@ -193,29 +200,39 @@ public class ContactsServerActivity extends Activity {
 
     @Override
     protected Boolean doInBackground(Void... params) {
-      HelperSQL db = new HelperSQL(activity);
-     // Map<String, ContactRow> dbContact =  db.getAllContactsMap();
-      ArrayList<ContactRow> contactRows = new ArrayList<ContactRow>();
-      contactRows.addAll(contactManager.getContactsServer());
-      //final List<ContactRow> intersection = util.intersectionDifference(contactRows, dbContact);
-      //Log.i(TAG, "intersection:" + intersection.size() + ", contactRows:" + contactRows.size()
-      //    + ", dbContact:" + dbContact.size());
+      final List<ContactRow> intersection = util.intersectionDifference(contactManager.getContactsServer(), contactManager.getLocalContacts());
+      Log.i(TAG, "intersection:" + intersection.size() + ", contactlocal:" + contactManager.getLocalContacts().size()
+          + ", dbContact:" + contactManager.getContactsServer().size());
 
-      // intersection-> must be sign as sync
-      new Thread(new Runnable() {
-        @Override
-        public void run() {
-          HelperSQL database = new HelperSQL(activity);
-       //   database.updateContactsSync(intersection, true);
-        }
-      }).start();
-
-      for (ContactRow contactRow : contactRows) {
+      for (ContactRow contactRow : intersection) {
         if (contactRow.isSync()) {
-          GoogleContact googleContact =  new ServerUtilities().fetchLDAPContact(
+          final GoogleContact googleContact =  new ServerUtilities().fetchLDAPContact(
               new ServerInstance(AccountData.getAccountData(getApplicationContext())),
               getApplicationContext(), handler, contactRow.getUuid());
           Log.i(TAG, googleContact.getUuid());
+          new Thread(new Runnable() {
+            @Override
+            public void run() {
+              try {
+                String id = null;
+                ContentProviderResult[] contactUri =
+                    getApplicationContext().getContentResolver().applyBatch(ContactsContract.AUTHORITY,
+                    GoogleContact.createOperationNew(new GoogleContact(), googleContact));
+                for (ContentProviderResult a : contactUri) {
+                  if (id == null) {
+                    id = a.uri.getLastPathSegment();
+                  }
+                  Log.i(TAG, "id:" + id);
+                  Log.i(TAG, "res:" + a.toString());
+                }
+              } catch (RemoteException e) {
+                e.printStackTrace();
+              } catch (OperationApplicationException e) {
+                e.printStackTrace();
+              }
+            }
+          }).start();
+          GoogleContact.createOperationNew(new GoogleContact(), googleContact);
         }
       }
       return null;
@@ -270,23 +287,16 @@ public class ContactsServerActivity extends Activity {
     BackgroundExecutor.cancelAll("loadData", mayInterruptIfRunning);
   }
 
-  //@Override
-  //public void onActivityResult(int requestCode, int resultCode, Intent data) {
   @UiThread
   public void fragmnetCall() {
-//    Toast.makeText(this, "Photo Intent Goes Here", Toast.LENGTH_SHORT).show();
-
-   // if(data != null) {
-        //Toast.makeText(this, "It's not empty", Toast.LENGTH_SHORT).show();
-
-    //     if (resultCode == RESULT_OK) {
-           ContactServerFragment f1 = (ContactServerFragment) getFragmentManager().findFragmentByTag("CONTACT_LDAP");
-              f1.updateAdapter(); // Your method   of the fragment
-
-//            }
-
-   // } else {
-   //     Toast.makeText(this, "It's empty", Toast.LENGTH_SHORT).show();
-   // }
-}
+    GroupServerFragment f2 = (GroupServerFragment) getFragmentManager().findFragmentByTag("GROUP_LDAP");
+    if (f2 != null) {
+      //f2.updateAdapter();
+    }
+    ContactServerFragment f1 = (ContactServerFragment) getFragmentManager().findFragmentByTag("CONTACT_LDAP");
+    if (f1 != null) {
+      f1.updateAdapter(); // Your method   of the fragment
+    }
+    Log.i(TAG, "fragmnetCall");
+  }
 }

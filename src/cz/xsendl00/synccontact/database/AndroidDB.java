@@ -1,6 +1,7 @@
 package cz.xsendl00.synccontact.database;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +27,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
 import cz.xsendl00.synccontact.utils.Mapping;
+import cz.xsendl00.synccontact.utils.Utils;
 
 /**
  * Class for working with Android database like update contact, get contact ...
@@ -49,26 +51,21 @@ public class AndroidDB {
    * @param context context
    * @param contactsDirty contactsDirty list of contact for set dirty bit to 0
    */
-  public void cleanModifyStatus(final Context context,
+  public void cleanModifyStatusNewTimestamp(final Context context,
       final Map<String, GoogleContact> contactsDirty) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     int count = 0;
+    String timestamp = new Utils().createTimestamp();
     for (Map.Entry<String, GoogleContact> entry : contactsDirty.entrySet()) {
-      if (count < MAX_OPERATIONS_IYELD) {
-        ops.add(ContentProviderOperation.newUpdate(
-            ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI,
-                Integer.valueOf(entry.getValue().getId())))
-            .withValue(RawContacts.DIRTY, 0)
-            .build());
+      ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
+          ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, entry.getValue().getId()))
+          .withValue(RawContacts.DIRTY, 0)
+          .withValue(RawContacts.SYNC2, timestamp);
+      if (count >= MAX_OPERATIONS_IYELD) {
+        operationBuilder.withYieldAllowed(true);
         count = 0;
-      } else {
-        ops.add(ContentProviderOperation.newUpdate(
-            ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI,
-                Integer.valueOf(entry.getValue().getId())))
-            .withValue(RawContacts.DIRTY, 0)
-            .withYieldAllowed(true)
-            .build());
       }
+      ops.add(operationBuilder.build());
       count++;
     }
     try {
@@ -89,6 +86,41 @@ public class AndroidDB {
    * Update Contacts.
    *
    * @param context context
+   * @param contacts List of contact their attributes should be updated, added or removed from
+   * database.
+   * @return true/false
+   * @throws OperationApplicationException OperationApplicationException
+   * @throws RemoteException RemoteException
+   */
+  public boolean addContacts2Database(final Context context, final Map<String, GoogleContact> contacts)
+      throws RemoteException, OperationApplicationException {
+
+    ArrayList<ContentProviderOperation> op = new ArrayList<ContentProviderOperation>();
+    // for every contact do:
+    for (Map.Entry<String, GoogleContact> entry : contacts.entrySet()) {
+      op.addAll(GoogleContact.createOperationNew(new GoogleContact(), entry.getValue()));
+    }
+    try {
+      for (ContentProviderOperation o : op) {
+        Log.i(TAG, o.toString());
+      }
+      Log.i(TAG, String.valueOf(op.size()));
+      ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, op);
+      for (ContentProviderResult a : contactUri) {
+        Log.i(TAG, "res:" + a);
+      }
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    } catch (OperationApplicationException e) {
+      e.printStackTrace();
+    }
+    return true;
+  }
+
+  /**
+   * Update Contacts.
+   *
+   * @param context context
    * @param differenceLDAP List of contact their attributes should be updated, added or removed from
    * database.
    * @return true/false
@@ -102,12 +134,8 @@ public class AndroidDB {
     ArrayList<ContentProviderOperation> op = new ArrayList<ContentProviderOperation>();
     // for every contact do:
     for (Map.Entry<String, GoogleContact> entry : differenceLDAP.entrySet()) {
-      HelperSQL helperSQL = new HelperSQL(context);
-      // get raw_id from local database
-      Integer id = null;//helperSQL.getContactId(entry.getKey());
-
-      Log.i(TAG, "uuid:: " + entry.getKey() + " mapping to:" + id);
-      GoogleContact googleContact = mapping.mappingContactFromDB(context.getContentResolver(), id,
+      Log.i(TAG, "uuid:: " + entry.getKey() + " mapping to:" + entry.getValue().getId());
+      GoogleContact googleContact = mapping.mappingContactFromDB(context.getContentResolver(), entry.getValue().getId(),
           entry.getKey());
       Log.i(TAG, "local:" + googleContact.toString());
       Log.i(TAG, "server:" + entry.getValue().toString());
@@ -119,8 +147,7 @@ public class AndroidDB {
         Log.i(TAG, o.toString());
       }
       Log.i(TAG, String.valueOf(op.size()));
-      ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(
-          ContactsContract.AUTHORITY, op);
+      ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, op);
       for (ContentProviderResult a : contactUri) {
         Log.i(TAG, "res:" + a);
       }
@@ -229,8 +256,7 @@ public class AndroidDB {
     List<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     int count = 0;
     for (ContactRow contactRow : contactRows) {
-      ContentProviderOperation.Builder operationBuilder  = ContentProviderOperation.newInsert(
-          addIsSyncAdapter(Data.CONTENT_URI, true))
+      ContentProviderOperation.Builder operationBuilder  = ContentProviderOperation.newInsert(Data.CONTENT_URI)
           .withValueBackReference(Data.RAW_CONTACT_ID, contactRow.getId())
           .withValue(Data.MIMETYPE, MIMETYPE)
           .withValue(Data.DATA1, contactRow.getAccouNamePrevious())
@@ -241,6 +267,7 @@ public class AndroidDB {
       }
       count++;
       ops.add(operationBuilder.build());
+      Log.i(TAG, "DATA:" + (operationBuilder.build()).toString());
     }
     return ops;
   }
@@ -257,7 +284,7 @@ public class AndroidDB {
     for (ContactRow contactRow : contactRows) {
       if (!contactRow.isConverted()) {
         ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
-            ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, Integer.valueOf(contactRow.getId())))
+            ContentUris.withAppendedId(RawContacts.CONTENT_URI, contactRow.getId()))
             .withValue(RawContacts.SYNC3, SET_CONVERT)
             .withValue(RawContacts.SYNC4, contactRow.getUuid())
             .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
@@ -287,49 +314,88 @@ public class AndroidDB {
    * @param context context activity
    * @param contactRows list of contacts for exporting to previous account.
    */
-  public void exportContactsFromSyncAccount(final Context context, List<ContactRow> contactRows) {
+  public void exportContactsFromSyncAccount(final Context context) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    // get all contact with previsou account data
+    String where = ContactsContract.Data.MIMETYPE + "='" + MIMETYPE + "'";
+    String[] projection = new String[]{ContactsContract.Data.RAW_CONTACT_ID,
+        ContactsContract.Data.DATA1, ContactsContract.Data.DATA2};
+
+    Cursor cursor = context.getContentResolver().query(
+        ContactsContract.Data.CONTENT_URI, projection, where, null, null);
+    List<ContactRow> contactRows = new ArrayList<ContactRow>();
+    try {
+      while (cursor.moveToNext()) {
+        ContactRow contactRow = new ContactRow();
+        contactRow.setId(cursor.getInt(cursor.getColumnIndex(ContactsContract.Data.RAW_CONTACT_ID)));
+        contactRow.setAccouNamePrevious(cursor.getString(cursor.getColumnIndex(ContactsContract.Data.DATA1)));
+        contactRow.setAccouTypePrevious(cursor.getString(cursor.getColumnIndex(ContactsContract.Data.DATA2)));
+        contactRows.add(contactRow);
+      }
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    } finally {
+      if (cursor != null && !cursor.isClosed()) {
+        cursor.close();
+      }
+    }
+
     int size = contactRows.size();
     int i = 1;
     int count = 0;
     for (ContactRow contactRow : contactRows) {
-      if (count < MAX_OPERATIONS_IYELD) {
-        ops.add(ContentProviderOperation.newUpdate(
-            ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI,
-                Integer.valueOf(contactRow.getId())))
-            .withValue(RawContacts.ACCOUNT_NAME, contactRow.getAccouNamePrevious())
-            .withValue(RawContacts.ACCOUNT_TYPE, contactRow.getAccouTypePrevious())
-            .build());
-      } else {
-        ops.add(ContentProviderOperation.newUpdate(
-            ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI,
-                Integer.valueOf(contactRow.getId())))
-            .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
-            .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE)
-            .withYieldAllowed(true)
-            .build());
+      ContentProviderOperation.Builder operationBuilder  = ContentProviderOperation.newUpdate(
+          ContentUris.withAppendedId(RawContacts.CONTENT_URI, contactRow.getId()))
+          .withValue(RawContacts.ACCOUNT_NAME, contactRow.getAccouNamePrevious())
+          .withValue(RawContacts.ACCOUNT_TYPE, contactRow.getAccouTypePrevious());
+      if (count >= MAX_OPERATIONS_IYELD) {
+        operationBuilder.withYieldAllowed(true);
+        count = 0;
       }
       count++;
+      ops.add(operationBuilder.build());
       Log.i(TAG, contactRow.getId() + ", exportContactsFromSyncAccount: " + i++ + "/" + size
           + ", to:" + contactRow.getAccouNamePrevious());
     }
     try {
       context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-      new Thread(new Runnable() {
-
-        @Override
-        public void run() {
-          new HelperSQL(context).drop();
-        }
-      }).start();
       Log.i(TAG, "Contacts exported");
     } catch (RemoteException e) {
       e.printStackTrace();
     } catch (OperationApplicationException e) {
       e.printStackTrace();
     }
+    removeRowInData(context, contactRows);
   }
 
+  private void removeRowInData(final Context context, List<ContactRow> contactRows) {
+    int count = 0;
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    for (ContactRow contactRow : contactRows) {
+
+      Uri uri = addIsSyncAdapter(Uri.withAppendedPath(Data.CONTENT_URI, contactRow.getId().toString()), true);
+
+      ContentProviderOperation.Builder operationBuilder  = ContentProviderOperation.newDelete(uri);
+      if (count >= MAX_OPERATIONS_IYELD) {
+        operationBuilder.withYieldAllowed(true);
+        count = 0;
+      }
+      count++;
+      ops.add(operationBuilder.build());
+    }
+    try {
+      ContentProviderResult[] contentProviderResults =
+          context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+      for (ContentProviderResult contentProviderResult : contentProviderResults) {
+        Log.i(TAG, "Data removed: " + contentProviderResult.toString());
+      }
+
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    } catch (OperationApplicationException e) {
+      e.printStackTrace();
+    }
+  }
 
   /**
    * Get contact Id by raw id.
@@ -443,6 +509,64 @@ public class AndroidDB {
       }
     }
     return contacts;
+  }
+
+  /**
+   * Newer timestamp of last synchronization. Get from database.
+   * @param contentResolver contentResolver
+   * @return last timestamp.
+   */
+  public String newerTimestamp(ContentResolver contentResolver) {
+    Cursor cursor = null;
+    String time = null;
+    try {
+      cursor = contentResolver.query(RawContacts.CONTENT_URI, new String[]{RawContacts.SYNC2}, null, null, null);
+      List<String> times = new ArrayList<String>();
+      while (cursor.moveToNext()) {
+        String str = cursor.getString(cursor.getColumnIndex(RawContacts.SYNC2));
+        if (str != null) {
+          times.add(str);
+        }
+      }
+      if (!times.isEmpty()) {
+        Collections.sort(times);
+        time = times.get(times.size() - 1);
+      }
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    } finally {
+      if (cursor != null && !cursor.isClosed()) {
+        cursor.close();
+      }
+    }
+    return time;
+  }
+
+  /**
+   * Newer timestamp of last synchronization. Get from database.
+   * @param contentResolver contentResolver
+   * @return last timestamp.
+   */
+  public String getModifiedTime(ContentResolver contentResolver, Integer id) {
+    Cursor cursor = null;
+    String time = null;
+    try {
+      cursor = contentResolver.query(
+          ContactsContract.Contacts.CONTENT_URI,
+          new String[]{ContactsContract.Contacts.CONTACT_LAST_UPDATED_TIMESTAMP},
+          RawContacts._ID + "=" + id, null, null);
+      while (cursor.moveToNext()) {
+        time = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.CONTACT_LAST_UPDATED_TIMESTAMP));
+        break;
+      }
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    } finally {
+      if (cursor != null && !cursor.isClosed()) {
+        cursor.close();
+      }
+    }
+    return time;
   }
 
 }

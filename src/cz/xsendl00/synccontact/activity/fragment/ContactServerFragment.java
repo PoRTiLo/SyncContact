@@ -44,6 +44,7 @@ public class ContactServerFragment extends Fragment implements
   private ContactManager contactManager;
   private static boolean selectAll;
 
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -58,7 +59,7 @@ public class ContactServerFragment extends Fragment implements
     View rootView = null;
     rootView = inflater.inflate(R.layout.fragment_contact, container, false);
     Button button = (Button) rootView.findViewById(R.id.fragment_contact_button);
-    if (activity.isFirst() && contactManager.getContactsServer().isEmpty()) {
+    if (activity.isFirst() && contactManager.getServerContact2Import().isEmpty()) {
       button.setText("Skip");
     } else {
       button.setText("Imported selected");
@@ -70,9 +71,7 @@ public class ContactServerFragment extends Fragment implements
   public void onResume() {
     super.onResume();
     listRow = (ListView) getActivity().findViewById(R.id.list_contact);
-    adapter = new RowContactServerAdapter(getActivity().getApplicationContext(),
-        contactManager.getContactsServer(), this);
-    listRow.setAdapter(adapter);
+    changeShowingData();
   }
 
   /**
@@ -140,6 +139,11 @@ public class ContactServerFragment extends Fragment implements
         selectAll = selectAll ? false : true;
         selectAll(selectAll);
         break;
+      case R.id.action_show:
+        item.setTitle(activity.importAll ? getString(R.string.menu_show_imported) : getString(R.string.menu_show_all));
+        activity.importAll  = activity.importAll ? false : true;
+        changeShowingData();
+        break;
       case android.R.id.home:
         break;
       default:
@@ -151,8 +155,13 @@ public class ContactServerFragment extends Fragment implements
   @Override
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
     final int pos = (Integer) buttonView.getTag();
-    if (pos != ListView.INVALID_POSITION && pos < contactManager.getContactsServer().size()) {
-      ContactRow p = contactManager.getContactsServer().get(pos);
+    if (pos != ListView.INVALID_POSITION) {
+      ContactRow p = null;
+      if (activity.importAll) {
+        p = contactManager.getServerContact2Import().get(pos);
+      } else {
+        p = contactManager.getContactsServer().get(pos);
+      }
       if (p.isSync() != isChecked) {
         p.setSync(isChecked);
       }
@@ -166,7 +175,19 @@ public class ContactServerFragment extends Fragment implements
    */
   @UiThread
   public void updateAdapter() {
+    changeShowingData();
     adapter.notifyDataSetChanged();
   }
 
+  private void changeShowingData() {
+    if (activity.importAll) {
+      adapter = new RowContactServerAdapter(getActivity().getApplicationContext(),
+          contactManager.getServerContact2Import(), this);
+      listRow.setAdapter(adapter);
+    } else {
+      adapter = new RowContactServerAdapter(getActivity().getApplicationContext(),
+          contactManager.getContactsServer(), this);
+      listRow.setAdapter(adapter);
+    }
+  }
 }
