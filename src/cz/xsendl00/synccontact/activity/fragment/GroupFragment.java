@@ -27,7 +27,7 @@ import cz.xsendl00.synccontact.HelpActivity_;
 import cz.xsendl00.synccontact.R;
 import cz.xsendl00.synccontact.SettingsActivity_;
 import cz.xsendl00.synccontact.client.ContactManager;
-import cz.xsendl00.synccontact.database.HelperSQL;
+import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
@@ -47,6 +47,7 @@ public class GroupFragment extends Fragment implements
   private static boolean selectAll;
   private ContactsActivity activity;
   private ContactManager contactManager;
+  private AndroidDB androidDB;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -54,6 +55,7 @@ public class GroupFragment extends Fragment implements
     setHasOptionsMenu(true);
     activity = (ContactsActivity) getActivity();
     contactManager = ContactManager.getInstance(activity);
+    androidDB = new AndroidDB();
   }
 
   @Override
@@ -78,19 +80,19 @@ public class GroupFragment extends Fragment implements
     isSelectedAll();
     listRow = (ListView) getActivity().findViewById(R.id.list_group);
     adapter = new RowGroupAdapter(getActivity().getApplicationContext(),
-        contactManager.getGroupsLocal(), this);
+        contactManager.getLocalGroups(), this);
     listRow.setAdapter(adapter);
     if (listRow != null) {
       listRow.setOnItemClickListener(new OnItemClickListener() {
 
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-          if (contactManager.getGroupsLocal().get(position).getSize() != 0) {
+          if (contactManager.getLocalGroups().get(position).getSize() != 0) {
             Intent i = new Intent(getActivity().getApplicationContext(),
                 ContactsDetailActivity_.class);
             i.putExtra(Constants.INTENT_FIRST, activity.isFirst());
-            i.putExtra(Constants.INTENT_ID, contactManager.getGroupsLocal().get(position).getId());
-            i.putExtra(Constants.INTENT_NAME, contactManager.getGroupsLocal()
+            i.putExtra(Constants.INTENT_ID, contactManager.getLocalGroups().get(position).getId());
+            i.putExtra(Constants.INTENT_NAME, contactManager.getLocalGroups()
                 .get(position)
                 .getName());
             startActivity(i);
@@ -152,7 +154,7 @@ public class GroupFragment extends Fragment implements
 
   private void isSelectedAll() {
     boolean isSelectAll = true;
-    for (GroupRow groupRow : contactManager.getGroupsLocal()) {
+    for (GroupRow groupRow : contactManager.getLocalGroups()) {
       if (!groupRow.isSync()) {
         isSelectAll = false;
         break;
@@ -166,7 +168,7 @@ public class GroupFragment extends Fragment implements
 
       @Override
       public void run() {
-        for (GroupRow groupRow : contactManager.getGroupsLocal()) {
+        for (GroupRow groupRow : contactManager.getLocalGroups()) {
           groupRow.setSync(result);
         }
         adapter.notifyDataSetChanged();
@@ -177,8 +179,8 @@ public class GroupFragment extends Fragment implements
 
       @Override
       public void run() {
-        updateGroups(result, contactManager.getGroupsLocal());
-        updateDB(result, contactManager.getGroupsLocal());
+        updateGroups(result, contactManager.getLocalGroups());
+        updateGroupsDatabase(result, contactManager.getLocalGroups());
       }
     }).start();
   }
@@ -188,13 +190,13 @@ public class GroupFragment extends Fragment implements
   public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
     int pos = (Integer) buttonView.getTag();
     if (pos != ListView.INVALID_POSITION) {
-      GroupRow p = contactManager.getGroupsLocal().get(pos);
+      GroupRow p = contactManager.getLocalGroups().get(pos);
       if (p.isSync() != isChecked) {
         p.setSync(isChecked);
         ArrayList<GroupRow> groups = new ArrayList<GroupRow>();
         groups.add(p);
         updateGroups(isChecked, groups);
-        updateDB(isChecked, groups);
+        updateGroupsDatabase(isChecked, groups);
       }
     }
   }
@@ -207,28 +209,13 @@ public class GroupFragment extends Fragment implements
    */
   @Background
   protected void updateGroups(final boolean isChecked, final List<GroupRow> groups) {
-    //final ContentResolver contentResolver = getActivity().getContentResolver();
     for (GroupRow groupRow : groups) {
-      final String id = groupRow.getId();
-      List<ContactRow> list = contactManager.getGroupsContacts().get(id);
+      final Integer id = groupRow.getId();
+      List<ContactRow> list = contactManager.getLocalGroupsContacts().get(id);
       for (ContactRow contactRow : list) {
         contactRow.setSync(isChecked);
       }
-////      if (getActivity() != null) {
-////        final Set<String> list = new ContactRow().fetchGroupMembersId(contentResolver, id);
-////        if (list != null) {
-////          for (String id1 : list) {
-////            for (ContactRow c : contactManager.getContactsLocal()) {
-////              if (c.getId().equals(id1)) {
-////                c.setSync(isChecked);
-////                break;
-////              }
-////            }
-////          }
-////        }
-////      } else {
-////        Log.i(TAG, "je nulllllll taky");
-////      }
+      androidDB.updateContactsSync(activity, list, isChecked);
     }
   }
 
@@ -239,15 +226,8 @@ public class GroupFragment extends Fragment implements
    * @param groups list of groups
    */
   @Background
-  protected void updateDB(final boolean isChecked, final List<GroupRow> groups) {
-    //final ContentResolver contentResolver = getActivity().getContentResolver();
-    HelperSQL db = new HelperSQL(getActivity());
-    for (GroupRow groupRow : groups) {
-      final String id = groupRow.getId();
-      db.updateGroupSync(groupRow);
-      List<ContactRow> list = contactManager.getGroupsContacts().get(id);
-      db.updateContactsSync(list, isChecked);
-    }
+  protected void updateGroupsDatabase(final boolean isChecked, final List<GroupRow> groups) {
+    androidDB.updateGroupsSync(activity, groups, isChecked);
   }
 
   /**

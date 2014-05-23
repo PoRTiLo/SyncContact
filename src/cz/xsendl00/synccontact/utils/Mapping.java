@@ -289,7 +289,7 @@ public class Mapping {
     return ldapArray;
   }
 
-  public static AddRequest mappingRequest(ContentResolver cr, String id, String baseDn, String rdn) {
+  public static AddRequest mappingRequest(ContentResolver cr, Integer id, String baseDn, String rdn) {
     Cursor cursor = new ContactDetail().fetchAllDataOfContact(cr, id);
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 
@@ -346,6 +346,7 @@ public class Mapping {
    * @param groupRow group
    * @param baseDn base DN
    * @param context context
+   * @param mod list of member without first member
    * @return list of add request.
    */
   public AddRequest createGroupAddRequest(final GroupRow groupRow,
@@ -358,10 +359,7 @@ public class Mapping {
     attributes.add(new Attribute(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GROUP_OF_NAME));
     attributes.add(new Attribute(Constants.CN, groupRow.getUuid()));
 
-
     ArrayList<Attribute> attributesTemp = fillAttribute(groupRow, baseDn, context, mod);
-
-
     if (attributesTemp != null && !attributesTemp.isEmpty()) {
       attributes.addAll(attributesTemp);
     }
@@ -413,11 +411,10 @@ public class Mapping {
       final String baseDn,
       Context context,
       List<Modification> mod) {
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 
+    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
     ContactManager contactManager = ContactManager.getInstance(context);
-    Map<String, List<ContactRow>> map = contactManager.getGroupsContacts();
-    List<ContactRow> list = map.get(groupRow.getId());
+    List<ContactRow> list = contactManager.getLocalGroupsContacts().get(groupRow.getId());
     if (list.isEmpty()) {
       return null;
     }
@@ -935,13 +932,13 @@ public class Mapping {
    * @param uuid UUID
    * @return GoogleContact
    */
-  public GoogleContact mappingContactFromDB(ContentResolver contentResolver, String id, String uuid) {
+  public GoogleContact mappingContactFromDB(ContentResolver contentResolver, Integer id, String uuid) {
     Cursor cursor = null;
     GoogleContact contact = null;
     try {
       cursor = new ContactDetail().fetchAllDataOfContact(contentResolver, id);
       contact = new GoogleContact();
-      contact.setId(id);
+      contact.setId(id+"");
       contact.setUuid(uuid);
       contact.setSynchronize(true);
       while (cursor.moveToNext()) {

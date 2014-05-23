@@ -6,7 +6,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import cz.xsendl00.synccontact.utils.Constants;
@@ -35,8 +34,7 @@ public class InfoMergeActivity extends Activity {
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
-    MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.settings_menu, menu);
+    getMenuInflater().inflate(R.menu.settings_menu, menu);
     return true;
   }
 
@@ -50,7 +48,6 @@ public class InfoMergeActivity extends Activity {
         startActivity(intent);
         break;
       case android.R.id.home:
-        finish();
         break;
       default:
         break;

@@ -11,17 +11,14 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.os.Handler;
-import android.os.RemoteException;
 import android.provider.ContactsContract;
-import android.provider.ContactsContract.Groups;
-import android.provider.ContactsContract.Settings;
 import android.util.Log;
+import android.util.SparseArray;
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
-import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
 import cz.xsendl00.synccontact.utils.RowComparator;
@@ -34,12 +31,20 @@ import cz.xsendl00.synccontact.utils.Utils;
 public class ContactManager {
 
   private static final String TAG = "ContactManager";
+  private List<GroupRow> localGroups;
+  private List<ContactRow> localContacts;
+  private SparseArray<List<ContactRow>> localGroupsContacts;
+  private boolean localGroupsContactsInit = false;
+  private boolean localContactsInit = false;
+  private boolean localGroupsInit = false;
+  private static ContactManager instance = null;
+
 
   private AccountData accountData;
-  private static ContactManager instance = null;
   private List<GroupRow> groupsLocal;
-  private List<GroupRow> groupsServer;
   private List<ContactRow> contactsLocal;
+
+  private List<GroupRow> groupsServer;
   private List<ContactRow> contactsServer;
   // key id group
   private Map<String, List<ContactRow>> groupsContacts;
@@ -50,6 +55,7 @@ public class ContactManager {
   private boolean groupsServerInit = false;
   private boolean contactsLocalReload = false;
   private boolean groupsLocalReload = false;
+
 
 
   private ContactManager(Context context) {
@@ -69,6 +75,88 @@ public class ContactManager {
     }
     return instance;
   }
+
+  public List<GroupRow> getLocalGroups() {
+    if (localGroups == null || !localGroupsInit) {
+      localGroups = GroupRow.fetchGroups(context.getContentResolver(), null);
+      localGroupsInit = true;
+    }
+    return localGroups;
+  }
+
+  public List<ContactRow> getLocalContacts() {
+    if (localContacts == null || !localContactsInit) {
+      localContacts = ContactRow.fetchAllRawContact(context.getContentResolver(), null);
+      localContactsInit = true;
+    }
+    return localContacts;
+  }
+
+  public SparseArray<List<ContactRow>> getLocalGroupsContacts() {
+    getLocalGroups();
+    getLocalContacts();
+    if (localGroupsContacts == null || !localGroupsContactsInit) {
+      localGroupsContacts = new SparseArray<List<ContactRow>>();
+      for (GroupRow groupRow: localGroups) {
+        List<ContactRow> contactRows = ContactRow.fetchGroupMembersName(context.getContentResolver(), groupRow.getId());
+        localGroupsContacts.put(groupRow.getId(), contactRows);
+        groupRow.setSize(contactRows.size());
+      }
+      // TODO: dodelat kdyz neni ve skupine
+      //for (int i = 0; i < localGroupsContacts.size(); i++) {
+      //  List<ContactRow> = localGroupsContacts.valueAt(i);
+      //}
+      localGroupsContactsInit = true;
+    }
+    return localGroupsContacts;
+  }
+
+  public void convertContact2NewAccount() {
+    if (localContacts == null || !localContactsInit) {
+      getLocalContacts();
+    }
+    new AndroidDB().importContactsToSyncAccount(context, localContacts);
+  }
+
+  public void updateGroupsUuid() {
+    if (localGroups == null || !localGroupsInit) {
+      getLocalGroups();
+    }
+
+    List<GroupRow> groupRows = new ArrayList<GroupRow>();
+    for (GroupRow groupRow : localGroups) {
+      if (groupRow.getUuidFirst() == null) {
+        groupRow.getUuid();
+        groupRows.add(groupRow);
+      }
+    }
+    new AndroidDB().updateGroupsUuid(context, groupRows);
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   private void isContactInGroup() {
     Utils util = new Utils();
@@ -99,7 +187,7 @@ public class ContactManager {
       @Override
       public void run() {
         HelperSQL db = new HelperSQL(context);
-        db.updateContactIdGroup(contactsLocal);
+        //db.updateContactIdGroup(contactsLocal);
       }
     });
     updateContactIdGroupThread.start();
@@ -227,7 +315,7 @@ public class ContactManager {
     util.startTime(TAG, "reloadContact");
     HelperSQL db = new HelperSQL(context);
     contactsLocal = new ArrayList<ContactRow>();
-    contactsLocal.addAll(db.getAllContacts());
+    //contactsLocal.addAll(db.getAllContacts());
     setContactsLocalReload(true);
     util.stopTime(TAG, "reloadContact");
   }
@@ -242,7 +330,7 @@ public class ContactManager {
     contactsLocal = new ArrayList<ContactRow>();
     contactsLocal.addAll(new AndroidDB().fetchAllContact(context.getContentResolver()));
     HelperSQL db = new HelperSQL(context);
-    db.fillContacts(contactsLocal);
+    //db.fillContacts(contactsLocal);
     contactsLocalInit = true;
     setContactsLocalReload(false);
     util.stopTime(TAG, "initContact");
@@ -255,20 +343,20 @@ public class ContactManager {
     Utils util = new Utils();
     util.startTime(TAG, "initGroup");
     groupsLocal = new ArrayList<GroupRow>();
-    groupsLocal.addAll(GroupRow.fetchGroups(context.getContentResolver()));
+    groupsLocal.addAll(GroupRow.fetchGroups(context.getContentResolver(), null));
     Log.i(TAG, "groupsLocal size:" + groupsLocal.size());
 
     for (GroupRow group : groupsLocal) {
-      List<ContactRow> contacRows = new ContactRow().fetchGroupMembers(
-          context.getContentResolver(), group.getId());
-      Collections.sort(contacRows, new RowComparator());
-      groupsContacts.put(group.getId(), contacRows);
-      group.setSize(contacRows.size());
-      Log.i(TAG, "id:" + group.getId() + "group size:" + group.getSize() + contacRows.toString());
+      //List<ContactRow> contacRows = new ContactRow().fetchGroupMembers(
+      //    context.getContentResolver(), group.getId());
+     // Collections.sort(contacRows, new RowComparator());
+      //groupsContacts.put(group.getId(), contacRows);
+     // group.setSize(contacRows.size());
+     // Log.i(TAG, "id:" + group.getId() + "group size:" + group.getSize() + contacRows.toString());
     }
 
     HelperSQL db = new HelperSQL(context);
-    db.fillGroups(groupsLocal);
+    //db.fillGroups(groupsLocal);
     groupsLocalInit = true;
     setGroupsLocalReload(false);
 
@@ -325,7 +413,7 @@ public class ContactManager {
     util.startTime(TAG, "reloadGroup");
     HelperSQL helperSQL = new HelperSQL(context);
     groupsLocal = new ArrayList<GroupRow>();
-    groupsLocal = helperSQL.getAllGroups();
+    //groupsLocal = helperSQL.getAllGroups();
     setGroupsLocalReload(true);
     util.stopTime(TAG, "reloadGroup");
   }
@@ -351,19 +439,19 @@ public class ContactManager {
 
 
   public static void makeGroupVisible(String accountName, ContentResolver resolver) {
-    try {
+    //try {
       ContentProviderClient client = resolver.acquireContentProviderClient(ContactsContract.AUTHORITY_URI);
       ContentValues cv = new ContentValues();
-      cv.put(Groups.ACCOUNT_NAME, accountName);
-      cv.put(Groups.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE);
-      cv.put(Settings.UNGROUPED_VISIBLE, true);
-      client.insert(
-          Settings.CONTENT_URI.buildUpon()
-              .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true")
-              .build(), cv);
-    } catch (RemoteException e) {
-      Log.d(TAG, "Cannot make the Group Visible");
-    }
+      //cv.put(Groups.ACCOUNT_NAME, accountName);
+      //cv.put(Groups.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE);
+      //cv.put(Settings.UNGROUPED_VISIBLE, true);
+      //client.insert(
+      //    Settings.CONTENT_URI.buildUpon()
+      //        .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true")
+      //        .build(), cv);
+    //} catch (RemoteException e) {
+    //  Log.d(TAG, "Cannot make the Group Visible");
+    //}
   }
 
   /**
@@ -487,5 +575,33 @@ public class ContactManager {
       initGroupsContacts();
     }
     return groupsContacts;
+  }
+
+  /**
+   * @return Returns the localContactsInit.
+   */
+  public boolean isLocalContactsInit() {
+    return localContactsInit;
+  }
+
+  /**
+   * @param localContactsInit The localContactsInit to set.
+   */
+  public void setLocalContactsInit(boolean localContactsInit) {
+    this.localContactsInit = localContactsInit;
+  }
+
+  /**
+   * @return Returns the localGroupsInit.
+   */
+  public boolean isLocalGroupsInit() {
+    return localGroupsInit;
+  }
+
+  /**
+   * @param localGroupsInit The localGroupsInit to set.
+   */
+  public void setLocalGroupsInit(boolean localGroupsInit) {
+    this.localGroupsInit = localGroupsInit;
   }
 }

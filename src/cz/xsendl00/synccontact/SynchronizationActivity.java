@@ -66,13 +66,13 @@ public class SynchronizationActivity extends Activity {
       @Override
       public void run() {
         HelperSQL db = new HelperSQL(getApplicationContext());
-        final String str = db.newerTimestamp();
-        editTextTime.post(new Runnable() {
-          @Override
-          public void run() {
-            editTextTime.setText(utils.timestamptoDate(str));
-          }
-        });
+        //final String str = db.newerTimestamp();
+        //editTextTime.post(new Runnable() {
+        //  @Override
+        //  public void run() {
+        //    editTextTime.setText(utils.timestamptoDate(str));
+        //  }
+        //});
       }
     }).start();
   }

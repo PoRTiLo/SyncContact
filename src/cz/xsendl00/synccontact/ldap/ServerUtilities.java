@@ -109,10 +109,10 @@ public class ServerUtilities {
    * @param ldapServer server instance
    * @param context context
    * @param handler handler
-   * @param googleContact contact
+   * @param googleContacts contacts
    */
   public void addContactToServer(final ServerInstance ldapServer,
-      final Context context, final Handler handler, GoogleContact googleContact) {
+      final Context context, final Handler handler, List<GoogleContact> googleContacts) {
     LDAPConnection connection = null;
 
     try {
@@ -121,12 +121,14 @@ public class ServerUtilities {
       e1.printStackTrace();
     }
     try {
-      AddRequest addRequest = new Mapping().mappingAddRequest(googleContact, ldapServer.getAccountdData().getBaseDn());
-      Log.i(TAG, addRequest.toLDIFString());
-      if (addRequest != null) {
-        LDAPResult ldapResult = connection.add(addRequest);
-        Log.i(TAG, "Add to server : " + googleContact.getUuid() + "---" + ldapResult.toString());
-        notification(context, googleContact.getUuid());
+      for (GoogleContact googleContact : googleContacts) {
+        AddRequest addRequest = new Mapping().mappingAddRequest(googleContact, ldapServer.getAccountdData().getBaseDn());
+        Log.i(TAG, addRequest.toLDIFString());
+        if (addRequest != null) {
+          LDAPResult ldapResult = connection.add(addRequest);
+          Log.i(TAG, "Add to server : " + googleContact.getUuid() + "---" + ldapResult.toString());
+          //notification(context, googleContact.getUuid());
+        }
       }
     } catch (LDAPException e) {
       e.printStackTrace();
@@ -142,10 +144,10 @@ public class ServerUtilities {
    * @param ldapServer server instance
    * @param context context
    * @param handler handler
-   * @param group group for add
+   * @param groups groups for add
    */
   public void addGroup2Server(final ServerInstance ldapServer, final Context context,
-      final Handler handler, final GroupRow group) {
+      final Handler handler, final List<GroupRow> groups) {
     LDAPConnection connection = null;
     try {
       connection = ldapServer.getConnection(handler, context);
@@ -153,21 +155,24 @@ public class ServerUtilities {
       e1.printStackTrace();
     }
     try {
-      List<Modification> mod = new ArrayList<Modification>();
-      AddRequest addRequest = new Mapping().createGroupAddRequest(group,
-          ldapServer.getAccountdData().getBaseDn(), context, mod);
-      ModifyRequest modifyRequest = null;
-      if (!mod.isEmpty()) {
-        modifyRequest =  new ModifyRequest(Constants.CN + "=" + group.getUuid() + ","
-            + Constants.ACCOUNT_OU_GROUPS + ldapServer.getAccountdData().getBaseDn(), mod);
-      }
-      if (addRequest != null) {
-        LDAPResult ldapResult;
-        ldapResult = connection.add(addRequest);
-        Log.i(TAG, "Add group to server : " + group.getUuid() + "---" + ldapResult.toString());
-        //notification(context, group.getUuid());
-        if (modifyRequest != null) {
-          ldapResult = connection.modify(modifyRequest);
+      for (GroupRow groupRow : groups) {
+        List<Modification> mod = new ArrayList<Modification>();
+        AddRequest addRequest = new Mapping().createGroupAddRequest(groupRow,
+            ldapServer.getAccountdData().getBaseDn(), context, mod);
+        ModifyRequest modifyRequest = null;
+        if (!mod.isEmpty()) {
+          modifyRequest =  new ModifyRequest(Constants.CN + "=" + groupRow.getUuid() + ","
+              + Constants.ACCOUNT_OU_GROUPS + ldapServer.getAccountdData().getBaseDn(), mod);
+        }
+        if (addRequest != null) {
+          LDAPResult ldapResult;
+          ldapResult = connection.add(addRequest);
+          Log.i(TAG, "Add group to server : " + groupRow.getUuid() + "---" + ldapResult.toString());
+          //notification(context, group.getUuid());
+          if (modifyRequest != null) {
+            ldapResult = connection.modify(modifyRequest);
+            Log.i(TAG, "Add group to server with other member : " + groupRow.getUuid() + "---" + ldapResult.toString());
+          }
         }
       }
     } catch (LDAPException e) {
@@ -264,12 +269,12 @@ public class ServerUtilities {
                 Log.i(TAG, "res:" + a.toString());
               }
               HelperSQL db = new HelperSQL(context);
-              ContactRow contactRow = new ContactRow(id,
-                  googleContact.getStructuredName().getDisplayName(), true, null, Constants.ACCOUNT_NAME,
-                  Constants.ACCOUNT_TYPE, utils.createTimestamp(), googleContact.getUuid());
-              List<ContactRow> contacts = new ArrayList<ContactRow>();
-              contacts.add(contactRow);
-              db.addContacts(contacts);
+              //ContactRow contactRow = new ContactRow(id,
+              //    googleContact.getStructuredName().getDisplayName(), true, null, Constants.ACCOUNT_NAME,
+              //    Constants.ACCOUNT_TYPE, utils.createTimestamp(), googleContact.getUuid());
+              //List<ContactRow> contacts = new ArrayList<ContactRow>();
+              //contacts.add(contactRow);
+              //db.addContacts(contacts);
             } catch (RemoteException e) {
               e.printStackTrace();
             } catch (OperationApplicationException e) {

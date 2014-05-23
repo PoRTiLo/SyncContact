@@ -8,6 +8,7 @@ import org.androidannotations.annotations.EFragment;
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,7 +22,6 @@ import cz.xsendl00.synccontact.HelpActivity_;
 import cz.xsendl00.synccontact.R;
 import cz.xsendl00.synccontact.SettingsActivity_;
 import cz.xsendl00.synccontact.client.ContactManager;
-import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.GroupRow;
 
@@ -75,8 +75,8 @@ public class GroupServerFragment extends Fragment implements
    */
   @Background
   protected void selected() {
-    HelperSQL db = new HelperSQL(activity);
-    List<GroupRow> groupRowsDb = db.getGroupsSync();
+    String where = ContactsContract.Groups.SYNC1 + "=1";
+    List<GroupRow> groupRowsDb = GroupRow.fetchGroups(activity.getContentResolver(), where);
     int countSelect = 0;
     for (GroupRow groupRow : contactManager.getGroupsServer()) {
       int i = 0;
@@ -136,7 +136,6 @@ public class GroupServerFragment extends Fragment implements
         selectAll(selectAll);
         break;
       case android.R.id.home:
-        getActivity().finish();
         break;
       default:
         break;

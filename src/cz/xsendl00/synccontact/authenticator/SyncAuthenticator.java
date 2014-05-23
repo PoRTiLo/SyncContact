@@ -187,7 +187,7 @@ public class SyncAuthenticator extends AbstractAccountAuthenticator {
         @Override
         public void run() {
           HelperSQL db = new HelperSQL(mContext);
-          List<ContactRow> contactRows = db.getAllContacts();
+          List<ContactRow> contactRows = null;//db.getAllContacts();
           new AndroidDB().exportContactsFromSyncAccount(mContext, contactRows);
         }
       });

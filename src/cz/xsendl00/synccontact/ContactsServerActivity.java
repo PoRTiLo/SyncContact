@@ -1,8 +1,6 @@
 package cz.xsendl00.synccontact;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
@@ -196,19 +194,19 @@ public class ContactsServerActivity extends Activity {
     @Override
     protected Boolean doInBackground(Void... params) {
       HelperSQL db = new HelperSQL(activity);
-      Map<String, ContactRow> dbContact =  db.getAllContactsMap();
+     // Map<String, ContactRow> dbContact =  db.getAllContactsMap();
       ArrayList<ContactRow> contactRows = new ArrayList<ContactRow>();
       contactRows.addAll(contactManager.getContactsServer());
-      final List<ContactRow> intersection = util.intersectionDifference(contactRows, dbContact);
-      Log.i(TAG, "intersection:" + intersection.size() + ", contactRows:" + contactRows.size()
-          + ", dbContact:" + dbContact.size());
+      //final List<ContactRow> intersection = util.intersectionDifference(contactRows, dbContact);
+      //Log.i(TAG, "intersection:" + intersection.size() + ", contactRows:" + contactRows.size()
+      //    + ", dbContact:" + dbContact.size());
 
       // intersection-> must be sign as sync
       new Thread(new Runnable() {
         @Override
         public void run() {
           HelperSQL database = new HelperSQL(activity);
-          database.updateContactsSync(intersection, true);
+       //   database.updateContactsSync(intersection, true);
         }
       }).start();
 

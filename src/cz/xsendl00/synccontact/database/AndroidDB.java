@@ -14,13 +14,17 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.Groups;
 import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
 import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
+import cz.xsendl00.synccontact.utils.GroupRow;
 import cz.xsendl00.synccontact.utils.Mapping;
 
 /**
@@ -34,8 +38,10 @@ public class AndroidDB {
   @Bean
   protected Mapping mapping;
 
+  private static final String MIMETYPE = "vnd.android.cursor.item/cz.synccontact";
+  public static final String SET_CONVERT = "is_converted";
   private static final String TAG = "AndroidDB";
-  private static final int MAX_OPERATIONS_IYELD = 500;
+  private static final int MAX_OPERATIONS_IYELD = 480;
 
   /**
    * Clear dirty bit in raw_contact.
@@ -98,7 +104,7 @@ public class AndroidDB {
     for (Map.Entry<String, GoogleContact> entry : differenceLDAP.entrySet()) {
       HelperSQL helperSQL = new HelperSQL(context);
       // get raw_id from local database
-      String id = helperSQL.getContactId(entry.getKey());
+      Integer id = null;//helperSQL.getContactId(entry.getKey());
 
       Log.i(TAG, "uuid:: " + entry.getKey() + " mapping to:" + id);
       GoogleContact googleContact = mapping.mappingContactFromDB(context.getContentResolver(), id,
@@ -126,6 +132,118 @@ public class AndroidDB {
     return true;
   }
 
+  public void updateGroupsUuid(Context context, List<GroupRow> groupRows) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    int count = 0;
+    for (GroupRow groupRow : groupRows) {
+      ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
+          ContentUris.withAppendedId(Groups.CONTENT_URI, groupRow.getId()))
+          .withValue(Groups.SYNC4, groupRow.getUuid());
+      if (count >= MAX_OPERATIONS_IYELD) {
+        operationBuilder.withYieldAllowed(true);
+        count = 0;
+      }
+      ops.add(operationBuilder.build());
+      count++;
+    }
+    try {
+      ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+      Log.i(TAG, "updateGroupsUuid done: " + con.length);
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    } catch (OperationApplicationException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void updateContactsUuid(Context context, List<ContactRow> contactRows) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    int count = 0;
+    for (ContactRow contactRow : contactRows) {
+      ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
+          ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, contactRow.getId()))
+          .withValue(RawContacts.SYNC4, contactRow.getUuid());
+      if (count >= MAX_OPERATIONS_IYELD) {
+        operationBuilder.withYieldAllowed(true);
+        count = 0;
+      }
+      ops.add(operationBuilder.build());
+      count++;
+    }
+    try {
+      ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+      Log.i(TAG, "updateContactsUui done: " + con.length);
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    } catch (OperationApplicationException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void updateContactsSync(final Context context, final List<ContactRow> contactRows, final boolean sync) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    for (ContactRow contactRow : contactRows) {
+      ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
+          ContentUris.withAppendedId(RawContacts.CONTENT_URI, contactRow.getId()))
+          .withValue(RawContacts.SYNC1, sync);
+      ops.add(operationBuilder.build());
+    }
+    try {
+      ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+      Log.i(TAG, "updateContactsSync done: " + con.length + ": " + con.toString());
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    } catch (OperationApplicationException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void updateGroupsSync(final Context context, final List<GroupRow> groupRows, final boolean sync) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    for (GroupRow groupRow : groupRows) {
+      ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
+          ContentUris.withAppendedId(ContactsContract.Groups.CONTENT_URI, groupRow.getId()))
+          .withValue(Groups.SYNC1, sync);
+      ops.add(operationBuilder.build());
+    }
+    try {
+      ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+      Log.i(TAG, "updateGroupSync done: " + con.length);
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    } catch (OperationApplicationException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private Uri addIsSyncAdapter(Uri uri, boolean isSyncOperation) {
+    if (isSyncOperation) {
+      return uri.buildUpon()
+          .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true")
+          .build();
+    }
+    return uri;
+  }
+
+  private List<ContentProviderOperation> createBackendDataAccount(List<ContactRow> contactRows) {
+    List<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    int count = 0;
+    for (ContactRow contactRow : contactRows) {
+      ContentProviderOperation.Builder operationBuilder  = ContentProviderOperation.newInsert(
+          addIsSyncAdapter(Data.CONTENT_URI, true))
+          .withValueBackReference(Data.RAW_CONTACT_ID, contactRow.getId())
+          .withValue(Data.MIMETYPE, MIMETYPE)
+          .withValue(Data.DATA1, contactRow.getAccouNamePrevious())
+          .withValue(Data.DATA2, contactRow.getAccouTypePrevious());
+      if (count >= MAX_OPERATIONS_IYELD) {
+        operationBuilder.withYieldAllowed(true);
+        count = 0;
+      }
+      count++;
+      ops.add(operationBuilder.build());
+    }
+    return ops;
+  }
 
   /**
    * Import contact to new SyncContact account.
@@ -137,32 +255,25 @@ public class AndroidDB {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     int count = 0;
     for (ContactRow contactRow : contactRows) {
-      if (count < MAX_OPERATIONS_IYELD) {
-        ops.add(ContentProviderOperation.newUpdate(
-            ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI,
-                Integer.valueOf(contactRow.getId())))
+      if (!contactRow.isConverted()) {
+        ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
+            ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, Integer.valueOf(contactRow.getId())))
+            .withValue(RawContacts.SYNC3, SET_CONVERT)
+            .withValue(RawContacts.SYNC4, contactRow.getUuid())
             .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
-            .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE)
-            .build());
-        count = 0;
-      } else {
-        ops.add(ContentProviderOperation.newUpdate(
-            ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI,
-                Integer.valueOf(contactRow.getId())))
-            .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
-            .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE)
-            .withYieldAllowed(true)
-            .build());
+            .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE);
+        if (count >= MAX_OPERATIONS_IYELD) {
+          operationBuilder.withYieldAllowed(true);
+          count = 0;
+        }
+        ops.add(operationBuilder.build());
+        count++;
       }
-      count++;
     }
     try {
-      ContentProviderResult[] con = context.getContentResolver().applyBatch(
-          ContactsContract.AUTHORITY, ops);
+      ops.addAll(createBackendDataAccount(contactRows));
+      ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
       Log.i(TAG, "importContactsToSyncAccount done: " + con.length);
-      // for (ContentProviderResult cn : con) {
-      // Log.i(TAG, cn.toString());
-      // }
     } catch (RemoteException e) {
       e.printStackTrace();
     } catch (OperationApplicationException e) {
@@ -227,12 +338,12 @@ public class AndroidDB {
    * @param idRaw idRaw
    * @return id
    */
-  public int getIdContact(final Context context, String idRaw) {
+  public int getIdContact(final Context context, Integer idRaw) {
     Cursor cursor = null;
     int id = 0;
     try {
       cursor = context.getContentResolver().query(RawContacts.CONTENT_URI,
-          new String[]{RawContacts.CONTACT_ID}, RawContacts._ID + "=?", new String[]{idRaw}, null);
+          new String[]{RawContacts.CONTACT_ID}, RawContacts._ID + "=?", new String[]{idRaw.toString()}, null);
       while (cursor.moveToNext()) {
         id = cursor.getInt(cursor.getColumnIndex(RawContacts.CONTACT_ID));
         break;
@@ -255,13 +366,13 @@ public class AndroidDB {
    * @param idRaw id contact
    * @return name
    */
-  public String fetchContactName(ContentResolver contentResolver, String idRaw) {
+  public String fetchContactName(ContentResolver contentResolver, Integer idRaw) {
     String name = null;
     Cursor cursor = null;
     try {
       cursor = contentResolver.query(RawContacts.CONTENT_URI,
           new String[]{RawContacts.DISPLAY_NAME_PRIMARY}, RawContacts._ID + "=?",
-          new String[]{idRaw}, null);
+          new String[]{idRaw.toString()}, null);
       while (cursor.moveToNext()) {
         name = cursor.getString(cursor.getColumnIndex(RawContacts.DISPLAY_NAME_PRIMARY));
         break;
@@ -278,6 +389,7 @@ public class AndroidDB {
 
   /**
    * Get deleted contacts id.
+   *
    * @param contentResolver contentResolver
    * @return list of ids deleted contacts
    */
@@ -285,9 +397,8 @@ public class AndroidDB {
     List<String> deletedContacts = new ArrayList<String>();
     Cursor cursor = null;
     try {
-      cursor = contentResolver.query(RawContacts.CONTENT_URI,
-          new String[]{RawContacts._ID}, RawContacts.DELETED + "<>0",
-          null, null);
+      cursor = contentResolver.query(RawContacts.CONTENT_URI, new String[]{RawContacts._ID},
+          RawContacts.DELETED + "<>0", null, null);
       while (cursor.moveToNext()) {
         deletedContacts.add(cursor.getString(cursor.getColumnIndex(RawContacts._ID)));
       }
@@ -318,7 +429,7 @@ public class AndroidDB {
           RawContacts.DISPLAY_NAME_PRIMARY + " COLLATE LOCALIZED ASC");
       while (cursor.moveToNext()) {
         ContactRow contactShow = new ContactRow(
-            cursor.getString(cursor.getColumnIndex(RawContacts._ID)),
+            cursor.getInt(cursor.getColumnIndex(RawContacts._ID)),
             cursor.getString(cursor.getColumnIndex(RawContacts.DISPLAY_NAME_PRIMARY)),
             cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_NAME)),
             cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_TYPE)));

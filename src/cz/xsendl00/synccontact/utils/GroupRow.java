@@ -30,7 +30,7 @@ public class GroupRow extends AbstractRow {
    * @param name name name of group
    * @param id id in provider contact database.
    */
-  public GroupRow(String name, String id) {
+  public GroupRow(String name, Integer id) {
     this(name, id, null, false, null, null);
   }
 
@@ -43,7 +43,7 @@ public class GroupRow extends AbstractRow {
    * @param idTable id of local table
    * @param uuid UUID
    */
-  public GroupRow(String name, String id, Integer size, boolean sync, Integer idTable, String uuid) {
+  public GroupRow(String name, Integer id, Integer size, boolean sync, Integer idTable, String uuid) {
     super(id, name, sync, idTable, uuid);
     this.setId(id);
     this.setName(name);
@@ -73,17 +73,23 @@ public class GroupRow extends AbstractRow {
    * @param contentResolver contentResolver
    * @return list of {@link GroupRow}
    */
-  public static ArrayList<GroupRow> fetchGroups(ContentResolver contentResolver) {
+  public static ArrayList<GroupRow> fetchGroups(ContentResolver contentResolver, String where) {
     Cursor cursor = null;
     try {
-      String[] projection = new String[]{ContactsContract.Groups._ID, ContactsContract.Groups.TITLE};
-      cursor = contentResolver.query(ContactsContract.Groups.CONTENT_URI, projection, null, null,
-          null);
+      String[] projection = new String[]{ContactsContract.Groups._ID, ContactsContract.Groups.TITLE,
+          ContactsContract.Groups.SYNC1, ContactsContract.Groups.SYNC2, ContactsContract.Groups.SYNC3,
+          ContactsContract.Groups.SYNC4};
+      cursor = contentResolver.query(ContactsContract.Groups.CONTENT_URI, projection, where, null,
+          ContactsContract.Groups.TITLE + " COLLATE LOCALIZED ASC");
       groups = new ArrayList<GroupRow>();
       while (cursor.moveToNext()) {
-        groups.add(new GroupRow(
-            cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.TITLE)),
-            cursor.getString(cursor.getColumnIndex(ContactsContract.Groups._ID))));
+        GroupRow groupRow = new GroupRow();
+        groupRow.setName(cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.TITLE)));
+        groupRow.setId(cursor.getInt(cursor.getColumnIndex(ContactsContract.Groups._ID)));
+        groupRow.setSync(cursor.getInt(cursor.getColumnIndex(ContactsContract.Groups.SYNC1)) == 1);
+        groupRow.setLastSyncTime(cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.SYNC2)));
+        groupRow.setUuid(cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.SYNC4)));
+        groups.add(groupRow);
       }
     } catch (Exception ex) {
       ex.printStackTrace();

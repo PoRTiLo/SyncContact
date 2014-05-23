@@ -15,6 +15,7 @@ import android.provider.ContactsContract.CommonDataKinds.GroupMembership;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
+import cz.xsendl00.synccontact.database.AndroidDB;
 
 public class ContactRow extends AbstractRow {
 
@@ -22,17 +23,18 @@ public class ContactRow extends AbstractRow {
   private List<String> groupsId;
   private String accouNamePrevious;
   private String accouTypePrevious;
+  private String accountPreviousId;
   private String timestamp;
 
   public ContactRow() {
     this(null, null, true, null, null, null, null, null, null);
   }
 
-  public ContactRow(String id, String name) {
+  public ContactRow(Integer id, String name) {
     this(id, name, false, null, null, null, null, null, null);
   }
 
-  public ContactRow(String id, String name, String accouNamePrevious, String accouTypePrevious) {
+  public ContactRow(Integer id, String name, String accouNamePrevious, String accouTypePrevious) {
     this(id, name, false, null, null, accouNamePrevious, accouTypePrevious, null, null);
   }
 
@@ -46,7 +48,7 @@ public class ContactRow extends AbstractRow {
    * @param timestamp
    * @param uuid
    */
-  public ContactRow(String id,
+  public ContactRow(Integer id,
       String name,
       Boolean sync,
       Integer idTable,
@@ -68,7 +70,7 @@ public class ContactRow extends AbstractRow {
    * @param timestamp
    * @param uuid
    */
-  public ContactRow(String id,
+  public ContactRow(Integer id,
       String name,
       Boolean sync,
       List<String> groups,
@@ -167,7 +169,7 @@ public class ContactRow extends AbstractRow {
           RawContacts.DISPLAY_NAME_PRIMARY + " COLLATE LOCALIZED ASC");
       while (cursor.moveToNext()) {
         ContactRow contactShow = new ContactRow(
-            cursor.getString(cursor.getColumnIndex(GroupMembership.RAW_CONTACT_ID)),
+            cursor.getInt(cursor.getColumnIndex(GroupMembership.RAW_CONTACT_ID)),
             cursor.getString(cursor.getColumnIndex(RawContacts.DISPLAY_NAME_PRIMARY)),
             cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_NAME)),
             cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_TYPE)));
@@ -184,8 +186,43 @@ public class ContactRow extends AbstractRow {
     return new ArrayList<ContactRow>(groupMembers);
   }
 
+  public static List<ContactRow> fetchAllRawContact(ContentResolver contentResolver, String where) {
+    List<ContactRow> contactRows = new ArrayList<ContactRow>();
+    Cursor cursor = null;
+
+    try {
+      String[] projection = new String[]{
+          RawContacts.DISPLAY_NAME_PRIMARY, RawContacts.ACCOUNT_NAME,
+          RawContacts.ACCOUNT_TYPE, RawContacts._ID, RawContacts.SYNC1,
+          RawContacts.SYNC2, RawContacts.SYNC3, RawContacts.SYNC4};
+
+      cursor = contentResolver.query(RawContacts.CONTENT_URI, projection, where, null,
+          RawContacts.DISPLAY_NAME_PRIMARY + " COLLATE LOCALIZED ASC");
+      while (cursor.moveToNext()) {
+        ContactRow contactRow = new ContactRow();
+        contactRow.setAccouNamePrevious(cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_NAME)));
+        contactRow.setAccouTypePrevious(cursor.getString(cursor.getColumnIndex(RawContacts.ACCOUNT_TYPE)));
+        contactRow.setName(cursor.getString(cursor.getColumnIndex(RawContacts.DISPLAY_NAME_PRIMARY)));
+        contactRow.setId(cursor.getInt(cursor.getColumnIndex(RawContacts._ID)));
+        contactRow.setSync(cursor.getInt(cursor.getColumnIndex(RawContacts.SYNC1)) == 1);
+        contactRow.setLastSyncTime(cursor.getString(cursor.getColumnIndex(RawContacts.SYNC2)));
+        contactRow.setConverted(
+            AndroidDB.SET_CONVERT.equals(cursor.getString(cursor.getColumnIndex(RawContacts.SYNC3))));
+        contactRow.setUuid(cursor.getString(cursor.getColumnIndex(RawContacts.SYNC4)));
+        contactRows.add(contactRow);
+      }
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    } finally {
+      if (cursor != null && !cursor.isClosed()) {
+        cursor.close();
+      }
+    }
+    return contactRows;
+  }
+
   public static List<ContactRow> fetchGroupMembersName(ContentResolver contentResolver,
-      String groupId) {
+      Integer groupId) {
     SortedSet<ContactRow> groupMembers = new TreeSet<ContactRow>(new RowComparator());
     Cursor cursor = null;
     try {
@@ -198,7 +235,7 @@ public class ContactRow extends AbstractRow {
       while (cursor.moveToNext()) {
         ContactRow contactRow = new ContactRow();
         contactRow.setName(cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME)));
-        contactRow.setId(cursor.getString(cursor.getColumnIndex(Data.CONTACT_ID)));
+        contactRow.setId(cursor.getInt(cursor.getColumnIndex(Data.CONTACT_ID)));
         Log.i(TAG, contactRow.toString());
         groupMembers.add(contactRow);
       }
@@ -310,5 +347,19 @@ public class ContactRow extends AbstractRow {
         + ", idTable=" + idTable + ", accouNamePrevious=" + accouNamePrevious
         + ", accouTypePrevious=" + accouTypePrevious + ", timestamp=" + timestamp + ", uuid="
         + uuid + "]";
+  }
+
+  /**
+   * @return Returns the accountPreviousId.
+   */
+  public String getAccountPreviousId() {
+    return accountPreviousId;
+  }
+
+  /**
+   * @param accountPreviousId The accountPreviousId to set.
+   */
+  public void setAccountPreviousId(String accountPreviousId) {
+    this.accountPreviousId = accountPreviousId;
   }
 }

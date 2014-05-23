@@ -8,14 +8,11 @@ import java.util.Map;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
-import com.unboundid.ldap.sdk.LDAPException;
-
 import android.content.Context;
 import android.content.OperationApplicationException;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.util.Log;
-import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.contact.GoogleContact;
 import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.database.HelperSQL;
@@ -81,145 +78,145 @@ public class Synchronization {
   public void synchronization(final ServerInstance ldapServer, final Context context) throws RemoteException, OperationApplicationException {
     init(context);
 
- // get timestamp last synchronization
-    String timestamp = helperSQL.newerTimestamp();
-    Log.i(TAG, "Last time synchonization : " + timestamp);
-
-    final List<String> deletedLocalContactIds = new ArrayList<String>();
-    final Map<String, GoogleContact> contactsDirty = new HashMap<String, GoogleContact>();
-    Thread readLocalThread = new Thread(new Runnable() {
-
-      @Override
-      public void run() {
-        // get sync user
-        Utils readUtil = new Utils();
-
-        // reinitialize database, find out changes
-        readUtil.startTime(TAG, "refersh actual databse, if any channge");
-        ContactManager contactManager = ContactManager.getInstance(context);
-        contactManager.initGroupsContacts();
-        readUtil.stopTime(TAG, "refersh actual databse, if any channge");
-
-        readUtil.startTime(TAG, "get local sync contacts");
-        List<ContactRow> contactsId = contactManager.getContactListSync(); //helperSQL.getSyncContacts();
-        readUtil.stopTime(TAG, "get local sync contacts size :" + contactsId.size());
-
-        // get contact with dirty flag
-        readUtil.startTime(TAG, "get local dirty contacts");
-        contactsDirty.putAll(mapping.fetchDirtyContacts(context.getContentResolver(), contactsId,
-            deletedLocalContactIds));
-        readUtil.stopTime(TAG, "get local dirty contacts size :" + contactsDirty.size());
-      }
-    });
-    readLocalThread.start();
-
-    //TODO: only contacts synchonizitions??
-    // get contacts from server which are newer than timestamp
-    utils.startTime(TAG, "get server newer contacts");
-    Map<String, GoogleContact> contactsServer =
-        serverUtilities.fetchModifyContactsServer(ldapServer, context, handler, timestamp);
-    utils.stopTime(TAG, "get server newer contacts size : " + contactsServer.size());
-
-    try {
-      readLocalThread.join();
-    } catch (InterruptedException e1) {
-      e1.printStackTrace();
-    }
-
-    // intersection local change and LDAP change
-    utils.startTime(TAG, "intersection localContacts :" + contactsDirty.size()
-        + ", server newer contacts : " + contactsServer.size());
-    Map<String, GoogleContact> intersection = intersection(contactsDirty, contactsServer);
-    utils.stopTime(TAG, "intersection is : " + intersection.size());
-
-    // difference local change and intersection, must be update on LDAP server
-    utils.startTime(TAG, "difference localContacts : "
-        + contactsDirty.size() + ", intersection : " + intersection.size());
-    final Map<String, GoogleContact> difference2Server = difference(contactsDirty, intersection);
-    utils.stopTime(TAG, "difference localContacts : " + difference2Server.size());
-
-    // difference LDAP change and intersection, must be update on DB
-    utils.startTime(TAG, "difference serveContacts : "
-        + contactsServer.size() + ", intersection : " + intersection.size());
-    final Map<String, GoogleContact> difference2Local = difference(contactsServer, intersection);
-    utils.stopTime(TAG, "difference serveContacts : " + difference2Local.size());
-
-    utils.startTime(TAG, "conflict");
-    Map<String, GoogleContact> conflictServer = new HashMap<String, GoogleContact>();
-
-    for (Map.Entry<String, GoogleContact> entry : intersection.entrySet()) {
-      GoogleContact localContact = contactsDirty.get(entry.getKey());
-      GoogleContact serverContact = contactsServer.get(entry.getKey());
-      if (localContact.equals(serverContact)) {
-        difference2Local.put(entry.getKey(), entry.getValue());
-        difference2Server.put(entry.getKey(), entry.getValue());
-      } else if (localContact.isDeleted()) {
-        difference2Server.put(entry.getKey(), localContact);
-      } else {
-        // get ContactsContract.ContactsColumns.CONTACT_LAST_UPDATED_TIMESTAMP
-        conflictServer.put(entry.getKey(), serverContact);
-      }
-    }
-    utils.stopTime(TAG, "conflictServer : "  + conflictServer.size());
-    // merge contact - > use data from server
-    difference2Local.putAll(conflictServer);
-
-    // update db syncContact.db
-
-    // update db contact.db
-    Thread localThread = new Thread(new Runnable() {
-
-      @Override
-      public void run() {
-        try {
-          Utils utilLocal = new Utils();
-          utilLocal.startTime(TAG, "update local contacts");
-          androidDB.updateContactsDb(context, difference2Local);
-          utilLocal.stopTime(TAG, "update local contacts");
-        } catch (RemoteException e) {
-          e.printStackTrace();
-        } catch (OperationApplicationException e) {
-          e.printStackTrace();
-        }
-      }
-    });
-    localThread.start();
-
-    // update server contacts
-    Thread serverThread = new Thread(new Runnable() {
-
-      @Override
-      public void run() {
-        Utils utilServer = new Utils();
-        utilServer.startTime(TAG, "update server contacts");
-        try {
-          // update or added
-          serverUtilities.updateContactsServer(ldapServer, context, handler, difference2Server);
-          // set as deleted
-          //serverUtilities.deletedContactsServer(ldapServer, context, handler, deletedLocal);
-        } catch (LDAPException e) {
-          //TODO:dat uzivateli info o chybe
-          e.printStackTrace();
-        } // differenceDirty
-        utilServer.stopTime(TAG, "update server contacts");
-      }
-    });
-    serverThread.start();
-
-    try {
-      localThread.join();
-    } catch (InterruptedException e1) {
-      e1.printStackTrace();
-    }
-
-    timestamp = utils.createTimestamp();
-    Log.i(TAG, "new timestamp:" + timestamp);
-    helperSQL.updateContacts(contactsDirty, timestamp);
-    // remove cotact from local databse
-    helperSQL.deleteContacts(deletedLocalContactIds);
-
-    // set dirty flag to disable (0)
-    //androidDB.cleanModifyStatus(context, contactsDirty);
+// // get timestamp last synchronization
+//    String timestamp = helperSQL.newerTimestamp();
+//    Log.i(TAG, "Last time synchonization : " + timestamp);
+//
+//    final List<String> deletedLocalContactIds = new ArrayList<String>();
+//    final Map<String, GoogleContact> contactsDirty = new HashMap<String, GoogleContact>();
+//    Thread readLocalThread = new Thread(new Runnable() {
+//
+//      @Override
+//      public void run() {
+//        // get sync user
+//        Utils readUtil = new Utils();
+//
+//        // reinitialize database, find out changes
+//        readUtil.startTime(TAG, "refersh actual databse, if any channge");
+//        ContactManager contactManager = ContactManager.getInstance(context);
+//        contactManager.initGroupsContacts();
+//        readUtil.stopTime(TAG, "refersh actual databse, if any channge");
+//
+//        readUtil.startTime(TAG, "get local sync contacts");
+//        List<ContactRow> contactsId = contactManager.getContactListSync(); //helperSQL.getSyncContacts();
+//        readUtil.stopTime(TAG, "get local sync contacts size :" + contactsId.size());
+//
+//        // get contact with dirty flag
+//        readUtil.startTime(TAG, "get local dirty contacts");
+//        contactsDirty.putAll(mapping.fetchDirtyContacts(context.getContentResolver(), contactsId,
+//            deletedLocalContactIds));
+//        readUtil.stopTime(TAG, "get local dirty contacts size :" + contactsDirty.size());
+//      }
+//    });
+//    readLocalThread.start();
+//
+//    //TODO: only contacts synchonizitions??
+//    // get contacts from server which are newer than timestamp
+//    utils.startTime(TAG, "get server newer contacts");
+//    Map<String, GoogleContact> contactsServer =
+//        serverUtilities.fetchModifyContactsServer(ldapServer, context, handler, timestamp);
+//    utils.stopTime(TAG, "get server newer contacts size : " + contactsServer.size());
+//
+//    try {
+//      readLocalThread.join();
+//    } catch (InterruptedException e1) {
+//      e1.printStackTrace();
+//    }
+//
+//    // intersection local change and LDAP change
+//    utils.startTime(TAG, "intersection localContacts :" + contactsDirty.size()
+//        + ", server newer contacts : " + contactsServer.size());
+//    Map<String, GoogleContact> intersection = intersection(contactsDirty, contactsServer);
+//    utils.stopTime(TAG, "intersection is : " + intersection.size());
+//
+//    // difference local change and intersection, must be update on LDAP server
+//    utils.startTime(TAG, "difference localContacts : "
+//        + contactsDirty.size() + ", intersection : " + intersection.size());
+//    final Map<String, GoogleContact> difference2Server = difference(contactsDirty, intersection);
+//    utils.stopTime(TAG, "difference localContacts : " + difference2Server.size());
+//
+//    // difference LDAP change and intersection, must be update on DB
+//    utils.startTime(TAG, "difference serveContacts : "
+//        + contactsServer.size() + ", intersection : " + intersection.size());
+//    final Map<String, GoogleContact> difference2Local = difference(contactsServer, intersection);
+//    utils.stopTime(TAG, "difference serveContacts : " + difference2Local.size());
+//
+//    utils.startTime(TAG, "conflict");
+//    Map<String, GoogleContact> conflictServer = new HashMap<String, GoogleContact>();
+//
+//    for (Map.Entry<String, GoogleContact> entry : intersection.entrySet()) {
+//      GoogleContact localContact = contactsDirty.get(entry.getKey());
+//      GoogleContact serverContact = contactsServer.get(entry.getKey());
+//      if (localContact.equals(serverContact)) {
+//        difference2Local.put(entry.getKey(), entry.getValue());
+//        difference2Server.put(entry.getKey(), entry.getValue());
+//      } else if (localContact.isDeleted()) {
+//        difference2Server.put(entry.getKey(), localContact);
+//      } else {
+//        // get ContactsContract.ContactsColumns.CONTACT_LAST_UPDATED_TIMESTAMP
+//        conflictServer.put(entry.getKey(), serverContact);
+//      }
+//    }
+//    utils.stopTime(TAG, "conflictServer : "  + conflictServer.size());
+//    // merge contact - > use data from server
+//    difference2Local.putAll(conflictServer);
+//
+//    // update db syncContact.db
+//
+//    // update db contact.db
+//    Thread localThread = new Thread(new Runnable() {
+//
+//      @Override
+//      public void run() {
+//        try {
+//          Utils utilLocal = new Utils();
+//          utilLocal.startTime(TAG, "update local contacts");
+//          androidDB.updateContactsDb(context, difference2Local);
+//          utilLocal.stopTime(TAG, "update local contacts");
+//        } catch (RemoteException e) {
+//          e.printStackTrace();
+//        } catch (OperationApplicationException e) {
+//          e.printStackTrace();
+//        }
+//      }
+//    });
+//    localThread.start();
+//
+//    // update server contacts
+//    Thread serverThread = new Thread(new Runnable() {
+//
+//      @Override
+//      public void run() {
+//        Utils utilServer = new Utils();
+//        utilServer.startTime(TAG, "update server contacts");
+//        try {
+//          // update or added
+//          serverUtilities.updateContactsServer(ldapServer, context, handler, difference2Server);
+//          // set as deleted
+//          //serverUtilities.deletedContactsServer(ldapServer, context, handler, deletedLocal);
+//        } catch (LDAPException e) {
+//          //TODO:dat uzivateli info o chybe
+//          e.printStackTrace();
+//        } // differenceDirty
+//        utilServer.stopTime(TAG, "update server contacts");
+//      }
+//    });
+//    serverThread.start();
+//
+//    try {
+//      localThread.join();
+//    } catch (InterruptedException e1) {
+//      e1.printStackTrace();
+//    }
+//
+//    timestamp = utils.createTimestamp();
+//    Log.i(TAG, "new timestamp:" + timestamp);
+//    helperSQL.updateContacts(contactsDirty, timestamp);
+//    // remove cotact from local databse
+//    helperSQL.deleteContacts(deletedLocalContactIds);
+//
+//    // set dirty flag to disable (0)
+//    //androidDB.cleanModifyStatus(context, contactsDirty);
 
   }
 

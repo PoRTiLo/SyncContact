@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.androidannotations.annotations.Background;
-import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.UiThread;
 
@@ -29,7 +28,6 @@ import cz.xsendl00.synccontact.R;
 import cz.xsendl00.synccontact.SettingsActivity_;
 import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.database.AndroidDB;
-import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
@@ -52,8 +50,7 @@ public class ContactFragment extends Fragment implements
   /**
    * Get data from contact provider.
    */
-  @Bean
-  protected AndroidDB androidDB;
+  private AndroidDB androidDB;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -61,6 +58,7 @@ public class ContactFragment extends Fragment implements
     setHasOptionsMenu(true);
     activity = (ContactsActivity) getActivity();
     contactManager = ContactManager.getInstance(activity);
+    androidDB = new AndroidDB();
   }
 
   @Override
@@ -84,17 +82,14 @@ public class ContactFragment extends Fragment implements
     isSelectedAll();
     listRow = (ListView) activity.findViewById(R.id.list_contact);
     adapter = new RowContactAdapter(activity.getApplicationContext(),
-        contactManager.getContactsLocal(), this);
+        contactManager.getLocalContacts(), this);
     listRow.setAdapter(adapter);
     if (listRow != null) {
       listRow.setOnItemClickListener(new OnItemClickListener() {
 
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-          if (androidDB == null) {
-            androidDB = new AndroidDB();
-          }
-          int idContact = androidDB.getIdContact(activity, contactManager.getContactsLocal()
+          int idContact = androidDB.getIdContact(activity, contactManager.getLocalContacts()
               .get(position)
               .getId());
           Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI,
@@ -155,7 +150,7 @@ public class ContactFragment extends Fragment implements
   @Background
   public void isSelectedAll() {
     boolean isSelectAll = true;
-    for (ContactRow contactRow : contactManager.getContactsLocal()) {
+    for (ContactRow contactRow : contactManager.getLocalContacts()) {
       if (!contactRow.isSync()) {
         isSelectAll = false;
         break;
@@ -169,7 +164,7 @@ public class ContactFragment extends Fragment implements
 
       @Override
       public void run() {
-        updateDB(contactManager.getContactsLocal(), result);
+        updateContactsInDatabase(contactManager.getLocalContacts(), result);
       }
     }).start();
 
@@ -177,7 +172,7 @@ public class ContactFragment extends Fragment implements
 
       @Override
       public void run() {
-        for (ContactRow contactRow : contactManager.getContactsLocal()) {
+        for (ContactRow contactRow : contactManager.getLocalContacts()) {
           contactRow.setSync(result);
         }
         adapter.notifyDataSetChanged();
@@ -188,13 +183,14 @@ public class ContactFragment extends Fragment implements
 
       @Override
       public void run() {
-        for (GroupRow groupRow : contactManager.getGroupsLocal()) {
-          if (groupRow.getSize() != 0) {
+        List<GroupRow> groupRows = new ArrayList<GroupRow>();
+        for (GroupRow groupRow : contactManager.getLocalGroups()) {
+          if (groupRow != null && groupRow.getSize() != null && groupRow.getSize() != 0) {
             groupRow.setSync(result);
-            HelperSQL db = new HelperSQL(getActivity());
-            db.updateGroupSync(groupRow);
+            groupRows.add(groupRow);
           }
         }
+        androidDB.updateGroupsSync(activity, groupRows, result);
       }
     }).start();
   }
@@ -205,21 +201,20 @@ public class ContactFragment extends Fragment implements
    * @param result true/false - select/no select.
    */
   @Background
-  public void updateDB(final List<ContactRow> contacts, final boolean result) {
-    HelperSQL db = new HelperSQL(getActivity());
-    db.updateContactsSync(contacts, result);
+  public void updateContactsInDatabase(final List<ContactRow> contacts, final boolean result) {
+    androidDB.updateContactsSync(activity, contacts, result);
   }
 
   @Override
   public void onCheckedChanged(CompoundButton buttonView, final boolean isChecked) {
     final int pos = (Integer) buttonView.getTag();
     if (pos != ListView.INVALID_POSITION) {
-      ContactRow p = contactManager.getContactsLocal().get(pos);
+      ContactRow p = contactManager.getLocalContacts().get(pos);
       if (p.isSync() != isChecked) {
         p.setSync(isChecked);
         ArrayList<ContactRow> contacts = new ArrayList<ContactRow>();
         contacts.add(p);
-        updateDB(contacts, isChecked);
+        updateContactsInDatabase(contacts, isChecked);
       }
     }
   }
@@ -229,7 +224,7 @@ public class ContactFragment extends Fragment implements
    */
   @Background
   public void initContactManager() {
-    contactManager.initGroupsContacts(); //reloadManager();
+    contactManager.getLocalGroupsContacts(); //reloadManager();
     updateAdapter();
   }
 

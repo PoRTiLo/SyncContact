@@ -44,7 +44,7 @@ public class ContactsDetailActivity extends ListActivity {
   protected LinearLayout linearLayoutProgress;
   private static final String TAG = "ContactsDetailActivity";
   private ContactManager contactManager;
-  private String groupId;
+  private Integer groupId;
   private boolean first;
   private List<ContactRow> contactRows;
 
@@ -53,12 +53,12 @@ public class ContactsDetailActivity extends ListActivity {
     super.onCreate(savedInstanceState);
     getActionBar().setDisplayHomeAsUpEnabled(true);
     Intent intent = getIntent();
-    groupId = intent.getStringExtra(Constants.INTENT_ID);
+    groupId = intent.getIntExtra(Constants.INTENT_ID, 0);
     first = intent.getBooleanExtra(Constants.INTENT_FIRST, false);
     String groupName = intent.getStringExtra(Constants.INTENT_NAME);
     this.setTitle(groupName);
     contactManager = ContactManager.getInstance(ContactsDetailActivity.this);
-    if (contactManager.getGroupsContacts() == null || contactManager.getGroupsContacts().isEmpty()) {
+    if (contactManager.getLocalGroupsContacts() == null || contactManager.getLocalGroupsContacts().size() < 0) {
       loadData();
     } else {
       init();
@@ -70,7 +70,7 @@ public class ContactsDetailActivity extends ListActivity {
    */
   @UiThread
   public void init() {
-    this.contactRows = contactManager.getGroupsContacts().get(groupId);
+    this.contactRows = contactManager.getLocalGroupsContacts().get(groupId);
     String[] values = new String[this.contactRows.size()];
     int i = 0;
     for (ContactRow contactRow : this.contactRows) {
@@ -86,7 +86,7 @@ public class ContactsDetailActivity extends ListActivity {
    */
   @Background
   public void loadData() {
-    contactManager.initGroupsContacts();
+    contactManager.getLocalGroupsContacts();
   }
 
   @Override
@@ -128,7 +128,8 @@ public class ContactsDetailActivity extends ListActivity {
   protected void onListItemClick(ListView l, View v, int position, long id) {
     ContactRow contactRow = contactRows.get(position);
     int idContact = androidDB.getIdContact(ContactsDetailActivity.this,
-        contactManager.getContactsLocal().get(position).getId());
+        //contactManager.getContactsLocal().get(position).getId());
+        contactManager.getLocalGroupsContacts().get(groupId).get(position).getId());
     Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, idContact);
     Intent i = new Intent(Intent.ACTION_VIEW);
     i.setData(contactUri);

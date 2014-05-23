@@ -13,7 +13,11 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.NavUtils;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -21,9 +25,10 @@ import android.widget.ListView;
 import cz.xsendl00.synccontact.activity.fragment.RowMergerAdapter;
 import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.contact.GoogleContact;
-import cz.xsendl00.synccontact.database.HelperSQL;
+import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
+import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
 import cz.xsendl00.synccontact.utils.Mapping;
@@ -54,7 +59,7 @@ android.widget.CompoundButton.OnCheckedChangeListener {
   private RowMergerAdapter adapter;
   private ContactManager contactManager;
   private ProgressDialog progressDialog;
-  private List<ContactRow> contactRows = new ArrayList<ContactRow>();
+  private List<ContactRow> contactRowsActivity = new ArrayList<ContactRow>();
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -87,12 +92,12 @@ android.widget.CompoundButton.OnCheckedChangeListener {
   @UiThread
   protected void init() {
     listRow = (ListView) findViewById(R.id.list_merge);
-    if (contactRows != null) {
-      if (contactRows.isEmpty()) {
+    if (contactRowsActivity != null) {
+      if (contactRowsActivity.isEmpty()) {
         Button button = (Button) findViewById(R.id.contact_merge_button);
         button.setText("Skip");
       }
-      adapter = new RowMergerAdapter(getApplicationContext(), contactRows, this);
+      adapter = new RowMergerAdapter(getApplicationContext(), contactRowsActivity, this);
     } else {
       if (contactManager.getContactsServer().isEmpty()) {
         Button button = (Button) findViewById(R.id.contact_merge_button);
@@ -107,7 +112,7 @@ android.widget.CompoundButton.OnCheckedChangeListener {
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
     final int pos = (Integer) buttonView.getTag();
     if (pos != ListView.INVALID_POSITION) {
-      ContactRow p = contactRows.get(pos);
+      ContactRow p = contactRowsActivity.get(pos);
       if (p.isSync() != isChecked) {
         p.setSync(isChecked);
       }
@@ -119,44 +124,20 @@ android.widget.CompoundButton.OnCheckedChangeListener {
    */
   @Background
   protected void initTask() {
-   Thread serverThread =  new Thread(new Runnable() {
-      @Override
-      public void run() {
-        contactManager.initContactsServer(handler);
-        contactManager.initGroupsServer(handler);
-      }
-    });
-   serverThread.start();
-
-   Thread contactThread =  new Thread(new Runnable() {
-     @Override
-     public void run() {
-       //contactManager.reloadContact();
-       //contactManager.reloadGroup();
-     }
-   });
-   contactThread.start();
-
-   try {
-    serverThread.join();
-    contactThread.join();
-  } catch (InterruptedException e) {
-    e.printStackTrace();
-  }
-
-
+   contactManager.initContactsServer(handler);
+   contactManager.initGroupsServer(handler);
    new Thread(new Runnable() {
      @Override
      public void run() {
-       for (ContactRow contactRow : contactManager.getContactsServer()) {
+       for (ContactRow contactRowServer : contactManager.getContactsServer()) {
          int pos = 0;
-         for (ContactRow contactRowLocal : contactManager.getContactsLocal()) {
-           if (contactRow.getName() != null && contactRowLocal.getName() != null
-               && contactRow.getName().equals(contactRowLocal.getName())) {
-             if (contactRowLocal.isSync() && !contactRowLocal.getUuid().equals(contactRow.getUuid())) {
-               contactRow.setIdTable(pos);
-               contactRow.setId(contactRowLocal.getId());
-               contactRows.add(contactRow);
+         for (ContactRow contactRowLocal : contactManager.getLocalContacts()) {
+           if (contactRowServer.getName() != null && contactRowLocal.getName() != null
+               && contactRowServer.getName().equals(contactRowLocal.getName())) {
+             if (contactRowLocal.isSync() && !contactRowLocal.getUuid().equals(contactRowServer.getUuid())) {
+               contactRowServer.setIdTable(pos);
+               contactRowServer.setId(contactRowLocal.getId());
+               contactRowsActivity.add(contactRowServer);
                break;
              }
            }
@@ -185,7 +166,7 @@ android.widget.CompoundButton.OnCheckedChangeListener {
    * @param view actual view.
    */
   public void mergeContactLocalwithLDAP(@SuppressWarnings("unused") View view) {
-    merge();
+    mergeLocalServerContacts();
     go2NextActivity();
   }
 
@@ -193,30 +174,30 @@ android.widget.CompoundButton.OnCheckedChangeListener {
    *
    */
   @Background
-  protected void merge() {
+  protected void mergeLocalServerContacts() {
     List<ContactRow> forDb = new ArrayList<ContactRow>();
     // create list for saving merged contacts
-    for (ContactRow contactRow : contactRows) {
+    for (ContactRow contactRow : contactRowsActivity) {
       if (contactRow.isSync()) {
         forDb.add(contactRow);
-        int index = contactManager.getContactsLocal().indexOf(contactRow);
+        int index = contactManager.getLocalContacts().indexOf(contactRow);
         if (index != -1) {
-          contactManager.getContactsLocal().get(index).setUuid(contactRow.getUuid());
+          contactManager.getLocalContacts().get(index).setUuid(contactRow.getUuid());
         }
       }
     }
     // update local contacts by uuid from server
-    final List<ContactRow> f = forDb;
+    final List<ContactRow> contacts2UpdateDatabse = forDb;
     importContacts2Server(forDb);
 
 
-    Thread updateDatabase =  new Thread(new Runnable() {
+    Thread updateContactDatabase =  new Thread(new Runnable() {
       @Override
       public void run() {
-        updateDatabase(f);
+        updateContactsDatabase(contacts2UpdateDatabse);
       }
     });
-    updateDatabase.start();
+    updateContactDatabase.start();
 
 
     Thread mergeGroup =  new Thread(new Runnable() {
@@ -228,81 +209,69 @@ android.widget.CompoundButton.OnCheckedChangeListener {
     mergeGroup.start();
 
     try {
-      updateDatabase.join();
+      updateContactDatabase.join();
       mergeGroup.join();
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
-    //contactManager.reloadGroup();
-    //for (GroupRow groupRow : contactManager.getGroupsLocal()) {
-    //  uploadGroup(groupRow);
-    //}
   }
 
   @Background
   protected void mergeGroup() {
     util.startTime(TAG, "mergeGroup");
-    Log.i(TAG, "contactManager.getGroupsLocal()" + contactManager.getGroupsLocal().size());
+    Log.i(TAG, "contactManager.getGroupsLocal()" + contactManager.getLocalGroups().size());
     Log.i(TAG, "contactManager.getGroupsServer()" + contactManager.getGroupsServer().size());
     List<GroupRow> groupRows = new ArrayList<GroupRow>();
     List<GroupRow> groupRowsUpload = new ArrayList<GroupRow>();
-    for (GroupRow groupRow : contactManager.getGroupsLocal()) {
+    for (GroupRow groupRowLocal : contactManager.getLocalGroups()) {
       boolean found = false;
       for (GroupRow groupRowServer : contactManager.getGroupsServer()) {
         Log.i(TAG, "groupRowServer:" + groupRowServer.getName() + ":" + groupRowServer.getUuid());
-        Log.i(TAG, "groupRow:" + groupRow.getName() + ":" + groupRow.getUuid());
-        if (groupRow.getName().equals(groupRowServer.getName())
-            && !groupRow.getUuid().equals(groupRowServer.getUuid())) {
-          groupRow.setUuid(groupRowServer.getUuid());
-          groupRows.add(groupRow);
+        Log.i(TAG, "groupRow:" + groupRowLocal.getName() + ":" + groupRowLocal.getUuid());
+        if (groupRowLocal.getName().equals(groupRowServer.getName())
+            && !groupRowLocal.getUuid().equals(groupRowServer.getUuid())) {
+          groupRowLocal.setUuid(groupRowServer.getUuid());
+          groupRows.add(groupRowLocal);
           found = true;
           break;
-        } else if (groupRow.getName().equals(groupRowServer.getName())) {
+        } else if (groupRowLocal.getName().equals(groupRowServer.getName())) {
           found = true;
+          break;
         }
       }
       if (!found) {
-        groupRowsUpload.add(groupRow);
+        groupRowsUpload.add(groupRowLocal);
       }
     }
     //groupRows = util.intersection(contactManager.getGroupsLocal(), groupRows);
     Log.i(TAG, "groupRows" + groupRows.size());
     updateGroupDatabase(groupRows);
-    for (GroupRow groupRow : groupRowsUpload) {
-      uploadGroup(groupRow);
-    }
+    serverUtilities.addGroup2Server(new ServerInstance(contactManager.getAccountData()),
+        getApplicationContext(), handler, groupRowsUpload);
     util.stopTime(TAG, "mergeGroup");
   }
 
   @Background
   public void updateGroupDatabase(final List<GroupRow> forDb) {
-    util.startTime(TAG, "updateGroupDatabase");
-    HelperSQL db = new HelperSQL(getApplicationContext());
-    db.updateGroupsUuid(forDb);
-    util.stopTime(TAG, "updateGroupDatabase");
+    Utils util1 = new Utils();
+    util1.startTime(TAG, "updateGroupDatabase");
+    new AndroidDB().updateGroupsUuid(getApplicationContext(), forDb);
+    util1.stopTime(TAG, "updateGroupDatabase");
   }
 
-  @Background
-  public void updateDatabase(final List<ContactRow> forDb) {
-    util.startTime(TAG, "updateDatabase");
-    HelperSQL db = new HelperSQL(getApplicationContext());
-    db.updateContactsUuid(forDb);
-    //contactManager.initGroupsContacts();
-    util.stopTime(TAG, "updateDatabase");
-  }
-
-  @Background
-  protected void uploadGroup(GroupRow groupRow) {
-    util.startTime(TAG, "uploadGroup:" + groupRow.toString());
-    serverUtilities.addGroup2Server(new ServerInstance(contactManager.getAccountData()),
-        getApplicationContext(), handler, groupRow);
-    util.stopTime(TAG, "uploadGroup");
+  private void updateContactsDatabase(final List<ContactRow> forDb) {
+    Utils util1 = new Utils();
+    util1.startTime(TAG, "updateDatabase");
+    new AndroidDB().updateContactsUuid(getApplicationContext(), forDb);
+    util1.stopTime(TAG, "updateDatabase");
   }
 
   @Background
   public void importContacts2Server(final List<ContactRow> noImports) {
-    util.startTime(TAG, "importContacts2Server");
-    for (ContactRow contactRow : contactManager.getContactsLocal()) {
+    Utils util1 = new Utils();
+    util1.startTime(TAG, "importContacts2Server");
+    List<ContactRow> contact2ServerUpload = new ArrayList<ContactRow>();
+    for (ContactRow contactRow : contactManager.getLocalContacts()) {
       if (contactRow.isSync()) {
         Log.i(TAG, "ContactRow wil is checked:" + contactRow.toString());
         boolean used = true;
@@ -322,22 +291,54 @@ android.widget.CompoundButton.OnCheckedChangeListener {
             }
           }
           if (used) {
-            uploadContact(contactRow);
+            contact2ServerUpload.add(contactRow);
           }
         }
       }
     }
-    util.stopTime(TAG, "importContacts2Server");
+    Mapping mapping = new Mapping();
+    List<GoogleContact> googleContacts = new ArrayList<GoogleContact>();
+    for (ContactRow contactRow : contact2ServerUpload) {
+      GoogleContact googleContact = mapping.mappingContactFromDB(getContentResolver(),
+          contactRow.getId(), contactRow.getUuid());
+      googleContacts.add(googleContact);
+    }
+
+    serverUtilities.addContactToServer(new ServerInstance(contactManager.getAccountData()),
+        getApplicationContext(), handler, googleContacts);
+    util1.stopTime(TAG, "importContacts2Server");
     contactManager.initContactsServer(handler);
     //contactManager.reloadContact();
   }
-  @Background
-  public void uploadContact(final ContactRow contactRow2) {
-    Mapping mapping = new Mapping();
-    GoogleContact googleContact = mapping.mappingContactFromDB(getContentResolver(),
-        contactRow2.getId(), contactRow2.getUuid());
-    serverUtilities.addContactToServer(
-        new ServerInstance(contactManager.getAccountData()),
-        getApplicationContext(), handler, googleContact);
+
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    getMenuInflater().inflate(R.menu.settings_menu, menu);
+    return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    Intent intent = null;
+    switch (item.getItemId()) {
+    case R.id.action_help:
+      intent = new Intent(this, HelpActivity_.class);
+      intent.putExtra(Constants.INTENT_FIRST, true);
+      startActivity(intent);
+      break;
+    case android.R.id.home:
+      Intent upIntent = NavUtils.getParentActivityIntent(this);
+      if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
+        TaskStackBuilder.create(this).addNextIntentWithParentStack(upIntent)
+            .startActivities();
+      } else {
+        NavUtils.navigateUpTo(this, upIntent);
+      }
+      return true;
+    default:
+      break;
+    }
+
+    return true;
   }
 }

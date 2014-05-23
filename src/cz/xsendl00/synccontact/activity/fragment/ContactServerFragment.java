@@ -9,6 +9,8 @@ import org.androidannotations.annotations.UiThread;
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.ContactsContract.RawContacts;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,7 +24,6 @@ import cz.xsendl00.synccontact.HelpActivity_;
 import cz.xsendl00.synccontact.R;
 import cz.xsendl00.synccontact.SettingsActivity_;
 import cz.xsendl00.synccontact.client.ContactManager;
-import cz.xsendl00.synccontact.database.HelperSQL;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 
@@ -79,8 +80,8 @@ public class ContactServerFragment extends Fragment implements
    */
   @Background
   protected void selected() {
-    HelperSQL db = new HelperSQL(activity);
-    List<ContactRow> contactRowDb = db.getContactsSync();
+    String where = RawContacts.SYNC1 + "=1";
+    List<ContactRow> contactRowDb = ContactRow.fetchAllRawContact(activity.getContentResolver(), where);
     int countSelect = 0;
     for (ContactRow contactRowServer : contactManager.getContactsServer()) {
       int i = 0;
@@ -140,7 +141,6 @@ public class ContactServerFragment extends Fragment implements
         selectAll(selectAll);
         break;
       case android.R.id.home:
-        getActivity().finish();
         break;
       default:
         break;
@@ -151,11 +151,14 @@ public class ContactServerFragment extends Fragment implements
   @Override
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
     final int pos = (Integer) buttonView.getTag();
-    if (pos != ListView.INVALID_POSITION) {
+    if (pos != ListView.INVALID_POSITION && pos < contactManager.getContactsServer().size()) {
       ContactRow p = contactManager.getContactsServer().get(pos);
       if (p.isSync() != isChecked) {
         p.setSync(isChecked);
       }
+    } else {
+      Log.w(TAG, "onCheckedChanged pos is > contactManager.getContactsServer() :" + pos
+          + " : " + contactManager.getContactsServer().size());
     }
   }
   /**

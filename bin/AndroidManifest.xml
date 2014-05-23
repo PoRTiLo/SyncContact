@@ -142,32 +142,32 @@
     <activity
       android:name=".ContactsMergeActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName=".InfoMergeActivity_"
+      android:parentActivityName=".InfoWelcomeActivity_"
       android:label="@string/app_name_merge" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value=".InfoMergeActivity_" />
+        android:value=".InfoWelcomeActivity_" />
     </activity>
     
     <activity
       android:name=".InfoSyncActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName=".MainActivity_"
+      android:parentActivityName=".InfoWelcomeActivity_"
       android:label="@string/app_name_info_sync" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value=".MainActivity_" />
+        android:value=".InfoWelcomeActivity_" />
     </activity>
 
     
     <activity
       android:name=".InfoMergeActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName=".AddServerActivity_"
+      android:parentActivityName=".InfoWelcomeActivity_"
       android:label="@string/app_name_info_merge" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value=".AddServerActivity_" />
+        android:value=".InfoWelcomeActivity_" />
     </activity>
     
         
@@ -184,11 +184,11 @@
     <activity
       android:name=".InfoServerContactsActivity_"
       android:screenOrientation="portrait"
-      android:parentActivityName=".AddServerActivity_"
+      android:parentActivityName=".InfoWelcomeActivity_"
       android:label="@string/app_name_info_ldap" >
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"
-        android:value=".AddServerActivity_" />
+        android:value=".InfoWelcomeActivity_" />
     </activity>
     
     <activity android:theme="@android:style/Theme.Dialog" 

@@ -5,8 +5,6 @@ import org.androidannotations.annotations.EActivity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.NavUtils;
-import android.support.v4.app.TaskStackBuilder;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -52,14 +50,7 @@ public class InfoSyncActivity extends Activity {
       startActivity(intent);
       break;
     case android.R.id.home:
-      Intent upIntent = NavUtils.getParentActivityIntent(this);
-      if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
-        TaskStackBuilder.create(this).addNextIntentWithParentStack(upIntent)
-            .startActivities();
-      } else {
-        NavUtils.navigateUpTo(this, upIntent);
-      }
-      return true;
+      break;
     default:
       break;
     }

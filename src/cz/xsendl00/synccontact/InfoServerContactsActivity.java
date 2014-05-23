@@ -54,7 +54,6 @@ public class InfoServerContactsActivity extends Activity {
         startActivity(intent);
         break;
       case android.R.id.home:
-        finish();
         break;
       default:
         break;

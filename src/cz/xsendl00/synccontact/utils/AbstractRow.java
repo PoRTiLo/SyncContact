@@ -8,12 +8,48 @@ import java.util.UUID;
 public class AbstractRow {
 
   protected String name;
-  protected String id;
+  protected Integer id;
   protected String uuid;
   protected Boolean sync;
   protected Integer idTable;
+  protected String lastSyncTime;
+  protected boolean isConverted;
 
-  public AbstractRow(String id, String name, Boolean sync, Integer idTable, String uuid) {
+
+
+  /**
+   * @return Returns the isConverted.
+   */
+  public boolean isConverted() {
+    return isConverted;
+  }
+
+
+
+  /**
+   * @param isConverted The isConverted to set.
+   */
+  public void setConverted(boolean isConverted) {
+    this.isConverted = isConverted;
+  }
+
+
+  /**
+   * @return Returns the lastSyncTime.
+   */
+  public String getLastSyncTime() {
+    return lastSyncTime;
+  }
+
+
+  /**
+   * @param lastSyncTime The lastSyncTime to set.
+   */
+  public void setLastSyncTime(String lastSyncTime) {
+    this.lastSyncTime = lastSyncTime;
+  }
+
+  public AbstractRow(Integer id, String name, Boolean sync, Integer idTable, String uuid) {
     this.id = id;
     this.name = name;
     this.sync = sync;
@@ -46,6 +82,10 @@ public class AbstractRow {
     return uuid.toString();
   }
 
+
+  public String getUuidFirst() {
+    return this.uuid;
+  }
   /**
    * Get UUID.
    *
@@ -53,9 +93,9 @@ public class AbstractRow {
    */
   public String getUuid() {
     if (this.uuid == null) {
-      uuid = generateUUID();
+      this.uuid = generateUUID();
     }
-    return uuid;
+    return this.uuid;
   }
 
   public void setUuid(String uuid) {
@@ -70,11 +110,11 @@ public class AbstractRow {
     this.name = name;
   }
 
-  public String getId() {
+  public Integer getId() {
     return id;
   }
 
-  public void setId(String id) {
+  public void setId(Integer id) {
     this.id = id;
   }
 

@@ -33,10 +33,10 @@ public class ContactDetail {
    * into this variable.
    * @return cursor on data.
    */
-  public Cursor fetchAllDataOfContact(ContentResolver contentResolver, String mLookupKey) {
+  public Cursor fetchAllDataOfContact(ContentResolver contentResolver, Integer mLookupKey) {
     Cursor cursor = null;
     try {
-      mSelectionArgs[0] = mLookupKey;
+      mSelectionArgs[0] = mLookupKey + "";
       cursor = contentResolver.query(Data.CONTENT_URI, PROJECTION, SELECTION, mSelectionArgs,
           SORT_ORDER);
       //Uri rawContactUri = ContentUris.withAppendedId(RawContacts.CONTENT_URI, Integer.parseInt(mLookupKey));

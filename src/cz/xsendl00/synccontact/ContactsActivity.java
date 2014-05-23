@@ -1,12 +1,9 @@
 package cz.xsendl00.synccontact;
 
-import java.util.Set;
-
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
-import org.androidannotations.api.BackgroundExecutor;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -50,7 +47,7 @@ public class ContactsActivity extends Activity {
 
     contactManager = ContactManager.getInstance(getApplicationContext());
     init();
-    if (!contactManager.isContactsLocalInit() || !contactManager.isGroupsLocalInit()) {
+    if (!contactManager.isLocalContactsInit() || !contactManager.isLocalGroupsInit()) {
       loadData();
     } else {
       disableProgressbar();
@@ -116,7 +113,10 @@ public class ContactsActivity extends Activity {
   @Background(id = "loadData")
   protected void loadData() {
     Log.i(TAG, "Load data start");
-    contactManager.initGroupsContacts();
+    contactManager.getLocalGroupsContacts();
+    contactManager.convertContact2NewAccount();
+    contactManager.updateGroupsUuid();
+
     refresh();
     init();
     disableProgressbar();
@@ -146,8 +146,9 @@ public class ContactsActivity extends Activity {
    */
   @Background
   public void reinitData() {
+
     setRefreshActionButtonState(true);
-    contactManager.initGroupsContacts();
+    contactManager.getLocalGroupsContacts();
     refresh();
     setRefreshActionButtonState(false);
   }
@@ -176,16 +177,16 @@ public class ContactsActivity extends Activity {
    */
   @Override
   public void onPause() {
-
-    Log.i(TAG, "onPause");
-
-    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-    for (Thread thread : threadSet) {
-      Log.i(TAG, thread.toString());
-    }
-    BackgroundExecutor.cancelAll("loadData", true);
-    Log.i(TAG, "onPause - delete");
-    // setRefreshActionButtonState(false);
+    //TODO:
+//    Log.i(TAG, "onPause");
+//
+//    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+//    for (Thread thread : threadSet) {
+//      Log.i(TAG, thread.toString());
+//    }
+//    BackgroundExecutor.cancelAll("loadData", true);
+//    Log.i(TAG, "onPause - delete");
+//    // setRefreshActionButtonState(false);
     super.onPause();
   }
 
