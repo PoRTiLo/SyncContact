@@ -223,6 +223,51 @@ public class ServerUtilities {
     return size;
   }
 
+  public Map<String, GoogleContact> fetchServerContacts(final ServerInstance ldapServer,
+      final Context context, final Handler handler, final List<ContactRow> contactRows) {
+    Map<String, GoogleContact> googleContactsOut = new HashMap<String, GoogleContact>();
+    LDAPConnection connection = null;
+    try {
+      connection = ldapServer.getConnection(handler, context);
+      StringBuilder builder = new StringBuilder();
+      builder.append("(&" + Constants.ACCOUNT_FILTER_LDAP);
+      builder.append("(|");
+      for (ContactRow contactRow : contactRows) {
+        builder.append("(");
+        builder.append(Constants.UUID);
+        builder.append("=");
+        builder.append(contactRow.getUuidFirst());
+        builder.append(")");
+      }
+      builder.append(")");
+      builder.append(")");
+      //Log.i(TAG, builder.toString());
+      //String filter = "(&" + Constants.ACCOUNT_FILTER_LDAP + "(" + Constants.UUID + "=" + uuid + "))";
+      SearchResult searchResult = connection.search(
+          Constants.ACCOUNT_OU_PEOPLE + ldapServer.getAccountdData().getBaseDn(),
+          SearchScope.SUB,
+          builder.toString(),
+          Mapping.createAttributes());
+
+
+      for (SearchResultEntry e : searchResult.getSearchEntries()) {
+        //Log.i(TAG, e.toString());
+        GoogleContact contact = Mapping.mappingContactFromLDAP(e);
+        googleContactsOut.put(contact.getUuid(), contact);
+      }
+
+    } catch (LDAPException e) {
+      googleContactsOut = null;
+    } finally {
+      if (connection != null) {
+        connection.close();
+      }
+    }
+
+    return googleContactsOut;
+  }
+
+
   /**
    * Get contact from LDAP server and import them in database.
    * @param ldapServer LDAP server instance

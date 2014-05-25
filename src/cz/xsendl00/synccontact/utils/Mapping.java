@@ -69,7 +69,7 @@ public class Mapping {
    * @return map of UUID and googleContact.
    */
   public Map<String, GoogleContact> fetchDirtyContacts(final ContentResolver contentResolver,
-      final List<ContactRow> modifiedContact, List<String> deletedContact) {
+      final List<ContactRow> modifiedContact, List<Integer> deletedContact) {
     Map<String, GoogleContact> dirtyContacts = new HashMap<String, GoogleContact>();
     Cursor cursor = null;
     try {
@@ -77,7 +77,7 @@ public class Mapping {
         GoogleContact googleContact = mappingContactFromDB(contentResolver,
             contactRow.getId(), contactRow.getUuidFirst());
         if (contactRow.isDeleted()) {
-          deletedContact.add(contactRow.getUuidFirst());
+          deletedContact.add(contactRow.getId());
           googleContact.setDeleted(true);
           googleContact.setSynchronize(false);
         }

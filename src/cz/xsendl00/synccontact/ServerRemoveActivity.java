@@ -7,17 +7,21 @@ import org.androidannotations.annotations.EActivity;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.utils.Constants;
@@ -36,6 +40,7 @@ public class ServerRemoveActivity extends Activity {
   private static final String TAG = "ServerRemoveActivity";
   private final Handler handler = new Handler();
   private ContactManager contactManager;
+  private ProgressDialog progressDialog;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +63,8 @@ public class ServerRemoveActivity extends Activity {
 
           @Override
           public void onClick(DialogInterface dialog, int id) {
+            progressDialog = ProgressDialog.show(ServerRemoveActivity.this, getText(R.string.progress_removing),
+                getText(R.string.progress_removing_text), true);
             ServerRemoveActivity.this.removeAccount();
           }
         })
@@ -80,45 +87,42 @@ public class ServerRemoveActivity extends Activity {
   @Background
   public void removeAccount() {
 
-    exportContactBack();
-//    AccountManagerCallback<Boolean> callback = new AccountManagerCallback<Boolean>() {
-//
-//      @Override
-//      public void run(AccountManagerFuture<Boolean> arg0) {
-//        Log.i(TAG, "UCER S smazan");
-//        ServerRemoveActivity.this.sendBack();
-//      }
-//    };
-//    removeAccount(callback);
-//    contactManager.setAccountData(null);
-    //Toast toast = Toast.makeText(this, "Server connection/account was removed.", Toast.LENGTH_SHORT);
-    //toast.show();
+    AccountManagerCallback<Boolean> callback = new AccountManagerCallback<Boolean>() {
+
+      @Override
+      public void run(AccountManagerFuture<Boolean> arg0) {
+        Log.i(TAG, "UCER S smazan");
+        ServerRemoveActivity.this.sendBack();
+      }
+    };
+    removeAccount(callback);
+    contactManager.setAccountData(null);
+//    try {
+//      Toast toast = Toast.makeText(getApplicationContext(), "Server connection/account was removed.", Toast.LENGTH_SHORT);
+//      toast.show();
+//    } catch (Exception e) {
+//      e.printStackTrace();
+//    }
   }
 
   /**
    * Remove accounts.
    * @param accountManagerCallback accountManagerCallback
    */
-  @Background
-  public void removeAccount(AccountManagerCallback<Boolean> accountManagerCallback) {
+  private void removeAccount(AccountManagerCallback<Boolean> accountManagerCallback) {
     AccountManager manager = AccountManager.get(ServerRemoveActivity.this);
     Account[] accounts = manager.getAccountsByType(Constants.ACCOUNT_TYPE);
     for (Account ac : accounts) {
-      //exportContactBack();
-      //manager.removeAccount(ac, accountManagerCallback, handler);
+      androidDB.exportContactsFromSyncAccount(ServerRemoveActivity.this);
+      manager.removeAccount(ac, accountManagerCallback, handler);
       break;
     }
   }
 
-  /**
-   *
-   */
-  @Background
-  public void exportContactBack() {
-    androidDB.exportContactsFromSyncAccount(ServerRemoveActivity.this);
-  }
-
   private void sendBack() {
+    progressDialog.dismiss();
+    Toast toast = Toast.makeText(getApplicationContext(), "Server connection/account was removed.", Toast.LENGTH_SHORT);
+    toast.show();
     Editor editor = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit();
     editor.putBoolean(Constants.PREFS_START_FIRST, true);
     editor.commit();

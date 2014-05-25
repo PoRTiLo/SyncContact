@@ -20,7 +20,6 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CompoundButton;
 import android.widget.ListView;
-import android.widget.Toast;
 import cz.xsendl00.synccontact.ContactsActivity;
 import cz.xsendl00.synccontact.ContactsDetailActivity_;
 import cz.xsendl00.synccontact.HelpActivity_;
@@ -87,7 +86,7 @@ public class GroupFragment extends Fragment implements
 
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-          if (contactManager.getLocalGroups().get(position).getSize() != 0) {
+          //if (contactManager.getLocalGroups().get(position).getSize() != 0) {
             Intent i = new Intent(getActivity().getApplicationContext(),
                 ContactsDetailActivity_.class);
             i.putExtra(Constants.INTENT_FIRST, activity.isFirst());
@@ -96,10 +95,10 @@ public class GroupFragment extends Fragment implements
                 .get(position)
                 .getName());
             startActivity(i);
-          } else {
-            Toast toast = Toast.makeText(getActivity(), R.string.group_toast, Toast.LENGTH_SHORT);
-            toast.show();
-          }
+          //} else {
+          //  Toast toast = Toast.makeText(getActivity(), R.string.group_toast, Toast.LENGTH_SHORT);
+          //  toast.show();
+          //}
         }
       });
     }
@@ -127,6 +126,7 @@ public class GroupFragment extends Fragment implements
         ((ContactsActivity) getActivity()).reinitData();
         break;
       case R.id.action_add_group:
+        ((ContactsActivity) getActivity()).addGroup();
         break;
       case R.id.action_help:
         intent = new Intent(getActivity(), HelpActivity_.class);

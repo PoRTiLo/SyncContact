@@ -9,7 +9,6 @@ import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
 import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.utils.Constants;
-import cz.xsendl00.synccontact.utils.Utils;
 
 /**
  * A object of contact.
@@ -258,35 +257,41 @@ public class GoogleContact {
    * @param newGoogleContact The {@link GoogleContact}
    * @return list of ContentProviderOperation for adding new contact on based newGoogleContact.
    */
-  public static ArrayList<ContentProviderOperation> createOperationNew(final GoogleContact oldGoogleContact, final GoogleContact newGoogleContact) {
-
-    String str = oldGoogleContact == null ? "" : oldGoogleContact.toString();
-    String str1 = newGoogleContact == null ? "" : newGoogleContact.toString();
-    Log.i(TAG, "con1:" + str);
-    Log.i(TAG, "con2:" + str1);
-
+  public static ArrayList<ContentProviderOperation> createOperationNew(
+      final GoogleContact oldGoogleContact, final GoogleContact newGoogleContact, final int size) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    try {
+      int rawContactInsertIndex = size;
+      ops.add(ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
+               .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE)
+               .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
+               .withValue(RawContacts.SYNC1, "1")
+               //.withValue(RawContacts.SYNC2, new Utils().createTimestamp())
+               .withValue(RawContacts.SYNC3, AndroidDB.SET_CONVERT)
+               .withValue(RawContacts.SYNC4, newGoogleContact.getUuid())
+               .build());
+      ops.add(ContentProviderOperation.newInsert(Data.CONTENT_URI)
+          .withValueBackReference(Data.RAW_CONTACT_ID, rawContactInsertIndex)
+          .withValue(Data.MIMETYPE, AndroidDB.MIMETYPE)
+          //.withYieldAllowed(true)
+          .build());
+      ops.addAll(createOperation(rawContactInsertIndex, oldGoogleContact, newGoogleContact, true));
 
-    int rawContactInsertIndex = ops.size();
-    ops.add(ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
-             .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE)
-             .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
-             .withValue(RawContacts.SYNC1, "1")
-             .withValue(RawContacts.SYNC2, new Utils().createTimestamp())
-             .withValue(RawContacts.SYNC3, AndroidDB.SET_CONVERT)
-             .withValue(RawContacts.SYNC4, newGoogleContact.getUuid())
-             .build());
-    ops.addAll(createOperation(rawContactInsertIndex, oldGoogleContact, newGoogleContact, true));
-
-    Log.i(TAG, ops.toString());
+    } catch (NumberFormatException ex) {
+      ex.printStackTrace();
+    } catch (NullPointerException e) {
+      e.printStackTrace();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    Log.i(TAG, "Add new contact:" + ops.toString());
 
     return ops;
   }
 
-  public static ArrayList<ContentProviderOperation> createOperationUpdate(final GoogleContact oldGoogleContact, final GoogleContact newGoogleContact) {
+  public static ArrayList<ContentProviderOperation> createOperationUpdate(
+      final GoogleContact oldGoogleContact, final GoogleContact newGoogleContact) {
     ArrayList<ContentProviderOperation> ops = null;
-    Log.i(TAG, "local:" + oldGoogleContact.toString());
-    Log.i(TAG, "server:" + newGoogleContact.toString());
     try {
       ops = createOperation(oldGoogleContact.getId(), oldGoogleContact, newGoogleContact, false);
     } catch (NumberFormatException ex) {
@@ -297,6 +302,7 @@ public class GoogleContact {
       e.printStackTrace();
     }
 
+    Log.i(TAG, "Update contact:" + ops.toString());
     return ops;
   }
 

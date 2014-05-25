@@ -192,7 +192,7 @@ public class ContactRow extends AbstractRow {
 
     try {
       String[] projection = new String[]{
-          RawContacts.DISPLAY_NAME_PRIMARY, RawContacts.ACCOUNT_NAME,
+          RawContacts.DISPLAY_NAME_PRIMARY, RawContacts.ACCOUNT_NAME, RawContacts.DELETED,
           RawContacts.ACCOUNT_TYPE, RawContacts._ID, RawContacts.SYNC1,
           RawContacts.SYNC2, RawContacts.SYNC3, RawContacts.SYNC4};
 
@@ -205,6 +205,7 @@ public class ContactRow extends AbstractRow {
         contactRow.setName(cursor.getString(cursor.getColumnIndex(RawContacts.DISPLAY_NAME_PRIMARY)));
         contactRow.setId(cursor.getInt(cursor.getColumnIndex(RawContacts._ID)));
         contactRow.setSync(cursor.getInt(cursor.getColumnIndex(RawContacts.SYNC1)) == 1);
+        contactRow.setDeleted(cursor.getInt(cursor.getColumnIndex(RawContacts.DELETED)) == 1);
         contactRow.setLastSyncTime(cursor.getString(cursor.getColumnIndex(RawContacts.SYNC2)));
         contactRow.setConverted(
             AndroidDB.SET_CONVERT.equals(cursor.getString(cursor.getColumnIndex(RawContacts.SYNC3))));
@@ -229,13 +230,13 @@ public class ContactRow extends AbstractRow {
       String where = CommonDataKinds.GroupMembership.GROUP_ROW_ID + "=" + groupId + " AND "
           + CommonDataKinds.GroupMembership.MIMETYPE + "='"
           + CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE + "'";
-      String[] projection = new String[]{Data.DISPLAY_NAME, Data.CONTACT_ID};
+      String[] projection = new String[]{Data.DISPLAY_NAME, Data.RAW_CONTACT_ID};
       cursor = contentResolver.query(Data.CONTENT_URI, projection, where, null, Data.DISPLAY_NAME
           + " COLLATE LOCALIZED ASC");
       while (cursor.moveToNext()) {
         ContactRow contactRow = new ContactRow();
         contactRow.setName(cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME)));
-        contactRow.setId(cursor.getInt(cursor.getColumnIndex(Data.CONTACT_ID)));
+        contactRow.setId(cursor.getInt(cursor.getColumnIndex(Data.RAW_CONTACT_ID)));
         Log.i(TAG, contactRow.toString());
         groupMembers.add(contactRow);
       }
@@ -343,12 +344,16 @@ public class ContactRow extends AbstractRow {
   /** {@inheritDoc} */
   @Override
   public String toString() {
-    return "ContactRow [name=" + name + ", id=" + id + ", sync=" + sync + ", groupsId=" + groupsId
-        + ", idTable=" + idTable + ", accouNamePrevious=" + accouNamePrevious
-        + ", accouTypePrevious=" + accouTypePrevious + ", timestamp=" + timestamp + ", uuid="
-        + uuid + "]";
+    return name;
   }
-
+//  /** {@inheritDoc} */
+//  @Override
+//  public String toString() {
+//    return "ContactRow [name=" + name + ", id=" + id + ", sync=" + sync + ", groupsId=" + groupsId
+//        + ", idTable=" + idTable + ", accouNamePrevious=" + accouNamePrevious
+//        + ", accouTypePrevious=" + accouTypePrevious + ", timestamp=" + timestamp + ", uuid="
+//        + uuid + "]";
+//  }
   /**
    * @return Returns the accountPreviousId.
    */

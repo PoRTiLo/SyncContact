@@ -8,11 +8,12 @@ import java.util.Map;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
+import com.unboundid.ldap.sdk.LDAPException;
+
 import android.content.Context;
 import android.content.OperationApplicationException;
 import android.os.Handler;
 import android.os.RemoteException;
-import android.provider.ContactsContract.RawContacts;
 import android.util.Log;
 import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.contact.GoogleContact;
@@ -75,33 +76,21 @@ public class Synchronization {
 
  // get timestamp last synchronization
     String timestamp = androidDB.newerTimestamp(context.getContentResolver());
+    if (timestamp == null) {
+      timestamp = utils.createTimestamp();
+    }
     Log.i(TAG, "Last time synchonization : " + timestamp);
 
-    final List<String> deletedLocalContactIds = new ArrayList<String>();
+    final List<Integer> deletedLocalContactIds = new ArrayList<Integer>();
     final Map<String, GoogleContact> contactsLocalDirty = new HashMap<String, GoogleContact>();
-    Thread readLocalThread = new Thread(new Runnable() {
+    Thread readLocalThread = readLocalContacts(context, contactsLocalDirty, deletedLocalContactIds);
 
-      @Override
-      public void run() {
-        Utils readUtil = new Utils();
-        ContactManager contactManager = ContactManager.getInstance(context);
-        readUtil.startTime(TAG, "get local dirty contacts");
-        contactsLocalDirty.putAll(
-            mapping.fetchDirtyContacts(context.getContentResolver(),
-            contactManager.getLocalContactsSyncModified(),
-            deletedLocalContactIds)
-        );
-        readUtil.stopTime(TAG, "get local dirty contacts size :" + contactsLocalDirty.size()
-            + ", deleted:" + deletedLocalContactIds.size());
-      }
-    });
-    readLocalThread.start();
+    //final Map<>
 
     //TODO: only contacts synchonizitions??
     // get contacts from server which are newer than timestamp
     utils.startTime(TAG, "get server newer contacts");
-    Map<String, GoogleContact> contactsServer =
-        serverUtilities.fetchModifyContactsServer(ldapServer, context, handler, timestamp);
+    Map<String, GoogleContact> contactsServer = serverUtilities.fetchModifyContactsServer(ldapServer, context, handler, timestamp);
     utils.stopTime(TAG, "get server newer contacts size : " + contactsServer.size());
 
     try {
@@ -111,14 +100,12 @@ public class Synchronization {
     }
 
     // intersection local change and LDAP change
-    utils.startTime(TAG, "intersection localContacts :" + contactsLocalDirty.size()
-        + ", server newer contacts : " + contactsServer.size());
+    utils.startTime(TAG, "intersection localContacts :" + contactsLocalDirty.size() + ", server newer contacts : " + contactsServer.size());
     Map<String, GoogleContact> intersectionLocal2Server = intersection(contactsLocalDirty, contactsServer);
     utils.stopTime(TAG, "intersection is : " + intersectionLocal2Server.size());
 
     // difference local change and intersection, must be update on LDAP server
-    utils.startTime(TAG, "difference localContacts : "
-        + contactsLocalDirty.size() + ", intersection : " + intersectionLocal2Server.size());
+    utils.startTime(TAG, "difference localContacts : " + contactsLocalDirty.size() + ", intersection : " + intersectionLocal2Server.size());
     final Map<String, GoogleContact> difference2Server = difference(contactsLocalDirty, intersectionLocal2Server);
     utils.stopTime(TAG, "difference localContacts : " + difference2Server.size());
 
@@ -163,45 +150,77 @@ public class Synchronization {
 
     // update db contact.db
     Thread localThread = updateLocalDatabse(context, difference2Local);
+    // update server contacts
+    Thread serverThread = updateServerContacts(context, ldapServer, difference2Server);
 
-//
-//    // update server contacts
-//    Thread serverThread = new Thread(new Runnable() {
-//
-//      @Override
-//      public void run() {
-//        Utils utilServer = new Utils();
-//        utilServer.startTime(TAG, "update server contacts");
-//        try {
-//          // update or added
-//          serverUtilities.updateContactsServer(ldapServer, context, handler, difference2Server);
-//          // set as deleted
-//          //serverUtilities.deletedContactsServer(ldapServer, context, handler, deletedLocal);
-//        } catch (LDAPException e) {
-//          //TODO:dat uzivateli info o chybe
-//          e.printStackTrace();
-//        } // differenceDirty
-//        utilServer.stopTime(TAG, "update server contacts");
-//      }
-//    });
-//    serverThread.start();
-//
-//    try {
-//      localThread.join();
-//    } catch (InterruptedException e1) {
-//      e1.printStackTrace();
-//    }
-//
+    try {
+      localThread.join();
+      serverThread.join();
+    } catch (InterruptedException e1) {
+      e1.printStackTrace();
+    }
 
 
-    // remove cotact from local databse
-
-    //helperSQL.deleteContacts(deletedLocalContactIds);
-
-    // set dirty flag to disable (0)
-    androidDB.cleanModifyStatusNewTimestamp(context, contactsLocalDirty);
-
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        // remove cotact from local databse
+        androidDB.deleteContacts(context, deletedLocalContactIds);
+        // set dirty flag to disable (0)
+        androidDB.cleanModifyStatusNewTimestamp(context, contactsLocalDirty);
+      }
+    }).start();
   }
+
+
+  /**
+   * Create list of all modification and sync contacts, and list of deleted sync contacts
+   * @param context Context
+   * @param contactsLocalDirty local modification and sync contacts
+   * @param deletedLocalContactIds local deleted and sync contacts
+   * @return {@link Thread}
+   */
+  private Thread readLocalContacts(final Context context,
+      final Map<String, GoogleContact> contactsLocalDirty, final List<Integer> deletedLocalContactIds) {
+    final Runnable runnable = new Runnable() {
+      @Override
+      public void run() {
+        Utils readUtil = new Utils();
+        ContactManager contactManager = ContactManager.getInstance(context);
+        readUtil.startTime(TAG, "get local dirty contacts");
+        contactsLocalDirty.putAll(
+            mapping.fetchDirtyContacts(context.getContentResolver(),
+            contactManager.getLocalContactsSyncModified(),
+            deletedLocalContactIds)
+        );
+        readUtil.stopTime(TAG, "get local dirty contacts size :" + contactsLocalDirty.size()
+            + ", deleted:" + deletedLocalContactIds.size());
+      }
+    };
+    return Utils.performOnBackgroundThread(runnable);
+  }
+
+  public Thread updateServerContacts(final Context context, final ServerInstance ldapServer, final Map<String, GoogleContact> difference2Server) {
+    final Runnable runnable = new Runnable() {
+      @Override
+      public void run() {
+      Utils utilServer = new Utils();
+      utilServer.startTime(TAG, "update server contacts");
+      try {
+        // update or added
+        serverUtilities.updateContactsServer(ldapServer, context, handler, difference2Server);
+      } catch (LDAPException e) {
+        //TODO:dat uzivateli info o chybe
+        e.printStackTrace();
+      } // differenceDirty
+      utilServer.stopTime(TAG, "update server contacts");
+
+      }
+    };
+    // run on background thread.
+    return Utils.performOnBackgroundThread(runnable);
+  }
+
   public Thread updateLocalDatabse(final Context context, final Map<String, GoogleContact> difference2Local) {
     final Runnable runnable = new Runnable() {
       @Override
@@ -211,8 +230,7 @@ public class Synchronization {
           utilLocal.startTime(TAG, "update local contacts");
           Map<String, GoogleContact> noConflictEntry = new HashMap<String, GoogleContact>();
           Map<String, GoogleContact> conflictEntry = new HashMap<String, GoogleContact>();
-          String where = RawContacts.SYNC1 + "=1";
-          List<ContactRow> contactRows = ContactRow.fetchAllRawContact(context.getContentResolver(), where);
+          List<ContactRow> contactRows = ContactRow.fetchAllRawContact(context.getContentResolver(), null);
           for (Map.Entry<String, GoogleContact> entry : difference2Local.entrySet()) {
             boolean found = false;
             for (ContactRow contactRow : contactRows) {
@@ -227,7 +245,7 @@ public class Synchronization {
             }
           }
           androidDB.updateContactsDb(context, noConflictEntry);
-          androidDB.addContacts2Database(context, noConflictEntry);
+          androidDB.addContacts2Database(context, conflictEntry, null);
           utilLocal.stopTime(TAG, "update local contacts");
         } catch (RemoteException e) {
           e.printStackTrace();
@@ -240,6 +258,7 @@ public class Synchronization {
     // run on background thread.
     return Utils.performOnBackgroundThread(runnable);
   }
+
 
 
   private void remove() {
@@ -282,40 +301,6 @@ public class Synchronization {
       }
     }
     return map;
-  }
-
-  /**
-   * Intersection of local and LDAP contacts.
-   *
-   * @param lis1
-   * @param map2
-   * @return list
-   */
-  private List<ContactRow> intersection(final List<ContactRow> list1,
-      final Map<String, GoogleContact> map2) {
-    Log.i(TAG, "intersection: " + list1.size() + " to " + map2.size());
-    List<ContactRow> list = new ArrayList<ContactRow>();
-    for (ContactRow entry : list1) {
-      if (map2.get(entry.getUuid()) != null) {
-        list.add(entry);
-      }
-    }
-    Log.i(TAG, "intersection result: " + list.size());
-    return list;
-  }
-
-  private void difference(List<ContactRow> list1, final List<ContactRow> list2) {
-    Log.i(TAG, "difference: " + list1.size() + " to " + list2.size());
-    for (ContactRow contactRow : list2) {
-      list1.remove(contactRow);
-    }
-  }
-
-  private void difference(Map<String, GoogleContact> map1, final List<ContactRow> list2) {
-    Log.i(TAG, "difference: " + map1.size() + " to " + list2.size());
-    for (ContactRow contactRow : list2) {
-      map1.remove(contactRow.getUuid());
-    }
   }
 
   private <K, V> Map<K, V> difference(final Map<K, V> map1, final Map<K, V> map2) {

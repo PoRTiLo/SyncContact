@@ -1,36 +1,34 @@
 package cz.xsendl00.synccontact;
 
 import java.util.List;
+import java.util.Map;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.UiThread;
-import org.androidannotations.annotations.ViewById;
 import org.androidannotations.api.BackgroundExecutor;
 
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.ContentProviderResult;
 import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.content.SharedPreferences.Editor;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.os.RemoteException;
-import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.LinearLayout;
 import cz.xsendl00.synccontact.activity.fragment.ContactServerFragment;
 import cz.xsendl00.synccontact.activity.fragment.GroupServerFragment;
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.contact.GoogleContact;
+import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
 import cz.xsendl00.synccontact.utils.Constants;
@@ -41,7 +39,6 @@ import cz.xsendl00.synccontact.utils.Utils;
  * Activity for data from server.
  *
  * @author portilo
- *
  */
 @EActivity(R.layout.activity_contacts_server)
 public class ContactsServerActivity extends Activity {
@@ -50,16 +47,11 @@ public class ContactsServerActivity extends Activity {
   protected Utils util;
   private static final String TAG = "ContactsServerActivity";
 
-  /**
-   * ProgressBar show by loading data.
-   */
-  @ViewById(R.id.activit_contacts_server_layout)
-  protected LinearLayout linearLayoutProgress;
   private final Handler handler = new Handler();
-  private ProgressDialog progressDialog;
   private ContactManager contactManager;
   private boolean first = false;
   private Menu mMenu;
+  private ProgressDialog progressDialog;
   public boolean importAll = false;
 
   @Override
@@ -100,23 +92,17 @@ public class ContactsServerActivity extends Activity {
     actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
     // Adding Tabs
-    actionBar.addTab(actionBar
-        .newTab()
+    actionBar.addTab(actionBar.newTab()
         .setText(getString(R.string.def_group))
         .setIcon(R.drawable.ic_action_group)
         .setTabListener(
-            new MyTabListener<GroupServerFragment>(this, "GROUP_LDAP",
-                GroupServerFragment.class))
-         );
-    actionBar.addTab(actionBar
-        .newTab()
+            new MyTabListener<GroupServerFragment>(this, "GROUP_LDAP", GroupServerFragment.class)));
+    actionBar.addTab(actionBar.newTab()
         .setText(getString(R.string.def_contact))
         .setIcon(R.drawable.ic_action_person)
         .setTabListener(
             new MyTabListener<ContactServerFragment>(this, "CONTACT_LDAP",
-                ContactServerFragment.class))
-        );
-    linearLayoutProgress.setVisibility(View.GONE);
+                ContactServerFragment.class)));
   }
 
   /**
@@ -133,7 +119,7 @@ public class ContactsServerActivity extends Activity {
   /**
    * Update data, call by icon (refresh) in menu.
    */
-  @Background(id  = "loadData")
+  @Background(id = "loadData")
   public void reinitData() {
     setRefreshActionButtonState(true);
     contactManager.initContactsServer(handler);
@@ -162,7 +148,9 @@ public class ContactsServerActivity extends Activity {
     }
   }
 
+  @UiThread
   public void onImportCompleted() {
+    progressDialog.dismiss();
     contactManager.setLocalContactsInit(false);
     contactManager.getLocalContacts();
     if (first) {
@@ -177,86 +165,71 @@ public class ContactsServerActivity extends Activity {
 
   /**
    * Import selected contact form server to android.
+   *
    * @param view unused
    */
   public void go2InfoMerge(@SuppressWarnings("unused") View view) {
     if (contactManager.getContactsServer().isEmpty()) {
       onImportCompleted();
     } else {
-      progressDialog = ProgressDialog.show(ContactsServerActivity.this,
-          Constants.AC_LOADING, Constants.AC_LOADING_TEXT_DB, true);
-      // import pair.getContactList() form server do db -> must be created new contact and data
-      new ImportTask(ContactsServerActivity.this).execute();
+      progressDialog = new ProgressDialog(ContactsServerActivity.this);
+      progressDialog.setTitle(getText(R.string.progress_importing));
+      progressDialog.setMessage(getText(R.string.progress_importing_text));
+      progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+      progressDialog.setProgress(0);
+      progressDialog.setCanceledOnTouchOutside(false);
+      progressDialog.show();
+      doInBackground();
     }
 
   }
 
-  private class ImportTask extends AsyncTask<Void, Void, Boolean> {
-    private Activity activity;
-
-    public ImportTask(Activity activity) {
-      this.activity = activity;
-    }
+  Handler handler1 = new Handler() {
 
     @Override
-    protected Boolean doInBackground(Void... params) {
-      final List<ContactRow> intersection = util.intersectionDifference(contactManager.getContactsServer(), contactManager.getLocalContacts());
-      Log.i(TAG, "intersection:" + intersection.size() + ", contactlocal:" + contactManager.getLocalContacts().size()
-          + ", dbContact:" + contactManager.getContactsServer().size());
+    public void handleMessage(Message msg) {
+      progressDialog.incrementProgressBy(1);
+      // if (progressDialog.getProgress() >= progressDialog.getMax()) {
+      // //msgWorking.setText("Done");
+      // progressDialog.dismiss();
+      // } else {
+      // //msgWorking.setText("Working..." +
+      // // progressDialog.getProgress());
+    }
+  };
 
-      for (ContactRow contactRow : intersection) {
-        if (contactRow.isSync()) {
-          final GoogleContact googleContact =  new ServerUtilities().fetchLDAPContact(
-              new ServerInstance(AccountData.getAccountData(getApplicationContext())),
-              getApplicationContext(), handler, contactRow.getUuid());
-          Log.i(TAG, googleContact.getUuid());
-          new Thread(new Runnable() {
-            @Override
-            public void run() {
-              try {
-                String id = null;
-                ContentProviderResult[] contactUri =
-                    getApplicationContext().getContentResolver().applyBatch(ContactsContract.AUTHORITY,
-                    GoogleContact.createOperationNew(new GoogleContact(), googleContact));
-                for (ContentProviderResult a : contactUri) {
-                  if (id == null) {
-                    id = a.uri.getLastPathSegment();
-                  }
-                  Log.i(TAG, "id:" + id);
-                  Log.i(TAG, "res:" + a.toString());
-                }
-              } catch (RemoteException e) {
-                e.printStackTrace();
-              } catch (OperationApplicationException e) {
-                e.printStackTrace();
-              }
-            }
-          }).start();
-          GoogleContact.createOperationNew(new GoogleContact(), googleContact);
+  @Background
+  protected void doInBackground() {
+    final List<ContactRow> intersection = util.intersectionDifference(
+        contactManager.getContactsServer(), contactManager.getLocalContacts());
+    Log.i(TAG, "intersection:" + intersection.size() + ", contactlocal:"
+        + contactManager.getLocalContacts().size() + ", dbContact:"
+        + contactManager.getContactsServer().size());
+    final Map<String, GoogleContact> contacts = new ServerUtilities().fetchServerContacts(
+        new ServerInstance(AccountData.getAccountData(getApplicationContext())),
+        getApplicationContext(), handler, intersection);
+    progressDialog.setMax(contacts.size());
+    Thread thread = new Thread(new Runnable() {
+
+      @Override
+      public void run() {
+        try {
+          new AndroidDB().addContacts2Database(getApplicationContext(), contacts, handler1);
+        } catch (RemoteException e) {
+          e.printStackTrace();
+        } catch (OperationApplicationException e) {
+          e.printStackTrace();
         }
       }
-      return null;
+    });
+    thread.start();
+    try {
+      thread.join();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
     }
-
-    @Override
-    protected void onPostExecute(Boolean p) {
-      if (ContactsServerActivity.this.progressDialog != null) {
-        ContactsServerActivity.this.progressDialog.dismiss();
-      }
-      Log.i(TAG, "Data from server are downloaded.");
-      if (first) {
-        ((ContactsServerActivity) activity).onImportCompleted();
-      } else {
-        //((ContactsServerActivity) activity).onTaskCompleted();
-      }
-    }
-
-    @Override
-    protected void onPreExecute() {
-      super.onPreExecute();
-    }
+    onImportCompleted();
   }
-
 
   /**
    * First run this application.
@@ -277,7 +250,7 @@ public class ContactsServerActivity extends Activity {
     boolean mayInterruptIfRunning = true;
     BackgroundExecutor.cancelAll("loadData", mayInterruptIfRunning);
     Log.i(TAG, "back press - delete");
-    //setRefreshActionButtonState(false);
+    // setRefreshActionButtonState(false);
   }
 
   @Override
@@ -289,13 +262,15 @@ public class ContactsServerActivity extends Activity {
 
   @UiThread
   public void fragmnetCall() {
-    GroupServerFragment f2 = (GroupServerFragment) getFragmentManager().findFragmentByTag("GROUP_LDAP");
+    GroupServerFragment f2 = (GroupServerFragment) getFragmentManager().findFragmentByTag(
+        "GROUP_LDAP");
     if (f2 != null) {
-      //f2.updateAdapter();
+      // f2.updateAdapter();
     }
-    ContactServerFragment f1 = (ContactServerFragment) getFragmentManager().findFragmentByTag("CONTACT_LDAP");
+    ContactServerFragment f1 = (ContactServerFragment) getFragmentManager().findFragmentByTag(
+        "CONTACT_LDAP");
     if (f1 != null) {
-      f1.updateAdapter(); // Your method   of the fragment
+      f1.updateAdapter(); // Your method of the fragment
     }
     Log.i(TAG, "fragmnetCall");
   }

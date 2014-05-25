@@ -193,7 +193,6 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
       @Override
       public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
         list.removeAllViews();
-        Log.i(TAG, "selecst = " + arg2);
         if (arg2 == 1) {
           list.addView(linearLayout);
           portEditText.setText(Constants.STARTTLS);
@@ -214,8 +213,6 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
   }
 
   private void setControls() {
-    Log.i(TAG, "setControls : " + contactManager.getAccountData().toString());
-
     if (!contactManager.getAccountData().isNewAccount()) {
       TextView info = (TextView) findViewById(R.id.add_info);
       info.setText(this.getResources().getString(R.string.edit_account_main));
@@ -326,7 +323,7 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
           userData);
       // Set contacts sync for this account.
       ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
-      ContactManager.makeGroupVisible(account.name, getContentResolver());
+      ContactManager.makeGroupVisible(getContentResolver());
     } else {
       Log.i(TAG, "saveAccount() - update");
       accountManager.setPassword(account, contactManager.getAccountData().getPassword());

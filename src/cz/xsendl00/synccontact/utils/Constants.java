@@ -38,10 +38,6 @@ public final class Constants {
   public static final String CERT_NAME = "/LDAP_CERT";
 
   /** Activity text **/
-  public static final String AC_LOADING = "Loading ...";
-  public static final String AC_LOADING_TEXT_DB = "Loading data from database.";
-  public static final String AC_DOWNLOADING = "Downloading ...";
-  public static final String AC_DOWNLOADING_DATA_SERVER = "Downloading data from server";
 
   public static final String INTENT_FIRST = "FIRST";
   public static final String INTENT_ID = "ID";
@@ -59,18 +55,6 @@ public final class Constants {
   public static final Integer TRUST_YES = 1;
   public static final Integer TRUST_NO = 2;
 
-
-  /** ldap mapping **/
-  public static final String ADDITIONAL_NAME = "additionalName";
-  public static final String NICKNAME = "nickname";
-  public static final String SHORT_NAME = "shortName";
-  public static final String MAIDEN_NAME = "maidenName";
-  public static final String GENDER = "gender";
-  public static final String WORK_PHONE = "workPhone";
-  public static final String HOME_EXTENDED_ADDRESS = "homeExtendedAddress";
-  public static final String WORK_POSTAL_ADDRESS = "workPostalAddress";
-  public static final String WORK_EXTENDED_ADDRESS = "workExtendeAddress";
-  public static final String WEBSITE = "website";
 
   /** ---------->USED---------------------- **/
   public static final String WORK_SIP = "workSip";
@@ -218,63 +202,8 @@ public final class Constants {
   public static final String OTHER_FORMATTED_ADDRESS = "otherFormattedAddress";
   public static final String UUID = "uuid";
 
-
-  /* Person */
-  public static final String SN = "sn";
   public static final String CN = "cn";
-  public static final String USER_PASSWORD = "userPassword";
-  public static final String TELEPHONE_NUMBER = "telephoneNumber";
-  public static final String SEE_ALSO = "seeAlso";
   public static final String DESCRIPTION = "description";
-
-  /* OrganizationalPerson */
-  public static final String TITLE = "title";
-  public static final String X12_ADDRESS = "x121Address";
-  public static final String REGISTRED_ADDRESS = "registeredAddress";
-  public static final String DESTINATION_INDICATOR = "destinationIndicator";
-  public static final String INTERNATIONAL_SDN_NUMBER = "internationaliSDNNumber";
-  public static final String FASCIMILE_TELEPHONE_NUMBER = "facsimileTelephoneNumber";
-  public static final String PREFERRED_DELIVERY_METHOD = "preferredDeliveryMethod";
-  public static final String TELEX_NUMBER = "telexNumber";
-
-  public static final String POST_OFFICE_BOX = "postOfficeBox";
-  public static final String POSTAL_CODE = "postalCode";
-  public static final String POSTAL_ADDRESS = "postalAddress";
-  public static final String PHYSICAL_DELIVERY_OFFICE_NAME = "physicalDeliveryOfficeName";
-  public static final String OU = "ou";
-  public static final String ST = "st";
-  public static final String L = "l";
-
-  /* InetOrgPerson */
-  public static final String AUDIO = "audio";
-  public static final String BUSSINES_CATEGORY = "businessCategory";
-  public static final String INITIALS = "initials";
-
-  public static final String CAR_LICENCE = "carLicense";
-  public static final String DEPARTMENT_NUMBER = "departmentNumber";
-
-  public static final String EMPLOYEE_NUMBER = "employeeNumber";
-  public static final String EMPLOYEE_TYPE = "employeeType";
-  public static final String JPEG_PHOTO = "jpegPhoto";
-  public static final String PREFERRED_LANGUAGE = "preferredLanguage";
-  public static final String USER_SMIME_CERTIFICATE = "userSMIMECertificate";
-  public static final String USER_PKCS12 = "userPKCS12";
-  public static final String HOME_PHONE = "homePhone";
-  public static final String HOME_POSTAL_ADDRESS = "homePostalAddress";
-  public static final String LABELED_URI = "labeledURI";
-  public static final String MAIL = "mail";
-  public static final String MANAGER = "manager";
-  public static final String MOBILE = "mobile";
-  public static final String O = "o";
-  public static final String PAGER = "pager";
-  public static final String PHOTO = "photo";
-  public static final String ROOM_NUMBER = "roomNumber";
-  public static final String SECRETARY = "secretary";
-  public static final String UID = "uid";
-  public static final String USER_CERTIFICATE = "userCertificate";
-  public static final String X500_UNIQUE_IDENTIFIER = "x500uniqueIdentifier";
-
-
   /* GROUP_OF_NAME --- ldap class */
   public static final String GROUP_DESCRIPTION = "description";
   public static final String GROUP_MEMBER = "member";

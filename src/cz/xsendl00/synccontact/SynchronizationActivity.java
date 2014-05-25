@@ -20,7 +20,6 @@ import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.Synchronization;
-import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.Utils;
 
 /**
@@ -116,8 +115,8 @@ public class SynchronizationActivity extends Activity {
     @Override
     protected void onPreExecute() {
       super.onPreExecute();
-      progressDialog = ProgressDialog.show(SynchronizationActivity.this, Constants.AC_DOWNLOADING,
-          Constants.AC_DOWNLOADING_DATA_SERVER, true);
+      progressDialog = ProgressDialog.show(SynchronizationActivity.this, getText(R.string.progress_synchronizing),
+          getText(R.string.progress_synchronizing_text), true);
     }
   }
 

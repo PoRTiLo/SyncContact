@@ -123,6 +123,7 @@ public class ContactFragment extends Fragment implements
         activity.reinitData();
         break;
       case R.id.action_add_group:
+        ((ContactsActivity) getActivity()).addGroup();
         break;
       case R.id.action_help:
         intent = new Intent(getActivity(), HelpActivity_.class);

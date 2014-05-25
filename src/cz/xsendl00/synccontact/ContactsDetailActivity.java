@@ -1,14 +1,14 @@
 package cz.xsendl00.synccontact;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.UiThread;
-import org.androidannotations.annotations.ViewById;
 
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.net.Uri;
@@ -16,7 +16,6 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -26,6 +25,7 @@ import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
+import cz.xsendl00.synccontact.utils.Utils;
 
 /**
  * Show contacts of group.
@@ -37,16 +37,12 @@ public class ContactsDetailActivity extends ListActivity {
 
   @Bean
   protected AndroidDB androidDB;
-  /**
-   * ProgressBar show by loading data.
-   */
-  @ViewById(R.id.activit_contacts_layout)
   protected LinearLayout linearLayoutProgress;
   private static final String TAG = "ContactsDetailActivity";
   private ContactManager contactManager;
   private Integer groupId;
-  private boolean first;
   private List<ContactRow> contactRows;
+  ArrayAdapter<ContactRow> adapter;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -54,15 +50,37 @@ public class ContactsDetailActivity extends ListActivity {
     getActionBar().setDisplayHomeAsUpEnabled(true);
     Intent intent = getIntent();
     groupId = intent.getIntExtra(Constants.INTENT_ID, 0);
-    first = intent.getBooleanExtra(Constants.INTENT_FIRST, false);
     String groupName = intent.getStringExtra(Constants.INTENT_NAME);
     this.setTitle(groupName);
     contactManager = ContactManager.getInstance(ContactsDetailActivity.this);
     if (contactManager.getLocalGroupsContacts() == null || contactManager.getLocalGroupsContacts().size() < 0) {
+
       loadData();
     } else {
       init();
     }
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    if (!contactManager.isLocalGroupsContactsInit()) {
+      new Thread(new Runnable() {
+
+        @Override
+        public void run() {
+          contactManager.getLocalGroupsContacts();
+          reloadGui();
+        }
+      }).start();
+    }
+  }
+
+  @UiThread
+  public void reloadGui() {
+    adapter.notifyDataSetChanged();
+    Log.i(TAG, "datachange" + contactManager.getLocalGroupsContacts().get(groupId));
+    init();
   }
 
   /**
@@ -71,32 +89,41 @@ public class ContactsDetailActivity extends ListActivity {
   @UiThread
   public void init() {
     this.contactRows = contactManager.getLocalGroupsContacts().get(groupId);
-    String[] values = new String[this.contactRows.size()];
-    int i = 0;
-    for (ContactRow contactRow : this.contactRows) {
-      values[i++] = contactRow.getName();
+    if (contactRows != null) {
+      String[] values = new String[this.contactRows.size()];
+      int i = 0;
+      for (ContactRow contactRow : this.contactRows) {
+        values[i++] = contactRow.getName();
+      }
+      adapter = new ArrayAdapter<ContactRow>(this,
+          android.R.layout.simple_list_item_1, contactManager.getLocalGroupsContacts().get(groupId));
+      setListAdapter(adapter);
+    } else {
+      adapter = new ArrayAdapter<ContactRow>(this, android.R.layout.simple_list_item_1);
+      setListAdapter(adapter);
     }
-    ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-        android.R.layout.simple_list_item_1, values);
-    setListAdapter(adapter);
+    adapter.setNotifyOnChange(true);
   }
 
   /**
    * Load data into {@link ContactManager}.
    */
-  @Background
-  public void loadData() {
-    contactManager.getLocalGroupsContacts();
+  public Thread loadData() {
+    final ProgressDialog progressDialog = ProgressDialog.show(ContactsDetailActivity.this, "",
+        getText(R.string.progress_loading), true);
+    final Runnable runnable = new Runnable() {
+      @Override
+      public void run() {
+        contactManager.getLocalGroupsContacts();
+        progressDialog.dismiss();
+      }
+    };
+    return Utils.performOnBackgroundThread(runnable);
   }
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
-    MenuInflater inflater = getMenuInflater();
-    if (first) {
-      inflater.inflate(R.menu.settings_menu, menu);
-    } else {
-      inflater.inflate(R.menu.sync_menu, menu);
-    }
+    getMenuInflater().inflate(R.menu.contacts_menu_detail, menu);
     return true;
   }
 
@@ -104,11 +131,21 @@ public class ContactsDetailActivity extends ListActivity {
   public boolean onOptionsItemSelected(MenuItem item) {
     Intent intent = null;
     switch (item.getItemId()) {
+      case R.id.action_add_poeple:
+        intent = new Intent(this, ContactsDetailAddActivity_.class);
+        ArrayList<Integer> values = null;
+        if (contactRows != null) {
+          values = new ArrayList<Integer>();
+          for (ContactRow contactRow : this.contactRows) {
+            values.add(contactRow.getId());
+          }
+        }
+        intent.putExtra(Constants.INTENT_ID, groupId);
+        intent.putIntegerArrayListExtra("SELECTED", values);
+        startActivity(intent);
+        break;
       case R.id.action_help:
         intent = new Intent(this, HelpActivity_.class);
-        if (first) {
-          intent.putExtra(Constants.INTENT_FIRST, true);
-        }
         startActivity(intent);
         break;
       case R.id.action_settings:

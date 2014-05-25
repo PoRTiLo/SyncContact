@@ -3,21 +3,26 @@ package cz.xsendl00.synccontact;
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.UiThread;
-import org.androidannotations.annotations.ViewById;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.widget.EditText;
 import cz.xsendl00.synccontact.activity.fragment.ContactFragment;
 import cz.xsendl00.synccontact.activity.fragment.GroupFragment;
 import cz.xsendl00.synccontact.client.ContactManager;
+import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.utils.Constants;
+import cz.xsendl00.synccontact.utils.Utils;
 
 /**
  * Contact activity.
@@ -28,15 +33,9 @@ import cz.xsendl00.synccontact.utils.Constants;
 public class ContactsActivity extends Activity {
 
   private static final String TAG = "ContactsActivity";
-  /**
-   * ProgressBar show by loading data.
-   */
-  @ViewById(R.id.activit_contacts_layout)
-  protected LinearLayout linearLayoutProgress;
   private ContactManager contactManager;
   private boolean first = false;
   private Menu mMenu;
-
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +49,6 @@ public class ContactsActivity extends Activity {
     if (!contactManager.isLocalContactsInit() || !contactManager.isLocalGroupsInit()) {
       loadData();
     } else {
-      disableProgressbar();
       init();
     }
 
@@ -110,17 +108,26 @@ public class ContactsActivity extends Activity {
   /**
    * Do after data from database is loaded.
    */
-  @Background(id = "loadData")
-  protected void loadData() {
-    Log.i(TAG, "Load data start");
-    contactManager.getLocalGroupsContacts();
-    contactManager.convertContact2NewAccount();
-    contactManager.updateGroupsUuid();
+  protected Thread loadData() {
+    final ProgressDialog progressDialog = ProgressDialog.show(ContactsActivity.this, "",
+        getText(R.string.progress_loading), true);
+    progressDialog.setCancelable(true);
+    final Runnable runnable = new Runnable() {
+      @Override
+      public void run() {
+        Log.i(TAG, "Load data start");
+        contactManager.getLocalGroupsContacts();
+        contactManager.convertContact2NewAccount();
+        contactManager.updateGroupsUuid();
 
-    refresh();
-    init();
-    disableProgressbar();
-    Log.i(TAG, "Load data after initGroup");
+        refresh();
+        init();
+        progressDialog.dismiss();
+
+        Log.i(TAG, "Load data after initGroup");
+      }
+    };
+    return Utils.performOnBackgroundThread(runnable);
   }
 
   @UiThread
@@ -136,18 +143,15 @@ public class ContactsActivity extends Activity {
     }
   }
 
-  @UiThread
-  public void disableProgressbar() {
-    linearLayoutProgress.setVisibility(View.GONE);
-  }
-
   /**
    * Update data, call by icon (refresh) in menu.
    */
   @Background
   public void reinitData() {
-
     setRefreshActionButtonState(true);
+    contactManager.setLocalContactsInit(false);
+    contactManager.setLocalGroupsInit(false);
+    contactManager.setLocalGroupsContactsInit(false);
     contactManager.getLocalGroupsContacts();
     refresh();
     setRefreshActionButtonState(false);
@@ -190,4 +194,47 @@ public class ContactsActivity extends Activity {
     super.onPause();
   }
 
+  public void addGroup() {
+    LayoutInflater li = LayoutInflater.from(ContactsActivity.this);
+    View promptsView = li.inflate(R.layout.add_group, null);
+    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ContactsActivity.this);
+    alertDialogBuilder.setView(promptsView);
+
+    final EditText userInput = (EditText) promptsView.findViewById(R.id.add_group_name);
+    alertDialogBuilder.setCancelable(false)
+        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+
+          @Override
+          public void onClick(DialogInterface dialog, int id) {
+            createGroup(userInput.getText().toString());
+
+          }
+        })
+        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+
+          @Override
+          public void onClick(DialogInterface dialog, int id) {
+            dialog.cancel();
+          }
+        });
+    AlertDialog alertDialog = alertDialogBuilder.create();
+    alertDialog.show();
+  }
+
+
+  public void createGroup(String name) {
+    // create group
+    // show list of contact
+    ProgressDialog progressDialog = new ProgressDialog(ContactsActivity.this);
+    progressDialog.show();
+
+    Integer id = new AndroidDB().addGroup(ContactsActivity.this, name, null);
+    Log.i(TAG, "GROUP id:" + id);
+    progressDialog.dismiss();
+
+      Intent i = new Intent(ContactsActivity.this, ContactsDetailActivity_.class);
+      i.putExtra(Constants.INTENT_ID, id);
+      i.putExtra(Constants.INTENT_NAME, name);
+      startActivity(i);
+  }
 }

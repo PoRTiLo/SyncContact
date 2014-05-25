@@ -9,14 +9,18 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.os.Handler;
+import android.os.RemoteException;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.Groups;
 import android.provider.ContactsContract.RawContacts;
+import android.provider.ContactsContract.Settings;
 import android.util.Log;
 import android.util.SparseArray;
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
+import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
 import cz.xsendl00.synccontact.utils.GroupRow;
 import cz.xsendl00.synccontact.utils.RowComparator;
@@ -73,22 +77,16 @@ public class ContactManager {
 
   public List<ContactRow> getLocalContacts() {
     if (localContacts == null || !localContactsInit) {
-      localContacts = ContactRow.fetchAllRawContact(context.getContentResolver(), null);
+      String where = RawContacts.DELETED + "<>1";
+      localContacts = ContactRow.fetchAllRawContact(context.getContentResolver(), where);
       localContactsInit = true;
     }
     return localContacts;
   }
 
-  public List<ContactRow> getLocalContactsSyncModified() { //boolean reload) {
-    //if (localContacts == null || !localContactsInit || reload) {
-      String where = RawContacts.SYNC1 + "=1 AND "  + RawContacts.DIRTY + "=1";
-      return ContactRow.fetchAllRawContact(context.getContentResolver(), where);
-      //localContactsInit = false;
-    //}
-    //for (ContactRow contactRow : getLocalContacts()) {
-    //  if (contactRow.isSync() )
-    //}
-    //return localContacts;
+  public List<ContactRow> getLocalContactsSyncModified() {
+    String where = RawContacts.SYNC1 + "=1 AND "  + RawContacts.DIRTY + "=1";
+    return ContactRow.fetchAllRawContact(context.getContentResolver(), where);
   }
 
   public SparseArray<List<ContactRow>> getLocalGroupsContacts() {
@@ -242,20 +240,20 @@ public class ContactManager {
 
 
 
-  public static void makeGroupVisible(String accountName, ContentResolver resolver) {
-    //try {
+  public static void makeGroupVisible(ContentResolver resolver) {
+    try {
       ContentProviderClient client = resolver.acquireContentProviderClient(ContactsContract.AUTHORITY_URI);
       ContentValues cv = new ContentValues();
-      //cv.put(Groups.ACCOUNT_NAME, accountName);
-      //cv.put(Groups.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE);
-      //cv.put(Settings.UNGROUPED_VISIBLE, true);
-      //client.insert(
-      //    Settings.CONTENT_URI.buildUpon()
-      //        .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true")
-      //        .build(), cv);
-    //} catch (RemoteException e) {
-    //  Log.d(TAG, "Cannot make the Group Visible");
-    //}
+      cv.put(Groups.ACCOUNT_NAME, Constants.ACCOUNT_NAME);
+      cv.put(Groups.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE);
+      cv.put(Settings.UNGROUPED_VISIBLE, true);
+      client.insert(
+          Settings.CONTENT_URI.buildUpon()
+              .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true")
+              .build(), cv);
+    } catch (RemoteException e) {
+      Log.d(TAG, "Cannot make the Group Visible");
+    }
   }
 
   public boolean isContactsServerInit() {
@@ -339,5 +337,21 @@ public class ContactManager {
    */
   public void setGroupsServerInit(boolean groupsServerInit) {
     this.groupsServerInit = groupsServerInit;
+  }
+
+
+  /**
+   * @return Returns the localGroupsContactsInit.
+   */
+  public boolean isLocalGroupsContactsInit() {
+    return localGroupsContactsInit;
+  }
+
+
+  /**
+   * @param localGroupsContactsInit The localGroupsContactsInit to set.
+   */
+  public void setLocalGroupsContactsInit(boolean localGroupsContactsInit) {
+    this.localGroupsContactsInit = localGroupsContactsInit;
   }
 }
