@@ -267,7 +267,7 @@ public class GoogleContact {
                .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
                .withValue(RawContacts.SYNC1, "1")
                //.withValue(RawContacts.SYNC2, new Utils().createTimestamp())
-               .withValue(RawContacts.SYNC3, AndroidDB.SET_CONVERT)
+               .withValue(RawContacts.SYNC3, AndroidDB.SET_IMPORT)
                .withValue(RawContacts.SYNC4, newGoogleContact.getUuid())
                .build());
       ops.add(ContentProviderOperation.newInsert(Data.CONTENT_URI)
@@ -516,20 +516,20 @@ public class GoogleContact {
       return false;
     }
     GoogleContact other = (GoogleContact) obj;
-    if (accountNamePrevious == null) {
-      if (other.accountNamePrevious != null) {
-        return false;
-      }
-    } else if (!accountNamePrevious.equals(other.accountNamePrevious)) {
-      return false;
-    }
-    if (accountTypePrevious == null) {
-      if (other.accountTypePrevious != null) {
-        return false;
-      }
-    } else if (!accountTypePrevious.equals(other.accountTypePrevious)) {
-      return false;
-    }
+//    if (accountNamePrevious == null) {
+//      if (other.accountNamePrevious != null) {
+//        return false;
+//      }
+//    } else if (!accountNamePrevious.equals(other.accountNamePrevious)) {
+//      return false;
+//    }
+//    if (accountTypePrevious == null) {
+//      if (other.accountTypePrevious != null) {
+//        return false;
+//      }
+//    } else if (!accountTypePrevious.equals(other.accountTypePrevious)) {
+//      return false;
+//    }
     if (deleted != other.deleted) {
       return false;
     }
@@ -620,13 +620,13 @@ public class GoogleContact {
     if (synchronize != other.synchronize) {
       return false;
     }
-    if (timestamp == null) {
-      if (other.timestamp != null) {
-        return false;
-      }
-    } else if (!timestamp.equals(other.timestamp)) {
-      return false;
-    }
+//    if (timestamp == null) {
+//      if (other.timestamp != null) {
+//        return false;
+//      }
+//    } else if (!timestamp.equals(other.timestamp)) {
+//      return false;
+//    }
     if (uuid == null) {
       if (other.uuid != null) {
         return false;

@@ -179,6 +179,7 @@ public class AccountData {
     userData.putString(Constants.PAR_USERNAME, ac.getName());
     userData.putString(Constants.PAR_PORT, ac.getPort() + "");
     userData.putString(Constants.PAR_HOST, ac.getHost());
+    userData.putString(Constants.PAR_PASSWORD, ac.getPassword());
     userData.putString(Constants.PAR_ENCRYPTION, ac.getEncryption() + "");
     userData.putString(Constants.PAR_SEARCHFILTER, ac.getSearchFilter());
     userData.putString(Constants.PAR_BASEDN, ac.getBaseDn());

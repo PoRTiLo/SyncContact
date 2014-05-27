@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,6 +42,7 @@ import cz.xsendl00.synccontact.utils.GroupRow;
 public class ContactFragment extends Fragment implements
     android.widget.CompoundButton.OnCheckedChangeListener {
 
+  private static final String TAG = "ContactFragment";
   private ContactsActivity activity;
   private ListView listRow;
   private RowContactAdapter adapter;
@@ -76,6 +78,7 @@ public class ContactFragment extends Fragment implements
   @Override
   public void onResume() {
     super.onResume();
+    Log.i(TAG, "onResume");
     //if (!contactManager.isContactsLocalInit() || !contactManager.isGroupsLocalInit()) {
     //  initContactManager();
     //}
@@ -202,20 +205,46 @@ public class ContactFragment extends Fragment implements
    * @param result true/false - select/no select.
    */
   @Background
-  public void updateContactsInDatabase(final List<ContactRow> contacts, final boolean result) {
+  protected void updateContactsInDatabase(final List<ContactRow> contacts, final boolean result) {
     androidDB.updateContactsSync(activity, contacts, result);
+  }
+
+
+  @Background
+  protected void updateGroupsByContact(final List<ContactRow> contacts, final boolean result) {
+    if (!result) {
+      for (ContactRow contactRow : contacts) {
+        for (int i = 0, nsize = contactManager.getLocalGroupsContacts().size(); i < nsize; i++) {
+          List<ContactRow> list = contactManager.getLocalGroupsContacts().valueAt(i);
+          if (list.contains(contactRow)) {
+            Integer id = contactManager.getLocalGroupsContacts().keyAt(i);
+            for (GroupRow groupRow : contactManager.getLocalGroups()) {
+              if (groupRow.getId() == id) {
+                groupRow.setSync(result);
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   @Override
   public void onCheckedChanged(CompoundButton buttonView, final boolean isChecked) {
     final int pos = (Integer) buttonView.getTag();
     if (pos != ListView.INVALID_POSITION) {
-      ContactRow p = contactManager.getLocalContacts().get(pos);
+      final ContactRow p = contactManager.getLocalContacts().get(pos);
       if (p.isSync() != isChecked) {
         p.setSync(isChecked);
-        ArrayList<ContactRow> contacts = new ArrayList<ContactRow>();
-        contacts.add(p);
-        updateContactsInDatabase(contacts, isChecked);
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            ArrayList<ContactRow> contacts = new ArrayList<ContactRow>();
+            contacts.add(p);
+            updateContactsInDatabase(contacts, isChecked);
+            updateGroupsByContact(contacts, isChecked);
+          }
+        }).start();
       }
     }
   }

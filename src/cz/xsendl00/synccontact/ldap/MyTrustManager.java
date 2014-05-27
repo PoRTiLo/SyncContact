@@ -22,6 +22,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import cz.xsendl00.synccontact.R;
 import cz.xsendl00.synccontact.utils.Constants;
 
 import static com.unboundid.util.Debug.debugException;
@@ -178,14 +179,12 @@ public final class MyTrustManager implements X509TrustManager {
       }
 
     } catch (IOException e) {
-      Log.e("errrrrrrrrrrrrrrrrrro", e.toString());
       e.printStackTrace();
     } finally {
       if (w != null) {
         try {
           w.close();
         } catch (IOException e) {
-          // TODO Auto-generated catch block
           e.printStackTrace();
         }
       }
@@ -243,7 +242,7 @@ public final class MyTrustManager implements X509TrustManager {
     ok = false;
   }
 
-  private void showCert(final Handler handler, final Context context, final String message) {
+  private void showCert(final String message) {
     handler.post(new Runnable() {
 
       @Override
@@ -251,8 +250,10 @@ public final class MyTrustManager implements X509TrustManager {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         final TextView edit = new TextView(context);
         builder.setView(edit);
-        builder.setTitle("error");
-        builder.setPositiveButton("trust", new DialogInterface.OnClickListener() {
+        builder.setCancelable(false);
+        //builder.setCanceledOnTouchOutside(false);
+        builder.setTitle(context.getText(R.string.dialog_cert));
+        builder.setPositiveButton(context.getText(R.string.button_accept), new DialogInterface.OnClickListener() {
 
           @Override
           public void onClick(DialogInterface dialog, int id) {
@@ -260,14 +261,14 @@ public final class MyTrustManager implements X509TrustManager {
             setResult(Constants.TRUST_YES);
           }
         });
-        builder.setNegativeButton("no", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(context.getText(R.string.button_cancel), new DialogInterface.OnClickListener() {
 
           @Override
           public void onClick(DialogInterface dialog, int which) {
             setResult(Constants.TRUST_NO);
           }
         });
-        builder.setNeutralButton("cert", new DialogInterface.OnClickListener() {
+        builder.setNeutralButton(context.getText(R.string.button_show), new DialogInterface.OnClickListener() {
 
           @Override
           public void onClick(DialogInterface dialog, int which) {
@@ -369,7 +370,7 @@ public final class MyTrustManager implements X509TrustManager {
     }
 
     String message = createCertMessage(chain, serverCert, validityWarning);
-    showCert(handler, context, message);
+    showCert(message);
     // TODO: hack, wait for user input, ugly while
     while (ok) {
     }

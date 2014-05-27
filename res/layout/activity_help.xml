@@ -20,26 +20,265 @@
             android:gravity="center"
             android:paddingBottom="@dimen/margin_20"
             android:paddingTop="@dimen/margin_20"
-            android:text="@string/info_server_added"
+            android:text="@string/help"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
-        <TextView
-            android:id="@+id/textView2"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <ImageView
+                android:id="@+id/imageView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:src="@drawable/people" />
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="left"
+                android:paddingBottom="@dimen/margin_4"
+                android:paddingLeft="@dimen/margin_12"
+                android:paddingTop="@dimen/margin_8"
+                android:text="Contacts list"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+
+        <View
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:gravity="center"
-            android:paddingBottom="@dimen/margin_12"
-            android:text="@string/info_text"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray" />
 
         <TextView
             android:id="@+id/textView3"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:gravity="center"
-            android:text="@string/info_warning"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="@color/red" />
-    </LinearLayout>
+            android:text="@string/help_contact_list"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/margin_8" >
+
+            <ImageView
+                android:id="@+id/imageView10"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_action_refresh" />
+
+            <TextView
+                android:id="@+id/textView11"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="left"
+                android:paddingBottom="@dimen/margin_4"
+                android:paddingLeft="@dimen/margin_12"
+                android:paddingTop="@dimen/margin_8"
+                android:text="Refresh selected contacts."
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/margin_8" >
+
+            <ImageView
+                android:id="@+id/imageView12"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_action_add_group" />
+
+            <TextView
+                android:id="@+id/textView13"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="left"
+                android:paddingBottom="@dimen/margin_4"
+                android:paddingLeft="@dimen/margin_12"
+                android:paddingTop="@dimen/margin_8"
+                android:text="Create new group."
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/margin_8" >
+
+            <ImageView
+                android:id="@+id/imageView14"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_action_add_people" />
+
+            <TextView
+                android:id="@+id/textView15"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="left"
+                android:paddingBottom="@dimen/margin_4"
+                android:paddingLeft="@dimen/margin_12"
+                android:paddingTop="@dimen/margin_8"
+                android:text="Edit groups."
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/margin_8" >
+
+            <ImageView
+                android:id="@+id/imageView16"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:src="@drawable/sync" />
+
+            <TextView
+                android:id="@+id/textView17"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="left"
+                android:paddingBottom="@dimen/margin_4"
+                android:paddingLeft="@dimen/margin_12"
+                android:paddingTop="@dimen/margin_8"
+                android:text="Synchronization"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:text="Manually synchronize contacts.  "
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/margin_8" >
+
+            <ImageView
+                android:id="@+id/imageView18"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:src="@drawable/imp" />
+
+            <TextView
+                android:id="@+id/textView19"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="left"
+                android:paddingBottom="@dimen/margin_4"
+                android:paddingLeft="@dimen/margin_12"
+                android:paddingTop="@dimen/margin_8"
+                android:text="Import contacts"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:text="Import new contacts from server."
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/margin_8" >
+
+            <ImageView
+                android:id="@+id/imageView20"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_action_refresh" />
+
+            <TextView
+                android:id="@+id/textView21"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="left"
+                android:paddingBottom="@dimen/margin_4"
+                android:paddingLeft="@dimen/margin_12"
+                android:paddingTop="@dimen/margin_8"
+                android:text="Refresh contact from server."
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/margin_8" >
+
+            <ImageView
+                android:id="@+id/imageView22"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:src="@drawable/server" />
+
+            <TextView
+                android:id="@+id/textView23"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="left"
+                android:paddingBottom="@dimen/margin_4"
+                android:paddingLeft="@dimen/margin_12"
+                android:paddingTop="@dimen/margin_8"
+                android:text="Server"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:text="Server information. Edit and remove connection to server."
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/margin_8" >
+
+            <ImageView
+                android:id="@+id/imageView22"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_action_reconect" />
+
+            <TextView
+                android:id="@+id/textView23"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="left"
+                android:paddingBottom="@dimen/margin_4"
+                android:paddingLeft="@dimen/margin_12"
+                android:paddingTop="@dimen/margin_8"
+                android:text="Test connection."
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+    </LinearLayout>
 </ScrollView>

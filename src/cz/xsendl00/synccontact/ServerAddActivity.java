@@ -12,12 +12,10 @@ import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.ContactsContract;
 import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
@@ -34,6 +32,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 import cz.xsendl00.synccontact.authenticator.AccountData;
 import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.ldap.ServerInstance;
@@ -75,7 +74,6 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
   private String authToken;
   private String authTokenType;
   private boolean first;
-
   private ContactManager contactManager;
 
   @Override
@@ -141,13 +139,13 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
     nameEditText = new EditText(getApplicationContext());
     nameEditText.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
         LayoutParams.WRAP_CONTENT));
-    nameEditText.setHint(getResources().getString(R.string.add_account_name));
+    nameEditText.setHint(getString(R.string.add_account_name));
     nameEditText.setGravity(Gravity.CENTER_VERTICAL);
 
     passEditText = new EditText(getApplicationContext());
     passEditText.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
         LayoutParams.WRAP_CONTENT));
-    passEditText.setHint(getResources().getString(R.string.add_account_password));
+    passEditText.setHint(getString(R.string.add_account_password));
     passEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
     passEditText.setGravity(Gravity.CENTER_VERTICAL);
     passEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
@@ -230,40 +228,48 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
    * @param view view.
    */
   public void createConnection(View view) {
+    if (hostEditText.getText().toString().trim().equals("")) {
+      hostEditText.setError("Host is required!");
+      Toast toast = Toast.makeText(getApplicationContext(), "Host is required!", Toast.LENGTH_SHORT);
+      toast.show();
+    } else if (dnEditText.getText().toString().trim().equals("")) {
+      dnEditText.setError("DN is required!");
+      Toast toast = Toast.makeText(getApplicationContext(), "DN is required!", Toast.LENGTH_SHORT);
+      toast.show();
+    } else {
+   // show progressBar
+      showProgressBar(view);
 
- // show progressBar
-    showProgressBar(view);
-
-    AccountData accountData = new AccountData();
-    accountData.setName(nameEditText.getText().toString());
-    try {
-      accountData.setPort(Integer.parseInt(portEditText.getText().toString()));
-    } catch (NumberFormatException nfe) {
-      accountData.setPort(Integer.parseInt(Constants.STARTTLS));
+      AccountData accountData = new AccountData();
+      accountData.setName(nameEditText.getText().toString());
+      try {
+        accountData.setPort(Integer.parseInt(portEditText.getText().toString()));
+      } catch (NumberFormatException nfe) {
+        accountData.setPort(Integer.parseInt(Constants.STARTTLS));
+      }
+      accountData.setHost(hostEditText.getText().toString());
+      accountData.setBaseDn(dnEditText.getText().toString());
+      accountData.setPassword(passEditText.getText().toString());
+      accountData.setEncryption(encryptionSpinner.getSelectedItemPosition());
+      authThread = ServerUtilities.attemptAuth(new ServerInstance(accountData),
+          handler, ServerAddActivity.this, false);
     }
-    accountData.setHost(hostEditText.getText().toString());
-    accountData.setBaseDn(dnEditText.getText().toString());
-    accountData.setPassword(passEditText.getText().toString());
-    accountData.setEncryption(encryptionSpinner.getSelectedItemPosition());
-
-
-
-    authThread = ServerUtilities.attemptAuth(new ServerInstance(accountData),
-        handler, ServerAddActivity.this, false);
   }
 
   private void showProgressBar(View view) {
     progressBar = new ProgressDialog(view.getContext());
-    progressBar.setCancelable(true);
-    progressBar.setMessage("Autentication...");
+    progressBar.setCancelable(false);
+    progressBar.setCanceledOnTouchOutside(false);
+    progressBar.setMessage(getText(R.string.progress_authenticating));
     progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
     progressBar.show();
   }
 
   private void showDialog(String message) {
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
-    builder.setMessage(message).setTitle("error");
-    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+    builder.setMessage(getText(R.string.dialog_error_connection) .toString() + message)
+      .setTitle(getText(R.string.dialog_error));
+    builder.setPositiveButton(getText(R.string.button_ok), new DialogInterface.OnClickListener() {
 
       @Override
       public void onClick(DialogInterface dialog, int id) {
@@ -283,26 +289,32 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
    */
   public void onAuthenticationResult(String[] baseDNs, boolean result, String message) {
     Log.i(TAG, "onAuthenticationResult(" + result + ")");
-    if (progressBar != null) {
+    if (progressBar != null && !result) {
       progressBar.dismiss();
     }
 
-    if (result) {
-      if (baseDNs != null) {
-        contactManager.getAccountData().setBaseDNs(baseDNs);
-        contactManager.getAccountData().setName(nameEditText.getText().toString());
-        try {
-          contactManager.getAccountData().setPort(Integer.parseInt(portEditText.getText().toString()));
-        } catch (NumberFormatException nfe) {
-          contactManager.getAccountData().setPort(Integer.parseInt(Constants.STARTTLS));
-        }
-        contactManager.getAccountData().setHost(hostEditText.getText().toString());
-        contactManager.getAccountData().setBaseDn(dnEditText.getText().toString());
-        contactManager.getAccountData().setPassword(passEditText.getText().toString());
-        contactManager.getAccountData().setEncryption(encryptionSpinner.getSelectedItemPosition());
-        // now save account
-        saveAccount();
+
+    if (result && baseDNs != null) {
+      StringBuilder builder = new StringBuilder();
+      for (int i = 0; i < baseDNs.length; i++) {
+        builder.append(baseDNs[i]);
       }
+      Log.i(TAG, "baseDN:" + builder.toString());
+      contactManager.getAccountData().setBaseDn(builder.toString());
+      contactManager.getAccountData().setName(nameEditText.getText().toString());
+      try {
+        contactManager.getAccountData().setPort(Integer.parseInt(portEditText.getText().toString()));
+      } catch (NumberFormatException nfe) {
+        contactManager.getAccountData().setPort(Integer.parseInt(Constants.STARTTLS));
+      }
+      contactManager.getAccountData().setHost(hostEditText.getText().toString());
+      //contactManager.getAccountData().setBaseDn(dnEditText.getText().toString());
+      contactManager.getAccountData().setPassword(passEditText.getText().toString());
+      contactManager.getAccountData().setEncryption(encryptionSpinner.getSelectedItemPosition());
+      // now save account
+      progressBar.setTitle("");
+      progressBar.setMessage(getText(R.string.progress_saving));
+      saveAccount();
     } else {
       showDialog(message);
       Log.e(TAG, "onAuthenticationResult: failed to authenticate");
@@ -312,47 +324,62 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
   @Background
   protected void saveAccount() {
     // final Account account = new Account(accountData.getHost(), Constants.ACCOUNT_TYPE);
-    final Account account = new Account(Constants.ACCOUNT_NAME, Constants.ACCOUNT_TYPE);
 
+    Thread thread = new Thread(new Runnable() {
+
+      @Override
+      public void run() {
+        final Account account = new Account(Constants.ACCOUNT_NAME, Constants.ACCOUNT_TYPE);
     // if new account
-    if (contactManager.getAccountData().isNewAccount()) {
-      Log.i(TAG, "saveAccount() - new");
-      Bundle userData = AccountData.toBundle(contactManager.getAccountData());
-      // create new account for contact in table accounts
-      accountManager.addAccountExplicitly(account, contactManager.getAccountData().getPassword(),
-          userData);
-      // Set contacts sync for this account.
-      ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
-      ContactManager.makeGroupVisible(getContentResolver());
-    } else {
-      Log.i(TAG, "saveAccount() - update");
-      accountManager.setPassword(account, contactManager.getAccountData().getPassword());
-      accountManager.setUserData(account, Constants.PAR_USERNAME, contactManager.getAccountData()
-          .getName());
-      accountManager.setUserData(account, Constants.PAR_PORT, contactManager.getAccountData()
-          .getPort() + "");
-      accountManager.setUserData(account, Constants.PAR_HOST, contactManager.getAccountData()
-          .getHost());
-      accountManager.setUserData(account, Constants.PAR_ENCRYPTION, contactManager.getAccountData()
-          .getEncryption() + "");
-      accountManager.setUserData(account, Constants.PAR_SEARCHFILTER,
-          contactManager.getAccountData().getSearchFilter());
-      accountManager.setUserData(account, Constants.PAR_BASEDN, contactManager.getAccountData()
-          .getBaseDn());
-    }
-    // ServerUtilities.updateContacts(new ServerInstance(accountData), accountData, handler,
-    // ServerAddActivity.this);
+      if (contactManager.getAccountData().isNewAccount()) {
+        Log.i(TAG, "saveAccount() - new");
+        Bundle userData = AccountData.toBundle(contactManager.getAccountData());
+        // create new account for contact in table accounts
+        accountManager.addAccountExplicitly(account, contactManager.getAccountData().getPassword(),
+            userData);
+        // Set contacts sync for this account.
+        //TODO:
+        //FIXME:
+        //ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true);
+        ContactManager.makeGroupVisible(getContentResolver());
+      } else {
+        Log.i(TAG, "saveAccount() - update");
+        accountManager.setPassword(account, contactManager.getAccountData().getPassword());
+        accountManager.setUserData(account, Constants.PAR_USERNAME, contactManager.getAccountData()
+            .getName());
+        accountManager.setUserData(account, Constants.PAR_PORT, contactManager.getAccountData()
+            .getPort() + "");
+        accountManager.setUserData(account, Constants.PAR_HOST, contactManager.getAccountData()
+            .getHost());
+        accountManager.setUserData(account, Constants.PAR_ENCRYPTION, contactManager.getAccountData()
+            .getEncryption() + "");
+        accountManager.setUserData(account, Constants.PAR_SEARCHFILTER,
+            contactManager.getAccountData().getSearchFilter());
+        accountManager.setUserData(account, Constants.PAR_BASEDN, contactManager.getAccountData()
+            .getBaseDn());
+      }
+      final Intent intent = new Intent();
+      authToken = contactManager.getAccountData().getPassword();
+      intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, Constants.ACCOUNT_NAME);
+      intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, Constants.ACCOUNT_TYPE);
+      if (authTokenType != null && authTokenType.equals(Constants.AUTHTOKEN_TYPE)) {
+        intent.putExtra(AccountManager.KEY_AUTHTOKEN, authToken);
+      }
 
-    final Intent intent = new Intent();
-    authToken = contactManager.getAccountData().getPassword();
-    intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, account.name);
-    intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, Constants.ACCOUNT_TYPE);
-    if (authTokenType != null && authTokenType.equals(Constants.AUTHTOKEN_TYPE)) {
-      intent.putExtra(AccountManager.KEY_AUTHTOKEN, authToken);
-    }
-    setAccountAuthenticatorResult(intent.getExtras());
-    setResult(RESULT_OK, intent);
+      setAccountAuthenticatorResult(intent.getExtras());
+      setResult(RESULT_OK, intent);
+      }
+    });
+    thread.start();
 
+//    try {
+//      thread.join();
+//    } catch (InterruptedException e) {
+//      e.printStackTrace();
+//    }
+    if (progressBar != null) {
+      progressBar.dismiss();
+    }
     if (contactManager.getAccountData().isNewAccount() || first) {
       Intent intent1 = new Intent(this, InfoSyncActivity_.class);
       startActivity(intent1);
@@ -367,8 +394,7 @@ public class ServerAddActivity extends AccountAuthenticatorActivity {
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     MenuInflater inflater = getMenuInflater();
-    if (contactManager.getAccountData() == null || contactManager.getAccountData().isNewAccount()
-        || first) {
+    if (first) {
       inflater.inflate(R.menu.settings_menu, menu);
     } else {
       inflater.inflate(R.menu.sync_menu, menu);

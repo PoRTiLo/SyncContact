@@ -126,6 +126,7 @@ public class ServerUtilities {
         }
       }
     } catch (LDAPException e) {
+      //e.get
       e.printStackTrace();
     } finally {
       if (connection != null) {
@@ -224,7 +225,7 @@ public class ServerUtilities {
   }
 
   public Map<String, GoogleContact> fetchServerContacts(final ServerInstance ldapServer,
-      final Context context, final Handler handler, final List<ContactRow> contactRows) {
+      final Context context, final Handler handler, final Handler handlerMessage, final List<ContactRow> contactRows) {
     Map<String, GoogleContact> googleContactsOut = new HashMap<String, GoogleContact>();
     LDAPConnection connection = null;
     try {
@@ -251,6 +252,7 @@ public class ServerUtilities {
 
 
       for (SearchResultEntry e : searchResult.getSearchEntries()) {
+        handler.sendMessage(handler.obtainMessage());
         //Log.i(TAG, e.toString());
         GoogleContact contact = Mapping.mappingContactFromLDAP(e);
         googleContactsOut.put(contact.getUuid(), contact);
@@ -334,6 +336,50 @@ public class ServerUtilities {
           Constants.ACCOUNT_OU_GROUPS + ldapServer.getAccountdData().getBaseDn(),
           SearchScope.SUB,
           Constants.ACCOUNT_FILTER_LDAP_GROUP,
+          Mapping.createAttributesGroup());
+      for (SearchResultEntry e : searchResult.getSearchEntries()) {
+        GroupRow groupRow = new GroupRow();
+        groupRow.setUuid(e.getAttributeValue(Constants.CN));
+        groupRow.setName(e.getAttributeValue(Constants.DESCRIPTION));
+        String[] members = e.getAttributeValues(Constants.OBJECT_ATTRIBUTE_MEMBER);
+        for (String member : members) {
+          groupRow.getMebersUuids().add(member);
+        }
+        groupsServer.add(groupRow);
+      }
+    } catch (LDAPException e) {
+      e.printStackTrace();
+    } finally {
+      if (connection != null) {
+        connection.close();
+      }
+    }
+    Log.i(TAG, "From server download: " + groupsServer.size() + " groups");
+    return groupsServer;
+  }
+
+  /**
+   * Get all group from server.
+   * @param ldapServer Instance connection.
+   * @param context context of activity.
+   * @param handler handler of activity.
+   * @param timestamp timestamp
+   * @return List of GroupRow
+   */
+  public List<GroupRow> fetchModifyGroupsServer(final ServerInstance ldapServer,
+      final Context context, final Handler handler, String timestamp) {
+    List<GroupRow> groupsServer = new ArrayList<GroupRow>();
+    LDAPConnection connection = null;
+    try {
+      connection = ldapServer.getConnection(handler, context);
+      Filter filters = Filter.createANDFilter(
+          Filter.createEqualityFilter(Constants.OBJECT_CLASS, Constants.OBJECT_CLASS_GROUP_OF_NAME),
+          Filter.create("(" + Constants.LDAP_MODIFY_TIME_STAMP + ">=" + timestamp + ")")
+          );
+      SearchResult searchResult = connection.search(
+          Constants.ACCOUNT_OU_GROUPS + ldapServer.getAccountdData().getBaseDn(),
+          SearchScope.SUB,
+          filters,
           Mapping.createAttributesGroup());
       for (SearchResultEntry e : searchResult.getSearchEntries()) {
         GroupRow groupRow = new GroupRow();

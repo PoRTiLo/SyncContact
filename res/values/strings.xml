@@ -33,13 +33,52 @@
     <string name="progress_importing">Importing&#8230;</string>
     <string name="progress_importing_text">Importing new server\'s contacts to local storage.</string>
     <string name="progress_saving">Saving&#8230;</string>
+    <string name="progress_exporting">Exporting&#8230;</string>
+    <string name="progress_exporting_text">Exporting contacts to previous accounts.</string>
+    <string name="progress_authenticating">Authenticating&#8230;</string>
+    <string name="progress_testing_connection">Testing connection&#8230;</string>
+    
+    <!-- Toast -->
     <string name="toast_saved">Change saved.</string>
+    <string name="toast_imported">Was imported: </string>
+    <string name="toast_imported_contacts"> contacts.</string>
+    <string name="toast_exported">Was exported: </string>
+    <string name="toast_exported_contacts"> contacts.</string>
+    <string name="toast_tested">Test connection successfully.</string>
+    
+    <!-- Menu -->
+    <string name="menu_sync">Synchronization</string>
+    <string name="menu_help">Help</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_test_connections">Test connections</string>
+    <string name="menu_refresh">Refresh contacts</string>
+    <string name="menu_select">Select all</string>
+    <string name="menu_add_group">Add group</string>
+    <string name="menu_add_people">Add people</string>
+    <string name="menu_show_all">Show server\'s contacs all</string>
+    <string name="menu_show_imported">Show only impoted contacts</string>
+    <string name="menu_save">Save</string>
+    <string name="menu_export">Export contact</string>
+    
+    <!-- Button -->
+    <string name="button_ok">OK</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="button_accept">Accept</string>
+    <string name="button_show">Show</string>
+    
+    <!-- Dialog -->
+    <string name="dialog_error">Error</string>
+    <string name="dialog_error_connection">Can not connect to server. Chech internet connection or login credentials.\n \n</string>
+    <string name="dialog_cert">Untrusted certificate.</string>
     
     <!-- MainActivity -->
-    <string name="main_contact">Contact list</string>
+    <string name="main_contact">Contacts list</string>
     <string name="main_sync">Synchronization</string>
-    <string name="main_help">Help</string>
+    <string name="main_import">Import contacts</string>
     <string name="main_server">Server</string>
+    <string name="main_export_contact">Export contacts</string>
+    <string name="main_export_contact_text">Do you really want export all contacts into previous account? 
+        For using this application contacts must be in \'syncContact.cz\' account.</string>
 
     <!-- SyncAuthenticatorActivity -->
     <string name="add_account_main">Create new connection to LDAP Server</string>
@@ -63,7 +102,6 @@
     <!-- SynchronizationActivity -->
     <string name="sync_info">You can synchornization manualy</string>
     <string name="sync_last">Last synchorization:</string>
-    <string name="sync_time">14.5.2014 15:50:30</string>
     <string name="sync_button">Synchornization</string>
 
     <!-- RemoveActivity -->
@@ -83,7 +121,6 @@
 
     <!-- Info - Activity -->
     <string name="info_server_added">Server added successfully</string>
-    <string name="info_ok">OK</string>
     <string name="info_button">Go to select contacts</string>
     <string name="info_text">Now you must select contact or group, which should be synchronized.</string>
     <string name="info_warning">Warning: Contacts which will selected must be moved to new account. 
@@ -115,24 +152,18 @@
     
     <!-- GroupFragmnet -->
     <string name="group_toast">Group is empty.</string>
-    <string name="group_select_all">Select All.</string>
-    <string name="group_select_no">Select nothing.</string>
+    <string name="group_select_all">Select all</string>
+    <string name="group_select_no">Select nothing</string>
     <string name="group_button">Select contacts</string>
     <string name="group_number_of">Number of contact: </string>
     
-    <!-- Menu -->
-    <string name="menu_sync">Synchronization</string>
-    <string name="menu_help">Help</string>
-    <string name="menu_settings">Settings</string>
-    <string name="menu_test_connections">Test connections</string>
-    <string name="menu_refresh">Refresh contacts</string>
-    <string name="menu_select">Select all</string>
-    <string name="menu_add_group">Add group</string>
-    <string name="menu_add_people">Add people</string>
-    <string name="menu_show_all">Show server\'s contacs all</string>
-    <string name="menu_show_imported">Show only impoted contacts</string>
-    <string name="menu_save">Save</string>
+    
     
     <string name="add_new_group_text">Name of new group:</string>
+    <string name="string_empty"></string>
+    
+    <!-- Help -->
+    <string name="help">Help</string>
+    <string name="help_contact_list">List of contacts or groups for synchronization</string>
 
 </resources>

@@ -1,30 +1,42 @@
 package cz.xsendl00.synccontact;
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
+import cz.xsendl00.synccontact.client.ContactManager;
+import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.utils.Constants;
 
 /**
- *
+ * Main activity. Show main menu with four rectangle.
  * @author portilo
  *
  */
 @EActivity(R.layout.activity_main)
 public class MainActivity extends Activity {
+
 
   @ViewById(R.id.button_map)
   protected Button map;
@@ -34,6 +46,8 @@ public class MainActivity extends Activity {
   protected Button show;
   @ViewById(R.id.button_help)
   protected Button importButton;
+  private Handler handler = new Handler();
+  private ProgressDialog progressDialog;
 
   private static final String TAG = "MainActivity";
 
@@ -42,13 +56,7 @@ public class MainActivity extends Activity {
     super.onCreate(savedInstanceState);
     loadPreferences();
   }
-/*
-  @Override
-  protected void onResume() {
-    super.onResume();
-    conf();
-  }
-*/
+
   @Override
   public void onWindowFocusChanged(boolean hasFocus) {
     super.onWindowFocusChanged(hasFocus);
@@ -72,7 +80,7 @@ public class MainActivity extends Activity {
   }
 
   /**
-   * Deign main window. Count size of elemnts.
+   * Deign main window. Count size of elements.
    */
   @AfterViews
   @UiThread
@@ -144,8 +152,7 @@ public class MainActivity extends Activity {
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
-    MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.sync_menu, menu);
+    getMenuInflater().inflate(R.menu.main_menu, menu);
     return true;
   }
 
@@ -161,12 +168,71 @@ public class MainActivity extends Activity {
       intent = new Intent(this, SettingsActivity_.class);
       startActivity(intent);
       break;
-    case android.R.id.home:
-      finish();
+    case R.id.action_export:
+      showExportDialog();
       break;
     default:
       break;
     }
     return true;
+  }
+
+  /**
+   * Show dialog window if you really want to export all contacts.
+   */
+  private void showExportDialog() {
+    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+    alertDialogBuilder.setTitle(getText(R.string.main_export_contact));
+    alertDialogBuilder.setMessage(getText(R.string.main_export_contact_text))
+        .setCancelable(false)
+        .setPositiveButton(getText(R.string.button_ok), new DialogInterface.OnClickListener() {
+
+          @Override
+          public void onClick(DialogInterface dialog, int id) {
+            progressDialog = ProgressDialog.show(MainActivity.this, getText(R.string.progress_exporting),
+                getText(R.string.progress_exporting_text), true);
+            progressDialog.setCanceledOnTouchOutside(false);
+            MainActivity.this.exportContacts();
+          }
+        })
+        .setNegativeButton(getText(R.string.button_cancel), new DialogInterface.OnClickListener() {
+
+          @Override
+          public void onClick(DialogInterface dialog, int id) {
+            dialog.cancel();
+          }
+        });
+
+    AlertDialog alertDialog = alertDialogBuilder.create();
+    alertDialog.show();
+  }
+
+  @Background
+  public void exportContacts() {
+    AccountManagerCallback<Boolean> callback = new AccountManagerCallback<Boolean>() {
+      @Override
+      public void run(AccountManagerFuture<Boolean> arg0) {
+        Log.i(TAG, "Accounts deleted");
+        MainActivity.this.exportResullt();
+      }
+    };
+    ContactManager.getInstance(MainActivity.this).setAccountData(null);
+    AccountManager manager = AccountManager.get(MainActivity.this);
+    Account[] accounts = manager.getAccountsByType(Constants.ACCOUNT_TYPE);
+    for (Account ac : accounts) {
+      new AndroidDB().exportContactsFromSyncAccount(MainActivity.this);
+      manager.removeAccount(ac, callback, handler);
+      break;
+    }
+  }
+
+  @UiThread
+  protected void exportResullt() {
+    if (progressDialog != null) {
+      progressDialog.dismiss();
+    }
+    String text = getText(R.string.toast_exported).toString() + getText(R.string.toast_imported_contacts);
+    Toast toast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT);
+    toast.show();
   }
 }

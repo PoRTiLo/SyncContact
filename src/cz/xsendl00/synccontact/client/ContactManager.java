@@ -37,6 +37,7 @@ public class ContactManager {
   private List<ContactRow> localContacts;
   private SparseArray<List<ContactRow>> localGroupsContacts;
   private boolean localGroupsContactsInit = false;
+
   private boolean localContactsInit = false;
   private boolean localGroupsInit = false;
   private boolean contactsServerInit = false;
@@ -45,6 +46,8 @@ public class ContactManager {
   private AccountData accountData;
   private List<GroupRow> groupsServer;
   private List<ContactRow> contactsServer;
+  private List<ContactRow> serverContact2Import;
+  private List<GroupRow> serverGroup2Import;
   private Context context;
 
 
@@ -68,17 +71,27 @@ public class ContactManager {
   }
 
   public List<GroupRow> getLocalGroups() {
-    if (localGroups == null || !localGroupsInit) {
+    if (localGroups == null) {
       localGroups = GroupRow.fetchGroups(context.getContentResolver(), null);
+      localGroupsInit = true;
+    }
+    if (!localGroupsInit) {
+      localGroups.clear();
+      localGroups.addAll(GroupRow.fetchGroups(context.getContentResolver(), null));
       localGroupsInit = true;
     }
     return localGroups;
   }
 
   public List<ContactRow> getLocalContacts() {
-    if (localContacts == null || !localContactsInit) {
-      String where = RawContacts.DELETED + "<>1";
+    String where = RawContacts.DELETED + "<>1";
+    if (localContacts == null) {
       localContacts = ContactRow.fetchAllRawContact(context.getContentResolver(), where);
+      localContactsInit = true;
+    }
+    if (!localContactsInit) {
+      localContacts.clear();
+      localContacts.addAll(ContactRow.fetchAllRawContact(context.getContentResolver(), where));
       localContactsInit = true;
     }
     return localContacts;
@@ -89,14 +102,33 @@ public class ContactManager {
     return ContactRow.fetchAllRawContact(context.getContentResolver(), where);
   }
 
+  public List<GroupRow> getLocalGroupsSyncModified() {
+    String where = Groups.SYNC1 + "=1 AND "  + Groups.DIRTY + "=1";
+    return GroupRow.fetchGroups(context.getContentResolver(), where);
+  }
+
   public SparseArray<List<ContactRow>> getLocalGroupsContacts() {
     getLocalGroups();
     getLocalContacts();
-    if (localGroupsContacts == null || !localGroupsContactsInit) {
+
+    if (localGroupsContacts == null) {
       localGroupsContacts = new SparseArray<List<ContactRow>>();
+    }
+    if (!localGroupsContactsInit) {
       for (GroupRow groupRow: localGroups) {
         List<ContactRow> contactRows = ContactRow.fetchGroupMembersName(context.getContentResolver(), groupRow.getId());
-        localGroupsContacts.put(groupRow.getId(), contactRows);
+        List<ContactRow> listForGroups = new ArrayList<ContactRow>();
+        for (ContactRow contactRow : localContacts) {
+          if (contactRows.contains(contactRow)) {
+            listForGroups.add(contactRow);
+          }
+        }
+        if (listForGroups.size() == contactRows.size()) {
+          Log.i(TAG, "mnoziny se rovnaji OK");
+        } else {
+          Log.i(TAG, "mnoziny se ne rovnaji BAD");
+        }
+        localGroupsContacts.put(groupRow.getId(), listForGroups);
         groupRow.setSize(contactRows.size());
       }
       // TODO: dodelat kdyz neni ve skupine
@@ -134,8 +166,41 @@ public class ContactManager {
    * Get contacts from server, which are not in mobile.
    * @return
    */
+  public List<GroupRow> getServerGroup2Import(boolean... reload) {
+    if (serverGroup2Import != null && reload.length <= 0) {
+      return serverGroup2Import;
+    } else {
+      serverGroup2Import = new ArrayList<GroupRow>();
+    }
+    if (reload != null && reload.length > 0 && reload[0]) {
+      localGroupsInit = false;
+    }
+    for (GroupRow groupRow : groupsServer) {
+      boolean found = false;
+      for (GroupRow groupRowLocal : getLocalGroups()) {
+        if (groupRowLocal.getUuidFirst() != null
+            && groupRow.getUuid().equals(groupRowLocal.getUuidFirst())) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        serverGroup2Import.add(groupRow);
+      }
+    }
+    return serverGroup2Import;
+  }
+
+  /**
+   * Get contacts from server, which are not in mobile.
+   * @return
+   */
   public List<ContactRow> getServerContact2Import(boolean... reload) {
-    List<ContactRow> contactRows = new ArrayList<ContactRow>();
+    if (serverContact2Import != null && reload.length <= 0) {
+      return serverContact2Import;
+    } else {
+      serverContact2Import = new ArrayList<ContactRow>();
+    }
     if (reload != null && reload.length > 0 && reload[0]) {
       localContactsInit = false;
     }
@@ -149,35 +214,11 @@ public class ContactManager {
         }
       }
       if (!found) {
-        contactRows.add(contactRowServer);
+        serverContact2Import.add(contactRowServer);
       }
     }
-    return contactRows;
+    return serverContact2Import;
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   /**
    * Initialize {@link AccountData}. Load data from Accounts.
@@ -192,9 +233,6 @@ public class ContactManager {
     }
     return true;
   }
-
-
-
 
   /**
    * Download all contact (only uuid, name) from LDAP server.

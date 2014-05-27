@@ -73,9 +73,10 @@ public class GroupFragment extends Fragment implements
   public void onResume() {
     super.onResume();
     Log.i(TAG, "onResume");
-    //if (!contactManager.isContactsLocalInit() || !contactManager.isGroupsLocalInit()) {
-    //  initContactManager();
-    //}
+    if(adapter != null) {
+      updateAdapter();
+    }
+
     isSelectedAll();
     listRow = (ListView) getActivity().findViewById(R.id.list_group);
     adapter = new RowGroupAdapter(getActivity().getApplicationContext(),
@@ -86,19 +87,13 @@ public class GroupFragment extends Fragment implements
 
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-          //if (contactManager.getLocalGroups().get(position).getSize() != 0) {
-            Intent i = new Intent(getActivity().getApplicationContext(),
-                ContactsDetailActivity_.class);
+          GroupRow groupRow = contactManager.getLocalGroups().get(position);
+          Intent i = new Intent(getActivity().getApplicationContext(), ContactsDetailActivity_.class);
             i.putExtra(Constants.INTENT_FIRST, activity.isFirst());
-            i.putExtra(Constants.INTENT_ID, contactManager.getLocalGroups().get(position).getId());
-            i.putExtra(Constants.INTENT_NAME, contactManager.getLocalGroups()
-                .get(position)
-                .getName());
+            i.putExtra(Constants.INTENT_ID, groupRow.getId());
+            i.putExtra(Constants.INTENT_NAME, groupRow.getName());
+            i.putExtra(Constants.INTENT_SYNC, groupRow.isSync());
             startActivity(i);
-          //} else {
-          //  Toast toast = Toast.makeText(getActivity(), R.string.group_toast, Toast.LENGTH_SHORT);
-          //  toast.show();
-          //}
         }
       });
     }
@@ -152,7 +147,8 @@ public class GroupFragment extends Fragment implements
     return super.onOptionsItemSelected(item);
   }
 
-  private void isSelectedAll() {
+  @Background
+  public void isSelectedAll() {
     boolean isSelectAll = true;
     for (GroupRow groupRow : contactManager.getLocalGroups()) {
       if (!groupRow.isSync()) {
@@ -190,13 +186,19 @@ public class GroupFragment extends Fragment implements
   public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
     int pos = (Integer) buttonView.getTag();
     if (pos != ListView.INVALID_POSITION) {
-      GroupRow p = contactManager.getLocalGroups().get(pos);
+      final GroupRow p = contactManager.getLocalGroups().get(pos);
       if (p.isSync() != isChecked) {
         p.setSync(isChecked);
-        ArrayList<GroupRow> groups = new ArrayList<GroupRow>();
-        groups.add(p);
-        updateGroups(isChecked, groups);
-        updateGroupsDatabase(isChecked, groups);
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            ArrayList<GroupRow> groups = new ArrayList<GroupRow>();
+            groups.add(p);
+            updateGroups(isChecked, groups);
+            updateGroupsDatabase(isChecked, groups);
+          }
+        }).start();
+
       }
     }
   }
@@ -216,6 +218,7 @@ public class GroupFragment extends Fragment implements
         contactRow.setSync(isChecked);
       }
       androidDB.updateContactsSync(activity, list, isChecked);
+
     }
   }
 

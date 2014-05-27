@@ -14,12 +14,11 @@ import android.provider.ContactsContract.CommonDataKinds;
 import android.provider.ContactsContract.CommonDataKinds.GroupMembership;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
-import android.util.Log;
 import cz.xsendl00.synccontact.database.AndroidDB;
 
 public class ContactRow extends AbstractRow {
 
-  private static final String TAG = "ContactShow";
+  private static final String TAG = "ContactRow";
   private List<String> groupsId;
   private String accouNamePrevious;
   private String accouTypePrevious;
@@ -208,7 +207,7 @@ public class ContactRow extends AbstractRow {
         contactRow.setDeleted(cursor.getInt(cursor.getColumnIndex(RawContacts.DELETED)) == 1);
         contactRow.setLastSyncTime(cursor.getString(cursor.getColumnIndex(RawContacts.SYNC2)));
         contactRow.setConverted(
-            AndroidDB.SET_CONVERT.equals(cursor.getString(cursor.getColumnIndex(RawContacts.SYNC3))));
+            AndroidDB.SET_IMPORT.equals(cursor.getString(cursor.getColumnIndex(RawContacts.SYNC3))));
         contactRow.setUuid(cursor.getString(cursor.getColumnIndex(RawContacts.SYNC4)));
         contactRows.add(contactRow);
       }
@@ -237,7 +236,36 @@ public class ContactRow extends AbstractRow {
         ContactRow contactRow = new ContactRow();
         contactRow.setName(cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME)));
         contactRow.setId(cursor.getInt(cursor.getColumnIndex(Data.RAW_CONTACT_ID)));
-        Log.i(TAG, contactRow.toString());
+        //Log.i(TAG, contactRow.toString());
+        groupMembers.add(contactRow);
+      }
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    } finally {
+      try {
+        if (cursor != null && !cursor.isClosed()) {
+          cursor.close();
+        }
+      } catch (Exception ex) {
+        ex.printStackTrace();
+      }
+    }
+    return new ArrayList<ContactRow>(groupMembers);
+  }
+
+  //TODO
+  public static List<ContactRow> fetchContactId(ContentResolver contentResolver, String uuid) {
+    SortedSet<ContactRow> groupMembers = new TreeSet<ContactRow>(new RowComparator());
+    Cursor cursor = null;
+    try {
+      String where = RawContacts.SYNC4 + "=" + uuid;
+      String[] projection = new String[]{RawContacts._ID};
+      cursor = contentResolver.query(RawContacts.CONTENT_URI, projection, where, null, null);
+      while (cursor.moveToNext()) {
+        ContactRow contactRow = new ContactRow();
+        contactRow.setName(cursor.getString(cursor.getColumnIndex(Data.DISPLAY_NAME)));
+        contactRow.setId(cursor.getInt(cursor.getColumnIndex(Data.RAW_CONTACT_ID)));
+        //Log.i(TAG, contactRow.toString());
         groupMembers.add(contactRow);
       }
     } catch (Exception ex) {
@@ -346,14 +374,13 @@ public class ContactRow extends AbstractRow {
   public String toString() {
     return name;
   }
-//  /** {@inheritDoc} */
-//  @Override
-//  public String toString() {
-//    return "ContactRow [name=" + name + ", id=" + id + ", sync=" + sync + ", groupsId=" + groupsId
-//        + ", idTable=" + idTable + ", accouNamePrevious=" + accouNamePrevious
-//        + ", accouTypePrevious=" + accouTypePrevious + ", timestamp=" + timestamp + ", uuid="
-//        + uuid + "]";
-//  }
+
+  public String toStringAll() {
+    return "ContactRow [name=" + name + ", id=" + id + ", sync=" + sync + ", groupsId=" + groupsId
+        + ", idTable=" + idTable + ", accouNamePrevious=" + accouNamePrevious
+        + ", accouTypePrevious=" + accouTypePrevious + ", timestamp=" + timestamp + ", uuid="
+        + uuid + "]";
+  }
   /**
    * @return Returns the accountPreviousId.
    */

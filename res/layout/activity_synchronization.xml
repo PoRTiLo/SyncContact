@@ -65,7 +65,7 @@
                 android:gravity="center"
                 android:paddingBottom="@dimen/margin_8"
                 android:paddingTop="@dimen/margin_8"
-                android:text="@string/sync_time"
+                android:text="@string/string_empty"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textColor="@color/red" />
         </LinearLayout>

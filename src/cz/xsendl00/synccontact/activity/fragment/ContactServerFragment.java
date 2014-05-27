@@ -42,7 +42,7 @@ public class ContactServerFragment extends Fragment implements
   private ListView listRow;
   private RowContactServerAdapter adapter;
   private ContactManager contactManager;
-  private static boolean selectAll;
+  private static boolean selectAll = true;
 
 
   @Override
@@ -51,11 +51,12 @@ public class ContactServerFragment extends Fragment implements
     setHasOptionsMenu(true);
     activity = (ContactsServerActivity) getActivity();
     contactManager = ContactManager.getInstance(activity);
-    selected();
+    //selected();
   }
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    super.onCreateView(inflater, container, savedInstanceState);
     View rootView = null;
     rootView = inflater.inflate(R.layout.fragment_contact, container, false);
     Button button = (Button) rootView.findViewById(R.id.fragment_contact_button);
@@ -71,7 +72,10 @@ public class ContactServerFragment extends Fragment implements
   public void onResume() {
     super.onResume();
     listRow = (ListView) getActivity().findViewById(R.id.list_contact);
-    changeShowingData();
+    adapter = new RowContactServerAdapter(getActivity().getApplicationContext(), contactManager.getServerContact2Import(), this);
+    listRow.setAdapter(adapter);
+
+    //changeShowingData();
   }
 
   /**
@@ -82,7 +86,7 @@ public class ContactServerFragment extends Fragment implements
     String where = RawContacts.SYNC1 + "=1";
     List<ContactRow> contactRowDb = ContactRow.fetchAllRawContact(activity.getContentResolver(), where);
     int countSelect = 0;
-    for (ContactRow contactRowServer : contactManager.getContactsServer()) {
+    for (ContactRow contactRowServer : contactManager.getServerContact2Import()) {
       int i = 0;
       boolean found = false;
       for (ContactRow contactRow2 : contactRowDb) {
@@ -99,11 +103,12 @@ public class ContactServerFragment extends Fragment implements
         contactRowServer.setSync(false);
       }
     }
-    selectAll = countSelect == contactManager.getContactsServer().size();
+    selectAll = countSelect == contactManager.getServerContact2Import().size();
+    //updateAdapter();
   }
 
   private void selectAll(final boolean result) {
-    for (ContactRow contactRow : contactManager.getContactsServer()) {
+    for (ContactRow contactRow : contactManager.getServerContact2Import()) {
       contactRow.setSync(result);
     }
     adapter.notifyDataSetChanged();
@@ -139,11 +144,11 @@ public class ContactServerFragment extends Fragment implements
         selectAll = selectAll ? false : true;
         selectAll(selectAll);
         break;
-      case R.id.action_show:
-        item.setTitle(activity.importAll ? getString(R.string.menu_show_imported) : getString(R.string.menu_show_all));
-        activity.importAll  = activity.importAll ? false : true;
-        changeShowingData();
-        break;
+//      case R.id.action_show:
+//        item.setTitle(activity.importAll ? getString(R.string.menu_show_imported) : getString(R.string.menu_show_all));
+//        activity.importAll  = activity.importAll ? false : true;
+//        changeShowingData();
+//        break;
       case android.R.id.home:
         break;
       default:
@@ -157,17 +162,17 @@ public class ContactServerFragment extends Fragment implements
     final int pos = (Integer) buttonView.getTag();
     if (pos != ListView.INVALID_POSITION) {
       ContactRow p = null;
-      if (activity.importAll) {
+      //
         p = contactManager.getServerContact2Import().get(pos);
-      } else {
-        p = contactManager.getContactsServer().get(pos);
-      }
+//      } else {
+//        p = contactManager.getContactsServer().get(pos);
+//      }
       if (p.isSync() != isChecked) {
         p.setSync(isChecked);
       }
     } else {
-      Log.w(TAG, "onCheckedChanged pos is > contactManager.getContactsServer() :" + pos
-          + " : " + contactManager.getContactsServer().size());
+      Log.w(TAG, "onCheckedChanged pos is > contactManager.getServerContact2Import() :" + pos
+          + " : " + contactManager.getServerContact2Import().size());
     }
   }
   /**
@@ -175,19 +180,21 @@ public class ContactServerFragment extends Fragment implements
    */
   @UiThread
   public void updateAdapter() {
-    changeShowingData();
+    //changeShowingData();
+    adapter = new RowContactServerAdapter(getActivity().getApplicationContext(), contactManager.getServerContact2Import(), this);
+    listRow.setAdapter(adapter);
     adapter.notifyDataSetChanged();
   }
 
-  private void changeShowingData() {
-    if (activity.importAll) {
-      adapter = new RowContactServerAdapter(getActivity().getApplicationContext(),
-          contactManager.getServerContact2Import(), this);
-      listRow.setAdapter(adapter);
-    } else {
-      adapter = new RowContactServerAdapter(getActivity().getApplicationContext(),
-          contactManager.getContactsServer(), this);
-      listRow.setAdapter(adapter);
-    }
-  }
+//  private void changeShowingData() {
+//    if (activity.importAll) {
+//      adapter = new RowContactServerAdapter(getActivity().getApplicationContext(),
+//          contactManager.getServerContact2Import(), this);
+//      listRow.setAdapter(adapter);
+//    } else {
+//      adapter = new RowContactServerAdapter(getActivity().getApplicationContext(),
+//          contactManager.getContactsServer(), this);
+//      listRow.setAdapter(adapter);
+//    }
+//  }
 }

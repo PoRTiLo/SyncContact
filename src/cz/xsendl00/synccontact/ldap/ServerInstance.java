@@ -48,7 +48,7 @@ public class ServerInstance implements Serializable {
   }
 
   /**
-   * Account Data
+   * Account Data.
    * @return account data.
    */
   public AccountData getAccountdData() {
@@ -67,6 +67,10 @@ public class ServerInstance implements Serializable {
     options.setConnectTimeoutMillis(30000);
     options.setFollowReferrals(false);
     options.setMaxMessageSize(0);
+    if (accountData.getBaseDn() == null || accountData.getEncryption() == null
+        || accountData.getHost() == null || accountData.getPort() == null) {
+      throw new LDAPException(ResultCode.CONNECT_ERROR, "Account info i s empty"); // + accountData.toString());
+    }
     return new LDAPConnection(socketFactory, options, accountData.getHost(), accountData.getPort());
   }
 
@@ -120,8 +124,8 @@ public class ServerInstance implements Serializable {
         conn.close();
         throw le;
       }
-    } else {
-      Log.e(TAG, "getConnection + Accountdata is empty!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    } else if (accountData.getEncryption() != Constants.STARTTLS_INT && accountData.getEncryption() != Constants.SSL_TLS_INT) {
+      Log.e(TAG, "getConnection + Accountdata: password or username us impty");
     }
 
     return conn;

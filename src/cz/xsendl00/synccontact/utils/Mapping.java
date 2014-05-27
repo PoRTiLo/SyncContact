@@ -430,6 +430,13 @@ public class Mapping {
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 
     // Log.i(TAG, "fillAttribute : " + gc.toString());
+    if (googleContact.getAccountNamePrevious() != null) {
+      attributes.add(new Attribute(Constants.LDAP_ACCOUNT_PREVIOUS_NAME, googleContact.getAccountNamePrevious()));
+    }
+
+    if (googleContact.getAccountTypePrevious() != null) {
+      attributes.add(new Attribute(Constants.LDAP_ACCOUNT_PREVIOUS_TYPE, googleContact.getAccountTypePrevious()));
+    }
 
     EmailSync e = googleContact.getEmail();
     if (e != null) {
@@ -965,6 +972,11 @@ public class Mapping {
         ? user.getAttributeValueAsBoolean(Constants.LDAP_SYNCHRONIZE) : false);
     contact.setTimestamp(user.hasAttribute(Constants.LDAP_MODIFY_TIME_STAMP)
         ? user.getAttributeValue(Constants.LDAP_MODIFY_TIME_STAMP) : null);
+    contact.setAccountNamePrevious(user.hasAttribute(Constants.LDAP_ACCOUNT_PREVIOUS_NAME)
+        ? user.getAttributeValue(Constants.LDAP_ACCOUNT_PREVIOUS_NAME) : null);
+    contact.setAccountTypePrevious(user.hasAttribute(Constants.LDAP_ACCOUNT_PREVIOUS_TYPE)
+        ? user.getAttributeValue(Constants.LDAP_ACCOUNT_PREVIOUS_TYPE) : null);
+
     // email
     contact.getEmail().setHomeMail(
         user.hasAttribute(contact.getEmail().getHomeMail()) ? user.getAttributeValue(contact.getEmail()

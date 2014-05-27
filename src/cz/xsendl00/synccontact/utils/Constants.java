@@ -42,6 +42,8 @@ public final class Constants {
   public static final String INTENT_FIRST = "FIRST";
   public static final String INTENT_ID = "ID";
   public static final String INTENT_NAME = "NAME";
+  public static final String INTENT_SYNC = "SYNC";
+  public static final String INTENT_SELECTED = "SELECTED";
 
   /**
    * LDAP port to server.

@@ -1,5 +1,6 @@
 package cz.xsendl00.synccontact;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -9,9 +10,12 @@ import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.api.BackgroundExecutor;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.content.SharedPreferences.Editor;
@@ -19,10 +23,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 import cz.xsendl00.synccontact.activity.fragment.ContactServerFragment;
 import cz.xsendl00.synccontact.activity.fragment.GroupServerFragment;
 import cz.xsendl00.synccontact.authenticator.AccountData;
@@ -33,6 +39,7 @@ import cz.xsendl00.synccontact.ldap.ServerInstance;
 import cz.xsendl00.synccontact.ldap.ServerUtilities;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
+import cz.xsendl00.synccontact.utils.GroupRow;
 import cz.xsendl00.synccontact.utils.Utils;
 
 /**
@@ -64,6 +71,13 @@ public class ContactsServerActivity extends Activity {
 
     contactManager = ContactManager.getInstance(getApplicationContext());
     if (!contactManager.isContactsServerInit() || !contactManager.isGroupsServerInit()) {
+      progressDialog = new ProgressDialog(ContactsServerActivity.this);
+      progressDialog.setTitle(getText(R.string.progress_downloading));
+      progressDialog.setMessage(getText(R.string.progress_downloading_text));
+      progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+      progressDialog.setProgress(0);
+      progressDialog.setCanceledOnTouchOutside(false);
+      progressDialog.show();
       loadData();
     } else {
       init();
@@ -111,8 +125,14 @@ public class ContactsServerActivity extends Activity {
   @Background(id = "loadData")
   protected void loadData() {
     contactManager.initContactsServer(handler);
+    progressDialog.incrementProgressBy(20);
     contactManager.initGroupsServer(handler);
+    progressDialog.incrementProgressBy(20);
     contactManager.getServerContact2Import();
+    progressDialog.incrementProgressBy(20);
+    if (progressDialog != null) {
+      progressDialog.dismiss();
+    }
     init();
   }
 
@@ -124,7 +144,7 @@ public class ContactsServerActivity extends Activity {
     setRefreshActionButtonState(true);
     contactManager.initContactsServer(handler);
     contactManager.initGroupsServer(handler);
-    contactManager.getServerContact2Import();
+    contactManager.getServerContact2Import(true);
     fragmnetCall();
     setRefreshActionButtonState(false);
   }
@@ -149,11 +169,40 @@ public class ContactsServerActivity extends Activity {
   }
 
   @UiThread
-  public void onImportCompleted() {
-    progressDialog.dismiss();
-    contactManager.setLocalContactsInit(false);
-    contactManager.getLocalContacts();
+  public void onImportCompleted(Integer result) {
+    if (result != -1) {
+      if (progressDialog != null) {
+        progressDialog.dismiss();
+      }
+      String str = getText(R.string.toast_imported).toString()
+          + result
+          + getText(R.string.toast_imported_contacts).toString();
+      Toast toast = Toast.makeText(getApplicationContext(), str, Toast.LENGTH_LONG);
+      toast.show();
+      contactManager.setLocalContactsInit(false);
+      new Thread(new Runnable() {
+
+        @Override
+        public void run() {
+          contactManager.getLocalContacts();
+        }
+      }).start();
+    }
     if (first) {
+      new Thread(new Runnable() {
+
+        @Override
+        public void run() {
+          AccountManager manager = AccountManager.get(ContactsServerActivity.this);
+          Account[] accounts = manager.getAccountsByType(Constants.ACCOUNT_TYPE);
+          if (accounts.length > 0 && accounts[0] != null) {
+            ContentResolver.setSyncAutomatically(accounts[0], ContactsContract.AUTHORITY, true);
+          }
+
+        }
+      }).start();
+
+
       Editor editor = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit();
       editor.putBoolean(Constants.PREFS_START_FIRST, false);
       editor.commit();
@@ -170,16 +219,16 @@ public class ContactsServerActivity extends Activity {
    */
   public void go2InfoMerge(@SuppressWarnings("unused") View view) {
     if (contactManager.getContactsServer().isEmpty()) {
-      onImportCompleted();
+      onImportCompleted(-1);
     } else {
       progressDialog = new ProgressDialog(ContactsServerActivity.this);
-      progressDialog.setTitle(getText(R.string.progress_importing));
-      progressDialog.setMessage(getText(R.string.progress_importing_text));
+      progressDialog.setTitle(getText(R.string.progress_downloading));
+      progressDialog.setMessage(getText(R.string.progress_downloading_text));
       progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
       progressDialog.setProgress(0);
       progressDialog.setCanceledOnTouchOutside(false);
       progressDialog.show();
-      doInBackground();
+      importContactsFromServer();
     }
 
   }
@@ -189,32 +238,61 @@ public class ContactsServerActivity extends Activity {
     @Override
     public void handleMessage(Message msg) {
       progressDialog.incrementProgressBy(1);
-      // if (progressDialog.getProgress() >= progressDialog.getMax()) {
-      // //msgWorking.setText("Done");
-      // progressDialog.dismiss();
-      // } else {
-      // //msgWorking.setText("Working..." +
-      // // progressDialog.getProgress());
     }
   };
+  @UiThread
+  protected void setProgresBar() {
+    progressDialog.setTitle(getText(R.string.progress_importing));
+    progressDialog.setMessage(getText(R.string.progress_importing_text));
+  }
 
   @Background
-  protected void doInBackground() {
-    final List<ContactRow> intersection = util.intersectionDifference(
-        contactManager.getContactsServer(), contactManager.getLocalContacts());
-    Log.i(TAG, "intersection:" + intersection.size() + ", contactlocal:"
-        + contactManager.getLocalContacts().size() + ", dbContact:"
-        + contactManager.getContactsServer().size());
+  protected void importContactsFromServer() {
+
+    List<ContactRow> contacts2Import = new ArrayList<ContactRow>();
+    for (ContactRow contactRow : contactManager.getServerContact2Import()) {
+      if (contactRow.isSync()) {
+        contacts2Import.add(contactRow);
+      }
+    }
+
+    List<String> contacts2ImportUuid = new ArrayList<String>();
+    for (ContactRow contactRow : contacts2Import) {
+      contacts2ImportUuid.add(contactRow.getUuidFirst());
+    }
+
+    final List<GroupRow> groups2Import = new ArrayList<GroupRow>();
+    for (GroupRow groupRow : contactManager.getServerGroup2Import()) {
+      if (groupRow.isSync()) {
+        for (String uuid : groupRow.getMebersUuids()) {
+          if (!contacts2ImportUuid.contains(uuid)) {
+            ContactRow object = new ContactRow();
+            object.setUuid(uuid);
+            contacts2Import.add(object);
+            Log.i(TAG, "add to contacts2Import: " + uuid);
+          }
+        }
+      }
+      groups2Import.add(groupRow);
+    }
+
+    progressDialog.setMax(contacts2Import.size());
+    Log.i(TAG, "selected contact to import:" + contacts2Import.size());
+
     final Map<String, GoogleContact> contacts = new ServerUtilities().fetchServerContacts(
-        new ServerInstance(AccountData.getAccountData(getApplicationContext())),
-        getApplicationContext(), handler, intersection);
-    progressDialog.setMax(contacts.size());
+        new ServerInstance(AccountData.getAccountData(getApplicationContext())), getApplicationContext(),
+        handler, handler1, contacts2Import);
+    setProgresBar();
+    progressDialog.setProgress(0);
     Thread thread = new Thread(new Runnable() {
 
       @Override
       public void run() {
         try {
           new AndroidDB().addContacts2Database(getApplicationContext(), contacts, handler1);
+          new AndroidDB().addGroups2DatabaseWithMebers(getApplicationContext(), groups2Import, handler1);
+          contactManager.getServerContact2Import(true);
+          contactManager.getServerGroup2Import(true);
         } catch (RemoteException e) {
           e.printStackTrace();
         } catch (OperationApplicationException e) {
@@ -228,7 +306,7 @@ public class ContactsServerActivity extends Activity {
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
-    onImportCompleted();
+    onImportCompleted(contacts2Import.size());
   }
 
   /**
@@ -262,13 +340,11 @@ public class ContactsServerActivity extends Activity {
 
   @UiThread
   public void fragmnetCall() {
-    GroupServerFragment f2 = (GroupServerFragment) getFragmentManager().findFragmentByTag(
-        "GROUP_LDAP");
+    GroupServerFragment f2 = (GroupServerFragment) getFragmentManager().findFragmentByTag("GROUP_LDAP");
     if (f2 != null) {
-      // f2.updateAdapter();
+      f2.updateAdapter();
     }
-    ContactServerFragment f1 = (ContactServerFragment) getFragmentManager().findFragmentByTag(
-        "CONTACT_LDAP");
+    ContactServerFragment f1 = (ContactServerFragment) getFragmentManager().findFragmentByTag("CONTACT_LDAP");
     if (f1 != null) {
       f1.updateAdapter(); // Your method of the fragment
     }

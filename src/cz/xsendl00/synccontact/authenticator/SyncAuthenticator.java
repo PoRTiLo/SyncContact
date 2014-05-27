@@ -112,6 +112,7 @@ public class SyncAuthenticator extends AbstractAccountAuthenticator {
     ad.setPassword(am.getPassword(account));
     ad.setHost(am.getUserData(account, Constants.PAR_HOST));
     ad.setName(am.getUserData(account, Constants.PAR_USERNAME));
+    ad.setBaseDn(am.getUserData(account, Constants.PAR_BASEDN));
     ad.setPort(Integer.parseInt(am.getUserData(account, Constants.PAR_PORT)));
     ad.setEncryption(Integer.parseInt(am.getUserData(account, Constants.PAR_ENCRYPTION)));
     if (ad.getPassword() != null) {
@@ -128,7 +129,8 @@ public class SyncAuthenticator extends AbstractAccountAuthenticator {
     // If we get here, then we couldn't access the user's password - so we
     // need to re-prompt them for their credentials. We do that by creating
     // an intent to display our AuthenticatorActivity.
-    final Intent intent = new Intent(mContext, ServerAddActivity.class);
+    //TODO:shwo info about that user must re write connection data, like password
+    final Intent intent = new Intent(mContext, ServerAddActivity_.class);
     intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
     intent.putExtra(Constants.PAR_USERNAME, ad.getName());
     intent.putExtra(Constants.PAR_AUTHTOKEN_TYPE, authTokenType);

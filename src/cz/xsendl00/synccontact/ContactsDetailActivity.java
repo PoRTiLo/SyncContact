@@ -41,6 +41,7 @@ public class ContactsDetailActivity extends ListActivity {
   private static final String TAG = "ContactsDetailActivity";
   private ContactManager contactManager;
   private Integer groupId;
+  private boolean isSync;
   private List<ContactRow> contactRows;
   ArrayAdapter<ContactRow> adapter;
 
@@ -50,6 +51,7 @@ public class ContactsDetailActivity extends ListActivity {
     getActionBar().setDisplayHomeAsUpEnabled(true);
     Intent intent = getIntent();
     groupId = intent.getIntExtra(Constants.INTENT_ID, 0);
+    isSync = intent.getBooleanExtra(Constants.INTENT_SYNC, true);
     String groupName = intent.getStringExtra(Constants.INTENT_NAME);
     this.setTitle(groupName);
     contactManager = ContactManager.getInstance(ContactsDetailActivity.this);
@@ -111,6 +113,7 @@ public class ContactsDetailActivity extends ListActivity {
   public Thread loadData() {
     final ProgressDialog progressDialog = ProgressDialog.show(ContactsDetailActivity.this, "",
         getText(R.string.progress_loading), true);
+    progressDialog.setCanceledOnTouchOutside(false);
     final Runnable runnable = new Runnable() {
       @Override
       public void run() {
@@ -141,7 +144,8 @@ public class ContactsDetailActivity extends ListActivity {
           }
         }
         intent.putExtra(Constants.INTENT_ID, groupId);
-        intent.putIntegerArrayListExtra("SELECTED", values);
+        intent.putExtra(Constants.INTENT_SYNC, isSync);
+        intent.putIntegerArrayListExtra(Constants.INTENT_SELECTED, values);
         startActivity(intent);
         break;
       case R.id.action_help:

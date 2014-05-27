@@ -112,7 +112,9 @@ public class ContactsActivity extends Activity {
     final ProgressDialog progressDialog = ProgressDialog.show(ContactsActivity.this, "",
         getText(R.string.progress_loading), true);
     progressDialog.setCancelable(true);
+    progressDialog.setCanceledOnTouchOutside(false);
     final Runnable runnable = new Runnable() {
+
       @Override
       public void run() {
         Log.i(TAG, "Load data start");
@@ -137,7 +139,8 @@ public class ContactsActivity extends Activity {
       groupFragment.updateAdapter();
     }
 
-    ContactFragment contactFragment = (ContactFragment) getFragmentManager().findFragmentByTag("CONTACT");
+    ContactFragment contactFragment = (ContactFragment) getFragmentManager().findFragmentByTag(
+        "CONTACT");
     if (contactFragment != null) {
       contactFragment.updateAdapter();
     }
@@ -181,16 +184,16 @@ public class ContactsActivity extends Activity {
    */
   @Override
   public void onPause() {
-    //TODO:
-//    Log.i(TAG, "onPause");
-//
-//    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-//    for (Thread thread : threadSet) {
-//      Log.i(TAG, thread.toString());
-//    }
-//    BackgroundExecutor.cancelAll("loadData", true);
-//    Log.i(TAG, "onPause - delete");
-//    // setRefreshActionButtonState(false);
+    // TODO:
+    // Log.i(TAG, "onPause");
+    //
+    // Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+    // for (Thread thread : threadSet) {
+    // Log.i(TAG, thread.toString());
+    // }
+    // BackgroundExecutor.cancelAll("loadData", true);
+    // Log.i(TAG, "onPause - delete");
+    // // setRefreshActionButtonState(false);
     super.onPause();
   }
 
@@ -221,20 +224,25 @@ public class ContactsActivity extends Activity {
     alertDialog.show();
   }
 
-
-  public void createGroup(String name) {
+  /**
+   * Create new group.
+   * @param name name of group
+   */
+  private void createGroup(String name) {
     // create group
     // show list of contact
     ProgressDialog progressDialog = new ProgressDialog(ContactsActivity.this);
+    progressDialog.setCanceledOnTouchOutside(false);
     progressDialog.show();
 
     Integer id = new AndroidDB().addGroup(ContactsActivity.this, name, null);
     Log.i(TAG, "GROUP id:" + id);
     progressDialog.dismiss();
 
-      Intent i = new Intent(ContactsActivity.this, ContactsDetailActivity_.class);
-      i.putExtra(Constants.INTENT_ID, id);
-      i.putExtra(Constants.INTENT_NAME, name);
-      startActivity(i);
+    Intent i = new Intent(ContactsActivity.this, ContactsDetailActivity_.class);
+    i.putExtra(Constants.INTENT_ID, id);
+    i.putExtra(Constants.INTENT_SYNC, true);
+    i.putExtra(Constants.INTENT_NAME, name);
+    startActivity(i);
   }
 }

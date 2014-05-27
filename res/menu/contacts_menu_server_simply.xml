@@ -15,13 +15,13 @@
         android:showAsAction="ifRoom|withText"
         android:title="@string/menu_select">
     </item>
-    <item
-        android:id="@+id/action_show"
-        android:icon="@drawable/ic_action_show"
-        android:orderInCategory="102"
-        android:showAsAction="ifRoom|withText"
-        android:title="@string/menu_show_all">
-    </item>
+<!--     <item -->
+<!--         android:id="@+id/action_show" -->
+<!--         android:icon="@drawable/ic_action_show" -->
+<!--         android:orderInCategory="102" -->
+<!--         android:showAsAction="ifRoom|withText" -->
+<!--         android:title="@string/menu_show_all"> -->
+<!--     </item> -->
     <item
         android:id="@+id/action_help"
         android:icon="@drawable/ic_action_help"

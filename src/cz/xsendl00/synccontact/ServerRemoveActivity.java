@@ -59,16 +59,17 @@ public class ServerRemoveActivity extends Activity {
     alertDialogBuilder.setTitle("Remove server connection");
     alertDialogBuilder.setMessage("Do you want to really remove connection/account?")
         .setCancelable(false)
-        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+        .setPositiveButton(getText(R.string.button_ok), new DialogInterface.OnClickListener() {
 
           @Override
           public void onClick(DialogInterface dialog, int id) {
             progressDialog = ProgressDialog.show(ServerRemoveActivity.this, getText(R.string.progress_removing),
                 getText(R.string.progress_removing_text), true);
+            progressDialog.setCanceledOnTouchOutside(false);
             ServerRemoveActivity.this.removeAccount();
           }
         })
-        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+        .setNegativeButton(getText(R.string.button_cancel), new DialogInterface.OnClickListener() {
 
           @Override
           public void onClick(DialogInterface dialog, int id) {
@@ -120,7 +121,9 @@ public class ServerRemoveActivity extends Activity {
   }
 
   private void sendBack() {
-    progressDialog.dismiss();
+    if (progressDialog != null) {
+      progressDialog.dismiss();
+    }
     Toast toast = Toast.makeText(getApplicationContext(), "Server connection/account was removed.", Toast.LENGTH_SHORT);
     toast.show();
     Editor editor = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit();

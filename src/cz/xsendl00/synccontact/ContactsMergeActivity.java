@@ -36,12 +36,12 @@ import cz.xsendl00.synccontact.utils.Utils;
 
 /**
  * Activity for Merge contact.
- * @author portilo
  *
+ * @author portilo
  */
 @EActivity(R.layout.activity_contacts_merge)
 public class ContactsMergeActivity extends Activity implements
-android.widget.CompoundButton.OnCheckedChangeListener {
+    android.widget.CompoundButton.OnCheckedChangeListener {
 
   /**
    * Bean for print info about duration function.
@@ -60,6 +60,7 @@ android.widget.CompoundButton.OnCheckedChangeListener {
   private ContactManager contactManager;
   private ProgressDialog progressDialog;
   private List<ContactRow> contactRowsActivity = new ArrayList<ContactRow>();
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -79,7 +80,8 @@ android.widget.CompoundButton.OnCheckedChangeListener {
   private void mustInit() {
     if (!contactManager.isContactsServerInit() || !contactManager.isGroupsServerInit()) {
       progressDialog = ProgressDialog.show(ContactsMergeActivity.this,
-        getText(R.string.progress_downloading), getText(R.string.progress_downloading_text), true);
+          getText(R.string.progress_downloading), getText(R.string.progress_downloading_text), true);
+      progressDialog.setCanceledOnTouchOutside(false);
       initTask();
     } else {
       init();
@@ -87,7 +89,8 @@ android.widget.CompoundButton.OnCheckedChangeListener {
   }
 
   /**
-   * Initialize GUI. Set adapter, listRow and name button based on run application first or size contact in listView.
+   * Initialize GUI. Set adapter, listRow and name button based on run application first or size
+   * contact in listView.
    */
   @UiThread
   protected void init() {
@@ -103,7 +106,8 @@ android.widget.CompoundButton.OnCheckedChangeListener {
         Button button = (Button) findViewById(R.id.contact_merge_button);
         button.setText(getString(R.string.info_merge_button_skip));
       }
-      adapter = new RowMergerAdapter(getApplicationContext(), contactManager.getContactsServer(), this);
+      adapter = new RowMergerAdapter(getApplicationContext(), contactManager.getContactsServer(),
+          this);
     }
     listRow.setAdapter(adapter);
   }
@@ -124,37 +128,33 @@ android.widget.CompoundButton.OnCheckedChangeListener {
    */
   @Background
   protected void initTask() {
-   contactManager.initContactsServer(handler);
-   contactManager.initGroupsServer(handler);
-   new Thread(new Runnable() {
-     @Override
-     public void run() {
-       for (ContactRow contactRowServer : contactManager.getContactsServer()) {
-         int pos = 0;
-         for (ContactRow contactRowLocal : contactManager.getLocalContacts()) {
-           if (contactRowServer.getName() != null && contactRowLocal.getName() != null
-               && contactRowServer.getName().equals(contactRowLocal.getName())) {
-             if (contactRowLocal.isSync() && !contactRowLocal.getUuid().equals(contactRowServer.getUuid())) {
-               contactRowServer.setIdTable(pos);
-               contactRowServer.setId(contactRowLocal.getId());
-               contactRowsActivity.add(contactRowServer);
-               break;
-             }
-           }
-           pos++;
-         }
-       }
-     }
-   }).start();
-   if (ContactsMergeActivity.this.progressDialog != null) {
-     ContactsMergeActivity.this.progressDialog.dismiss();
-   }
-   init();
+    contactManager.initContactsServer(handler);
+    contactManager.initGroupsServer(handler);
+    for (ContactRow contactRowServer : contactManager.getContactsServer()) {
+      int pos = 0;
+      for (ContactRow contactRowLocal : contactManager.getLocalContacts()) {
+        if (contactRowServer.getName() != null && contactRowLocal.getName() != null
+            && contactRowServer.getName().equals(contactRowLocal.getName())) {
+          if (contactRowLocal.isSync()
+              && !contactRowLocal.getUuid().equals(contactRowServer.getUuid())) {
+            contactRowServer.setIdTable(pos);
+            contactRowServer.setId(contactRowLocal.getId());
+            contactRowsActivity.add(contactRowServer);
+            break;
+          }
+        }
+        pos++;
+      }
+    }
+    if (ContactsMergeActivity.this.progressDialog != null) {
+      ContactsMergeActivity.this.progressDialog.dismiss();
+    }
+    init();
   }
 
   /**
-   * Go to next activity. Go to {@link InfoServerContactsActivity}.
-   * The next activity show info about LDAP import contact.
+   * Go to next activity. Go to {@link InfoServerContactsActivity}. The next activity show info
+   * about LDAP import contact.
    */
   private void go2NextActivity() {
     Intent intent = new Intent(this, InfoServerContactsActivity_.class);
@@ -163,6 +163,7 @@ android.widget.CompoundButton.OnCheckedChangeListener {
 
   /**
    * Call after click on button. Merge
+   *
    * @param view actual view.
    */
   public void mergeContactLocalwithLDAP(@SuppressWarnings("unused") View view) {
@@ -191,7 +192,8 @@ android.widget.CompoundButton.OnCheckedChangeListener {
     importContacts2Server(forDb);
 
 
-    Thread updateContactDatabase =  new Thread(new Runnable() {
+    Thread updateContactDatabase = new Thread(new Runnable() {
+
       @Override
       public void run() {
         updateContactsDatabase(contacts2UpdateDatabse);
@@ -200,7 +202,8 @@ android.widget.CompoundButton.OnCheckedChangeListener {
     updateContactDatabase.start();
 
 
-    Thread mergeGroup =  new Thread(new Runnable() {
+    Thread mergeGroup = new Thread(new Runnable() {
+
       @Override
       public void run() {
         mergeGroup();
@@ -243,7 +246,7 @@ android.widget.CompoundButton.OnCheckedChangeListener {
         groupRowsUpload.add(groupRowLocal);
       }
     }
-    //groupRows = util.intersection(contactManager.getGroupsLocal(), groupRows);
+    // groupRows = util.intersection(contactManager.getGroupsLocal(), groupRows);
     Log.i(TAG, "groupRows" + groupRows.size());
     updateGroupDatabase(groupRows);
     serverUtilities.addGroup2Server(new ServerInstance(contactManager.getAccountData()),
@@ -283,7 +286,8 @@ android.widget.CompoundButton.OnCheckedChangeListener {
           }
         }
         if (used) {
-          // not import contact which are on server, they are not show in previous for cycle in noImports
+          // not import contact which are on server, they are not show in previous for cycle in
+          // noImports
           for (ContactRow serversContact : contactManager.getContactsServer()) {
             if (serversContact.getUuid().equals(contactRow.getUuid())) {
               used = false;
@@ -308,7 +312,7 @@ android.widget.CompoundButton.OnCheckedChangeListener {
         getApplicationContext(), handler, googleContacts);
     util1.stopTime(TAG, "importContacts2Server");
     contactManager.initContactsServer(handler);
-    //contactManager.reloadContact();
+    // contactManager.reloadContact();
   }
 
   @Override
@@ -321,22 +325,21 @@ android.widget.CompoundButton.OnCheckedChangeListener {
   public boolean onOptionsItemSelected(MenuItem item) {
     Intent intent = null;
     switch (item.getItemId()) {
-    case R.id.action_help:
-      intent = new Intent(this, HelpActivity_.class);
-      intent.putExtra(Constants.INTENT_FIRST, true);
-      startActivity(intent);
-      break;
-    case android.R.id.home:
-      Intent upIntent = NavUtils.getParentActivityIntent(this);
-      if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
-        TaskStackBuilder.create(this).addNextIntentWithParentStack(upIntent)
-            .startActivities();
-      } else {
-        NavUtils.navigateUpTo(this, upIntent);
-      }
-      return true;
-    default:
-      break;
+      case R.id.action_help:
+        intent = new Intent(this, HelpActivity_.class);
+        intent.putExtra(Constants.INTENT_FIRST, true);
+        startActivity(intent);
+        break;
+      case android.R.id.home:
+        Intent upIntent = NavUtils.getParentActivityIntent(this);
+        if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
+          TaskStackBuilder.create(this).addNextIntentWithParentStack(upIntent).startActivities();
+        } else {
+          NavUtils.navigateUpTo(this, upIntent);
+        }
+        return true;
+      default:
+        break;
     }
 
     return true;

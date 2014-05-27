@@ -2,10 +2,12 @@ package cz.xsendl00.synccontact.database;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
 import android.content.ContentProviderOperation;
@@ -39,14 +41,12 @@ import cz.xsendl00.synccontact.utils.Utils;
 @EBean
 public class AndroidDB {
 
-  @Bean
-  protected Mapping mapping;
-
-  public static final String MIMETYPE = "vnd.android.cursor.item/cz.synccontact";
-  public static final String SET_CONVERT = "is_converted";
+  public static final String MIMETYPE = "vnd.android.cursor.item/cz.synccontact.account";
+  public static final String MIMETYPE_TIMESTAMP = "vnd.android.cursor.item/cz.synccontact.timestamp";
+  public static final String SET_IMPORT = "import";
+  public static final String SET_EXPRT = "export";
   private static final String TAG = "AndroidDB";
   private static final int MAX_OPERATIONS_IYELD = 480;
-
 
   public void removeContactFromGroup(final Context context, final List<Integer> contacts, final Integer groupId) {
     for (Integer rawId : contacts) {
@@ -56,15 +56,16 @@ public class AndroidDB {
           + Data.DATA1 + "=" + groupId;
 
       Cursor cursor = context.getContentResolver().query(Data.CONTENT_URI, projection, where, null, null);
-      String idData = null;
+      List<String> ids = new ArrayList<String>();
       while (cursor.moveToNext()) {
-        idData = cursor.getString(cursor.getColumnIndex(Data._ID));
-        break;
+        ids.add(cursor.getString(cursor.getColumnIndex(Data._ID)));
       }
       try {
-        Uri uri = Uri.withAppendedPath(Data.CONTENT_URI, idData);
-        int deleted = context.getContentResolver().delete(uri, null, null);
-        Log.i(TAG, "deleted rows:" + deleted);
+        for (String id : ids) {
+          Uri uri = Uri.withAppendedPath(Data.CONTENT_URI, id);
+          int deleted = context.getContentResolver().delete(uri, null, null);
+          Log.i(TAG, "deleted rows:" + deleted);
+        }
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -116,7 +117,7 @@ public class AndroidDB {
         .withValue(Groups.NOTES, notes)
         .withValue(Groups.SYNC1, "1")
         //.withValue(RawContacts.SYNC2, new Utils().createTimestamp())
-        .withValue(RawContacts.SYNC3, AndroidDB.SET_CONVERT)
+        //.withValue(RawContacts.SYNC3, AndroidDB.SET_CONVERT)
         .withValue(Groups.SYNC4, ContactRow.generateUUID())
         .build());
 
@@ -150,38 +151,37 @@ public class AndroidDB {
   public void cleanModifyStatusNewTimestamp(final Context context,
       final Map<String, GoogleContact> contactsDirty) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
-    int count = 0;
     String timestamp = new Utils().createTimestamp();
     for (Map.Entry<String, GoogleContact> entry : contactsDirty.entrySet()) {
       ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
           ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, entry.getValue().getId()))
           .withValue(RawContacts.DIRTY, 0)
           .withValue(RawContacts.SYNC2, timestamp);
-      if (count >= MAX_OPERATIONS_IYELD) {
-        operationBuilder.withYieldAllowed(true);
-        count = 0;
+      if (ops.size() >= MAX_OPERATIONS_IYELD) {
+        applyBatchSimply(context, ops, "cleanModifyStatus");
+        ops.clear();
       }
       ops.add(operationBuilder.build());
-      count++;
     }
-    try {
+    applyBatchSimply(context, ops, "cleanModifyStatus");
+    //try {
 //      for ()
 //      ops.subList(start, end);
 //      if (i % batchsize == 0) {
 //        contentResolver.applyBatch(ContactsContract.AUTHORITY, ops);
 //        ops = new ArrayList<ContentProviderOperation>(100);
 //    }
-      ContentProviderResult[] con = context.getContentResolver().applyBatch(
-          ContactsContract.AUTHORITY, ops);
-      Log.i(TAG, " cleanModifyStatus done: " + con.length);
-      for (ContentProviderResult cn : con) {
-        Log.i(TAG, cn.toString());
-      }
-    } catch (RemoteException e) {
-      e.printStackTrace();
-    } catch (OperationApplicationException e) {
-      e.printStackTrace();
-    }
+//      ContentProviderResult[] con = context.getContentResolver().applyBatch(
+//          ContactsContract.AUTHORITY, ops);
+//      Log.i(TAG, " cleanModifyStatus done: " + con.length);
+//      for (ContentProviderResult cn : con) {
+//        Log.i(TAG, cn.toString());
+//      }
+//    } catch (RemoteException e) {
+//      e.printStackTrace();
+//    } catch (OperationApplicationException e) {
+//      e.printStackTrace();
+//    }
   }
 
   /**
@@ -209,10 +209,10 @@ public class AndroidDB {
     try {
       ContentProviderResult[] con = context.getContentResolver().applyBatch(
           ContactsContract.AUTHORITY, ops);
-      Log.i(TAG, " cleanModifyStatus done: " + con.length);
-      for (ContentProviderResult cn : con) {
-        Log.i(TAG, cn.toString());
-      }
+      //Log.i(TAG, " cleanModifyStatus done: " + con.length);
+      //for (ContentProviderResult cn : con) {
+      //  Log.i(TAG, cn.toString());
+      //}
     } catch (RemoteException e) {
       e.printStackTrace();
     } catch (OperationApplicationException e) {
@@ -239,14 +239,17 @@ public class AndroidDB {
     // for every contact do:
     List<Integer> addedContactsId = new ArrayList<Integer>();
     for (Map.Entry<String, GoogleContact> entry : contacts.entrySet()) {
-      handler.sendMessage(handler.obtainMessage());
-      ArrayList<ContentProviderOperation> list =
-          GoogleContact.createOperationNew(new GoogleContact(), entry.getValue(), op.size());
+      if (handler != null && handler.obtainMessage() != null) {
+        handler.sendMessage(handler.obtainMessage());
+      }
+
+      ArrayList<ContentProviderOperation> list = GoogleContact.createOperationNew(new GoogleContact(), entry.getValue(), op.size());
       if (list.size() + op.size() < MAX_OPERATIONS_IYELD) {
         op.addAll(list);
       } else {
         addedContactsId.addAll(applyBatch(context, op));
         op.clear();
+        list = GoogleContact.createOperationNew(new GoogleContact(), entry.getValue(), op.size());
         op.addAll(list);
       }
     }
@@ -258,14 +261,66 @@ public class AndroidDB {
     return true;
   }
 
+  public void addGroups2DatabaseWithMebers(final Context context, final List<GroupRow> groups, final Handler handler) {
+    Integer resultId = null;
+    ArrayList<ContentProviderOperation> op = new ArrayList<ContentProviderOperation>();
+    for (GroupRow groupRow : groups) {
+      op.add(ContentProviderOperation.newInsert(Groups.CONTENT_URI)
+        .withValue(Groups.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE)
+        .withValue(Groups.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
+        .withValue(Groups.TITLE, groupRow.getName())
+        .withValue(Groups.SYNC1, "1")
+        .withValue(Groups.SYNC2, new Utils().createTimestamp())
+        .withValue(Groups.SYNC4, groupRow.getUuid())
+        .build());
+    }
+    try {
+      ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, op);
+      List<Integer> ids = new ArrayList<Integer>();
+      for (ContentProviderResult a : contactUri) {
+        Log.i(TAG, "res:" + a.uri.getLastPathSegment());
+        if (a.uri.getLastPathSegment() != null) {
+          try {
+            resultId = Integer.parseInt(a.uri.getLastPathSegment());
+            ids.add(resultId);
+          } catch (NumberFormatException e) {
+            e.printStackTrace();
+          }
+        }
+      }
+      //contact2GroupDatabase(context, groups, ids);
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    } catch (OperationApplicationException e) {
+      e.printStackTrace();
+    }
+  }
+
+  //TODO:
+  private void contact2GroupDatabase(final Context context, final List<GroupRow> groups, List<Integer> ids) {
+    ArrayList<ContentProviderOperation> op = new ArrayList<ContentProviderOperation>();
+    int pos = 0;
+    for (GroupRow groupRow : groups) {
+      for (String uuid : groupRow.getMebersUuids()) {
+
+        op.add(ContentProviderOperation.newInsert(Data.CONTENT_URI)
+          .withValue(Data.MIMETYPE, CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE)
+          .withValue(Data.DATA1, ids.get(pos))
+          .withValue(Data.RAW_CONTACT_ID, groupRow.getUuid())
+          .build());
+        pos++;
+      }
+    }
+  }
 
   private List<Integer> applyBatch(final Context context, ArrayList<ContentProviderOperation> op) {
     List<Integer> addedContactsId = new ArrayList<Integer>();
     try {
       ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, op);
       for (ContentProviderResult a : contactUri) {
-        Log.i(TAG, "res:" + a.uri.getLastPathSegment());
-        if (a.uri.getLastPathSegment() != null) {
+        String uri = a.uri.toString();
+        if (a.uri.getLastPathSegment() != null && uri.contains(RawContacts.CONTENT_URI.toString())) {
+          //Log.i(TAG, "res:" + a.uri.toString() + "  , " + a.toString());
           try {
             int i = Integer.parseInt(a.uri.getLastPathSegment());
             addedContactsId.add(i);
@@ -291,7 +346,7 @@ public class AndroidDB {
    * @throws OperationApplicationException OperationApplicationException
    * @throws RemoteException RemoteException
    */
-  public boolean updateContactsDb(final Context context,
+  public boolean updateContactsDatabase(final Context context,
       final Map<String, GoogleContact> differenceLDAP) throws RemoteException,
       OperationApplicationException {
 
@@ -299,27 +354,20 @@ public class AndroidDB {
     // for every contact do:
     for (Map.Entry<String, GoogleContact> entry : differenceLDAP.entrySet()) {
       Log.i(TAG, "uuid:: " + entry.getKey() + " mapping to:" + entry.getValue().getId());
-      GoogleContact googleContact = mapping.mappingContactFromDB(context.getContentResolver(), entry.getValue().getId(),
+      GoogleContact googleContact = new Mapping().mappingContactFromDB(context.getContentResolver(), entry.getValue().getId(),
           entry.getKey());
       Log.i(TAG, "local:" + googleContact.toString());
       Log.i(TAG, "server:" + entry.getValue().toString());
+      ArrayList<ContentProviderOperation> temp = GoogleContact.createOperationUpdate(googleContact, entry.getValue());
+      if (op.size() + temp.size() > MAX_OPERATIONS_IYELD) {
+        applyBatchSimply(context, op, "");
+        op.clear();
+      }
       Log.i(TAG, "z db se vzal: " + entry.getValue().getStructuredName().getDisplayName());
-      op.addAll(GoogleContact.createOperationUpdate(googleContact, entry.getValue()));
+      op.addAll(temp);
     }
-    try {
-      for (ContentProviderOperation o : op) {
-        Log.i(TAG, o.toString());
-      }
-      Log.i(TAG, String.valueOf(op.size()));
-      ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, op);
-      for (ContentProviderResult a : contactUri) {
-        Log.i(TAG, "res:" + a);
-      }
-    } catch (RemoteException e) {
-      e.printStackTrace();
-    } catch (OperationApplicationException e) {
-      e.printStackTrace();
-    }
+    applyBatchSimply(context, op, "");
+
     return true;
   }
 
@@ -372,21 +420,107 @@ public class AndroidDB {
   }
 
   public void updateContactsSync(final Context context, final List<ContactRow> contactRows, final boolean sync) {
+
+    // disable sync group if one object of group is set to unsync
+    if (!sync) {
+      //get all groups
+      getGroupsWithThisMember(context, contactRows);
+    }
+
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     for (ContactRow contactRow : contactRows) {
       ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
           ContentUris.withAppendedId(RawContacts.CONTENT_URI, contactRow.getId()))
           .withValue(RawContacts.SYNC1, sync);
       ops.add(operationBuilder.build());
+
+      if (ops.size() > MAX_OPERATIONS_IYELD) {
+        applyBatchSimply(context, ops, "updateContactsSync");
+        ops.clear();
+      }
+
     }
+    applyBatchSimply(context, ops, "updateContactsSync");
+  }
+
+  private void applyBatchSimply(final Context context, ArrayList<ContentProviderOperation> ops, String text) {
     try {
       ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-      Log.i(TAG, "updateContactsSync done: " + con.length + ": " + con.toString());
+      for (ContentProviderResult contentProviderResult : con) {
+        Log.i(TAG, "applyBatchSimply done: " + text + " = " + contentProviderResult.toString());
+      }
+
     } catch (RemoteException e) {
       e.printStackTrace();
     } catch (OperationApplicationException e) {
       e.printStackTrace();
     }
+  }
+
+  private void getGroupsWithThisMember(final Context context, final List<ContactRow> contactRows) {
+    Set<Integer> groupsSyncId = new HashSet<Integer>();
+    Cursor cursor = null;
+    Cursor cursor1 = null;
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    try {
+      String where = Groups.SYNC1 + "=1";
+      String[] projection = new String[]{Groups._ID};
+      cursor1 = context.getContentResolver().query(Groups.CONTENT_URI, projection, where, null, null);
+      while (cursor1.moveToNext()) {
+        groupsSyncId.add(cursor1.getInt(cursor1.getColumnIndex(Groups._ID)));
+      }
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    } finally {
+      if (cursor1 != null && !cursor1.isClosed()) {
+        cursor1.close();
+      }
+    }
+    List<Integer> list = new ArrayList<Integer>(groupsSyncId);
+
+    for (ContactRow contactRow : contactRows) {
+      if (!list.isEmpty()) {
+        Set<Integer> groupsSync = new HashSet<Integer>();
+        try {
+          StringBuilder where = new StringBuilder();
+          where.append(Data.RAW_CONTACT_ID)
+              .append("=")
+              .append(contactRow.getId())
+              .append(" AND ")
+              .append(Data.MIMETYPE)
+              .append("='")
+              .append(CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE)
+              .append("'");
+          String[] projection = new String[]{Data.DATA1};
+          cursor = context.getContentResolver().query(Data.CONTENT_URI, projection, where.toString(), null, null);
+          while (cursor.moveToNext()) {
+            groupsSync.add(cursor.getInt(cursor.getColumnIndex(Data.DATA1)));
+          }
+        } catch (Exception ex) {
+          ex.printStackTrace();
+        } finally {
+          if (cursor != null && !cursor.isClosed()) {
+            cursor.close();
+          }
+        }
+
+        for (int i = 0; i < list.size();) {
+          if (groupsSync.contains(list.get(i))) {
+
+            ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
+                ContentUris.withAppendedId(Groups.CONTENT_URI, list.get(i)))
+                .withValue(RawContacts.SYNC1, false);
+            ops.add(operationBuilder.build());
+            list.remove(list.get(i));
+          } else {
+            i++;
+          }
+        }
+      } else {
+        break;
+      }
+    }
+    applyBatchSimply(context, ops, "getGroupsWithThisMember");
   }
 
   public void updateGroupsSync(final Context context, final List<GroupRow> groupRows, final boolean sync) {
@@ -420,18 +554,20 @@ public class AndroidDB {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     int count = 0;
     for (ContactRow contactRow : contactRows) {
-      ContentProviderOperation.Builder operationBuilder  = ContentProviderOperation.newInsert(Data.CONTENT_URI)
-          .withValue(Data.RAW_CONTACT_ID, contactRow.getId())
-          .withValue(Data.MIMETYPE, MIMETYPE)
-          .withValue(Data.DATA1, Constants.ACCOUNT_NAME.equals(contactRow.getAccouNamePrevious()) ? null : contactRow.getAccouNamePrevious())
-          .withValue(Data.DATA2, Constants.ACCOUNT_TYPE.equals(contactRow.getAccouTypePrevious()) ? null : contactRow.getAccouTypePrevious());
-      if (count >= MAX_OPERATIONS_IYELD) {
-        operationBuilder.withYieldAllowed(true);
-        count = 0;
+      if (!contactRow.isConverted()) {
+        ContentProviderOperation.Builder operationBuilder  = ContentProviderOperation.newInsert(Data.CONTENT_URI)
+            .withValue(Data.RAW_CONTACT_ID, contactRow.getId())
+            .withValue(Data.MIMETYPE, MIMETYPE)
+            .withValue(Data.DATA1, Constants.ACCOUNT_NAME.equals(contactRow.getAccouNamePrevious()) ? null : contactRow.getAccouNamePrevious())
+            .withValue(Data.DATA2, Constants.ACCOUNT_TYPE.equals(contactRow.getAccouTypePrevious()) ? null : contactRow.getAccouTypePrevious());
+        if (count >= MAX_OPERATIONS_IYELD) {
+          operationBuilder.withYieldAllowed(true);
+          count = 0;
+        }
+        count++;
+        ops.add(operationBuilder.build());
+        Log.i(TAG, "DATA:" + (operationBuilder.build()).toString());
       }
-      count++;
-      ops.add(operationBuilder.build());
-      Log.i(TAG, "DATA:" + (operationBuilder.build()).toString());
     }
     return ops;
   }
@@ -446,10 +582,10 @@ public class AndroidDB {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     int count = 0;
     for (ContactRow contactRow : contactRows) {
-      if (!Constants.ACCOUNT_NAME.equals(contactRow.getAccouNamePrevious())) {
+      if (!contactRow.isConverted()) {
         ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
             ContentUris.withAppendedId(RawContacts.CONTENT_URI, contactRow.getId()))
-            .withValue(RawContacts.SYNC3, SET_CONVERT)
+            .withValue(RawContacts.SYNC3, SET_IMPORT)
             .withValue(RawContacts.SYNC4, contactRow.getUuid())
             .withValue(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
             .withValue(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE);
@@ -507,35 +643,29 @@ public class AndroidDB {
 
     int size = contactRows.size();
     int i = 1;
-    int count = 0;
     for (ContactRow contactRow : contactRows) {
       ContentProviderOperation.Builder operationBuilder  = ContentProviderOperation.newUpdate(
           ContentUris.withAppendedId(RawContacts.CONTENT_URI, contactRow.getId()))
           .withValue(RawContacts.ACCOUNT_NAME, contactRow.getAccouNamePrevious())
+          .withValue(RawContacts.SYNC3, SET_EXPRT)
           .withValue(RawContacts.ACCOUNT_TYPE, contactRow.getAccouTypePrevious());
-      if (count >= MAX_OPERATIONS_IYELD) {
-        operationBuilder.withYieldAllowed(true);
-        count = 0;
+      if (ops.size() >= MAX_OPERATIONS_IYELD) {
+        applyBatchSimply(context, ops, "exportContactsFromSyncAccount");
+        ops.clear();
       }
-      count++;
       ops.add(operationBuilder.build());
       Log.i(TAG, contactRow.getId() + ", exportContactsFromSyncAccount: " + i++ + "/" + size
           + ", to:" + contactRow.getAccouNamePrevious());
     }
-    try {
-      context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-      Log.i(TAG, "Contacts exported");
-    } catch (RemoteException e) {
-      e.printStackTrace();
-    } catch (OperationApplicationException e) {
-      e.printStackTrace();
-    }
-    removeRowData(context, contactRows);
+    applyBatchSimply(context, ops, "exportContactsFromSyncAccount");
+    Log.i(TAG, "Contacts exported");
+    removeRowData(context);
   }
 
-  private void removeRowData(final Context context, List<ContactRow> contactRows) {
-    try{
-      int deleted = context.getContentResolver().delete(Data.CONTENT_URI, Data.MIMETYPE + " = ?", new String[] {MIMETYPE});
+
+  private void removeRowData(final Context context) {
+    try {
+      int deleted = context.getContentResolver().delete(Data.CONTENT_URI, Data.MIMETYPE + "=?", new String[]{MIMETYPE});
       Log.i(TAG, "deleted rows:" + deleted);
     } catch (Exception e) {
       e.printStackTrace();
@@ -598,9 +728,30 @@ public class AndroidDB {
     return name;
   }
 
+  public Map<String, GoogleContact> deleteContacts(final Context context) {
+    String where = RawContacts.DELETED + "<>0";
+    List<ContactRow> contacts = ContactRow.fetchAllRawContact(context.getContentResolver(), where);
+    Map<String, GoogleContact> list = new HashMap<String, GoogleContact>();
+    for (ContactRow contactRow : contacts) {
+      GoogleContact gc = new GoogleContact();
+      gc.setSynchronize(false);
+      gc.setDeleted(true);
+      gc.setUuid(contactRow.getUuid());
+      list.put(contactRow.getUuid(), gc);
+      Uri uri = Uri.withAppendedPath(RawContacts.CONTENT_URI, contactRow.getId().toString());
+      int deleted = context.getContentResolver().delete(addIsSyncAdapter(uri, true), null, null);
+        //RawContacts._ID + " = ?", new String[] { id.toString() });
+    Log.i(TAG, "deleted: " + contactRow.getId() + ", result:" + deleted);
+    }
+    return list;
+  }
+
   public void deleteContacts(final Context context, List<Integer> contacts) {
+
     for (Integer id : contacts) {
-    int deleted = context.getContentResolver().delete(addIsSyncAdapter(RawContacts.CONTENT_URI, true), RawContacts._ID + " = ?", new String[] { id.toString() });
+      Uri uri = Uri.withAppendedPath(RawContacts.CONTENT_URI, id.toString());
+      int deleted = context.getContentResolver().delete(addIsSyncAdapter(uri, true), null, null);
+        //RawContacts._ID + " = ?", new String[] { id.toString() });
     Log.i(TAG, "deleted: " + id + ", result:" + deleted);
     }
   }
@@ -669,11 +820,11 @@ public class AndroidDB {
    * @param contentResolver contentResolver
    * @return last timestamp.
    */
-  public String newerTimestamp(ContentResolver contentResolver) {
+  public String newerTimestamp(final Context context) {
     Cursor cursor = null;
     String time = null;
     try {
-      cursor = contentResolver.query(RawContacts.CONTENT_URI, new String[]{RawContacts.SYNC2}, null, null, null);
+      cursor = context.getContentResolver().query(RawContacts.CONTENT_URI, new String[]{RawContacts.SYNC2}, null, null, null);
       List<String> times = new ArrayList<String>();
       while (cursor.moveToNext()) {
         String str = cursor.getString(cursor.getColumnIndex(RawContacts.SYNC2));
@@ -721,5 +872,4 @@ public class AndroidDB {
     }
     return time;
   }
-
 }

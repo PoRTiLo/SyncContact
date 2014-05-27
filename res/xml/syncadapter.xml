@@ -3,4 +3,5 @@
     android:contentAuthority="com.android.contacts"
     android:accountType="cz.xsendl00.synccontact"
     android:supportsUploading="true"
+    android:allowParallelSyncs="false"
 />

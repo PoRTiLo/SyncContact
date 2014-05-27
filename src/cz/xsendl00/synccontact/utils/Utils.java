@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.androidannotations.annotations.EBean;
 
@@ -72,7 +73,7 @@ public class Utils {
    */
   @SuppressLint("SimpleDateFormat")
   public String timestamptoDate(String timestamp) {
-    SimpleDateFormat df1 = new SimpleDateFormat("yyyyMMddHHmmss");
+    SimpleDateFormat df1 = new SimpleDateFormat("yyyyMMddHHmmss", Locale.UK);
     String out = null;
     try {
       out = df1.parse(timestamp).toString();

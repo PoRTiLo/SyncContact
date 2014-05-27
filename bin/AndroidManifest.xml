@@ -45,13 +45,6 @@
         android:resource="@xml/syncadapter" />
     </service>
     
-    <receiver android:name=".UninstallIntentReceiver">
-      <intent-filter android:priority="0">
-            <action android:name="android.intent.action.QUERY_PACKAGE_RESTART" />
-            <data android:scheme="cz.xsendl00.synccontact" />
-      </intent-filter>
-    </receiver>
-    
     
     <activity
       android:name=".ServerAddActivity_"

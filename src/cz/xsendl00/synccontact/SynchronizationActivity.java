@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,7 +29,7 @@ import cz.xsendl00.synccontact.utils.Utils;
 @EActivity(R.layout.activity_synchronization)
 public class SynchronizationActivity extends Activity {
 
-
+  private Handler handler = new Handler();
   private static final String TAG = "SynchronizationActivity";
 
   @Bean
@@ -64,7 +65,7 @@ public class SynchronizationActivity extends Activity {
     new Thread(new Runnable() {
       @Override
       public void run() {
-        final String str = new AndroidDB().newerTimestamp(getContentResolver());
+        final String str = new AndroidDB().newerTimestamp(SynchronizationActivity.this);
         editTextTime.post(new Runnable() {
           @Override
           public void run() {
@@ -98,7 +99,7 @@ public class SynchronizationActivity extends Activity {
             //TODO: call activity for edit connection
           }
         }
-        synchronization.synchronization(new ServerInstance(contactManager.getAccountData()), getApplicationContext());
+        synchronization.synchronization(new ServerInstance(contactManager.getAccountData()), getApplicationContext(), handler);
       } catch (RemoteException e) {
         e.printStackTrace();
       } catch (OperationApplicationException e) {
@@ -108,7 +109,9 @@ public class SynchronizationActivity extends Activity {
     }
     @Override
     protected void onPostExecute(Boolean bool) {
-      progressDialog.dismiss();
+      if (progressDialog != null) {
+        progressDialog.dismiss();
+      }
       getLastSyncTime();
     }
 
@@ -117,6 +120,7 @@ public class SynchronizationActivity extends Activity {
       super.onPreExecute();
       progressDialog = ProgressDialog.show(SynchronizationActivity.this, getText(R.string.progress_synchronizing),
           getText(R.string.progress_synchronizing_text), true);
+      progressDialog.setCanceledOnTouchOutside(false);
     }
   }
 

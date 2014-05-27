@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EFragment;
+import org.androidannotations.annotations.UiThread;
 
 import android.app.Fragment;
 import android.content.Intent;
@@ -64,8 +65,7 @@ public class GroupServerFragment extends Fragment implements
   public void onResume() {
     super.onResume();
     listRow = (ListView) getActivity().findViewById(R.id.list_group);
-    adapter = new RowGroupServerAdapter(getActivity().getApplicationContext(),
-        contactManager.getGroupsServer(), this);
+    adapter = new RowGroupServerAdapter(activity, contactManager.getServerGroup2Import(), this);
     listRow.setAdapter(adapter);
   }
 
@@ -78,7 +78,7 @@ public class GroupServerFragment extends Fragment implements
     String where = ContactsContract.Groups.SYNC1 + "=1";
     List<GroupRow> groupRowsDb = GroupRow.fetchGroups(activity.getContentResolver(), where);
     int countSelect = 0;
-    for (GroupRow groupRow : contactManager.getGroupsServer()) {
+    for (GroupRow groupRow : contactManager.getServerGroup2Import()) {
       int i = 0;
       boolean found = false;
       for (GroupRow contactRow2 : groupRowsDb) {
@@ -95,11 +95,11 @@ public class GroupServerFragment extends Fragment implements
         groupRow.setSync(false);
       }
     }
-    selectAll = countSelect == contactManager.getGroupsServer().size();
+    selectAll = countSelect == contactManager.getServerGroup2Import().size();
   }
 
   private void selectAll(final boolean result) {
-    for (GroupRow groupRow : contactManager.getGroupsServer()) {
+    for (GroupRow groupRow : contactManager.getServerGroup2Import()) {
       groupRow.setSync(result);
     }
     adapter.notifyDataSetChanged();
@@ -147,11 +147,19 @@ public class GroupServerFragment extends Fragment implements
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
     final int pos = (Integer) buttonView.getTag();
     if (pos != ListView.INVALID_POSITION) {
-      GroupRow groupRow = contactManager.getGroupsServer().get(pos);
+      GroupRow groupRow = contactManager.getServerGroup2Import().get(pos);
       if (groupRow.isSync() != isChecked) {
         groupRow.setSync(isChecked);
       }
     }
+  }
+
+  @UiThread
+  public void updateAdapter() {
+    //changeShowingData();
+    adapter = new RowGroupServerAdapter(getActivity().getApplicationContext(), contactManager.getServerGroup2Import(), this);
+    listRow.setAdapter(adapter);
+    adapter.notifyDataSetChanged();
   }
 
 }

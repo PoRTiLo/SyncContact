@@ -1,0 +1,9 @@
+cz.xsendl00.synccontact
+cz.xsendl00.synccontact.activity.fragment
+cz.xsendl00.synccontact.adapter
+cz.xsendl00.synccontact.authenticator
+cz.xsendl00.synccontact.client
+cz.xsendl00.synccontact.contact
+cz.xsendl00.synccontact.database
+cz.xsendl00.synccontact.ldap
+cz.xsendl00.synccontact.utils

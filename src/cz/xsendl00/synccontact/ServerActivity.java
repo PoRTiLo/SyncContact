@@ -191,7 +191,8 @@ public class ServerActivity extends Activity {
   private void showProgressBar() {
     progressBar = new ProgressDialog(ServerActivity.this);
     progressBar.setCancelable(true);
-    progressBar.setMessage("Test connection ...");
+    progressBar.setCanceledOnTouchOutside(false);
+    progressBar.setMessage(getText(R.string.progress_testing_connection));
     progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
     progressBar.show();
   }
@@ -209,7 +210,7 @@ public class ServerActivity extends Activity {
     }
 
     if (result) {
-      Toast.makeText(this, "Test connection succesfully", Toast.LENGTH_SHORT).show();
+      Toast.makeText(this, getText(R.string.toast_tested), Toast.LENGTH_SHORT).show();
     } else {
       showDialog(message);
       Log.e(TAG, "onAuthenticationResult: failed to authenticate");
@@ -217,8 +218,8 @@ public class ServerActivity extends Activity {
   }
   private void showDialog(String message) {
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
-    builder.setMessage(message).setTitle("error");
-    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+    builder.setMessage(message).setTitle(getText(R.string.dialog_error));
+    builder.setPositiveButton(getText(R.string.button_ok), new DialogInterface.OnClickListener() {
       @Override
       public void onClick(DialogInterface dialog, int id) {
           // User clicked OK button

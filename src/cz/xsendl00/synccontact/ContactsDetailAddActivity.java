@@ -38,14 +38,18 @@ public class ContactsDetailAddActivity extends ListActivity {
   private Integer groupId;
   private List<Integer> selectedIds;
   private List<ContactRow> contactRows;
-
+  private boolean isSync;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getActionBar().setDisplayHomeAsUpEnabled(true);
     Intent intent = getIntent();
-    selectedIds = intent.getIntegerArrayListExtra("SELECTED");
+    selectedIds = intent.getIntegerArrayListExtra(Constants.INTENT_SELECTED);
+    isSync = intent.getBooleanExtra(Constants.INTENT_SYNC, true);
+    if (selectedIds == null) {
+      selectedIds = new ArrayList<Integer>();
+    }
     groupId = intent.getIntExtra(Constants.INTENT_ID, 0);
     contactManager = ContactManager.getInstance(ContactsDetailAddActivity.this);
     loadData();
@@ -85,7 +89,7 @@ public class ContactsDetailAddActivity extends ListActivity {
     Log.i(TAG, selectedIds.toString());
     for (ContactRow contactRow : contactRows) {
       if (selectedIds.contains(contactRow.getId())) {
-        Log.i(TAG, contactRow.getName());
+        //Log.i(TAG, contactRow.getName());
         getListView().setItemChecked(pos, true);
       }
       pos++;
@@ -100,11 +104,14 @@ public class ContactsDetailAddActivity extends ListActivity {
   public Thread loadData() {
     final ProgressDialog progressDialog = ProgressDialog.show(ContactsDetailAddActivity.this, "",
         getText(R.string.progress_loading), true);
+    progressDialog.setCanceledOnTouchOutside(false);
     final Runnable runnable = new Runnable() {
       @Override
       public void run() {
         contactManager.getLocalContacts();
-        progressDialog.dismiss();
+        if (progressDialog != null) {
+          progressDialog.dismiss();
+        }
         init();
       }
     };
@@ -140,7 +147,17 @@ public class ContactsDetailAddActivity extends ListActivity {
 
           @Override
           public void run() {
-            new AndroidDB().addContact2Group(ContactsDetailAddActivity.this, selected, groupId);
+            List<ContactRow> updateList = new ArrayList<ContactRow>();
+            for (ContactRow contactRow : selected) {
+              if (!selectedIds.contains(contactRow.getId())) {
+                updateList.add(contactRow);
+              }
+            }
+            new AndroidDB().addContact2Group(ContactsDetailAddActivity.this, updateList, groupId);
+            // set contacts to sync
+            if (isSync) {
+              new AndroidDB().updateContactsSync(ContactsDetailAddActivity.this, updateList, true);
+            }
           }
         });
 
@@ -152,6 +169,7 @@ public class ContactsDetailAddActivity extends ListActivity {
           @Override
           public void run() {
             List<Integer> toDelete = new ArrayList<Integer>();
+            List<ContactRow> toNoSync = new ArrayList<ContactRow>();
             for (Integer id : selectedIds) {
               boolean found = false;
               for (ContactRow contactRow : selected) {
@@ -162,7 +180,13 @@ public class ContactsDetailAddActivity extends ListActivity {
               }
               if (!found) {
                 toDelete.add(id);
+                ContactRow setContact = new ContactRow();
+                setContact.setId(id);
+                toNoSync.add(setContact);
               }
+            }
+            if (isSync) {
+              new AndroidDB().updateContactsSync(ContactsDetailAddActivity.this, toNoSync, false);
             }
             new AndroidDB().removeContactFromGroup(ContactsDetailAddActivity.this, toDelete, groupId);
           }
@@ -175,6 +199,19 @@ public class ContactsDetailAddActivity extends ListActivity {
         } catch (InterruptedException e) {
           e.printStackTrace();
         }
+        new Thread(new Runnable() {
+
+          @Override
+          public void run() {
+            contactManager.setLocalContactsInit(false);
+            contactManager.getLocalContacts();
+            contactManager.setLocalGroupsContactsInit(false);
+            contactManager.getLocalGroupsContacts();
+            contactManager.setLocalGroupsInit(false);
+            contactManager.getLocalGroups();
+          }
+        }).start();
+
         if (progressDialog != null) {
           progressDialog.dismiss();
         }
@@ -205,6 +242,7 @@ public class ContactsDetailAddActivity extends ListActivity {
         Log.i(TAG, "save");
         final ProgressDialog progressDialog = ProgressDialog.show(ContactsDetailAddActivity.this, "",
             getText(R.string.progress_saving), true);
+        progressDialog.setCanceledOnTouchOutside(false);
         save(progressDialog);
         break;
       case R.id.action_help:
