@@ -14,7 +14,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 /**
  * Welcome activity.
  *
- * @author portilo
+ * @author xsendl00
  */
 @EActivity(R.layout.activity_info_welcome)
 public class InfoWelcomeActivity extends Activity {

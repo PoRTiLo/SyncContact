@@ -16,6 +16,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -24,14 +25,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.utils.Constants;
 
 /**
  * Main activity. Show main menu with four rectangle.
- * @author portilo
+ * @author xsendl00
  *
  */
 @EActivity(R.layout.activity_main)
@@ -48,12 +48,14 @@ public class MainActivity extends Activity {
   protected Button importButton;
   private Handler handler = new Handler();
   private ProgressDialog progressDialog;
+  private ContactManager manager;
 
   private static final String TAG = "MainActivity";
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    manager = ContactManager.getInstance(MainActivity.this);
     loadPreferences();
   }
 
@@ -77,6 +79,10 @@ public class MainActivity extends Activity {
       startActivity(intent);
       this.finish();
     }
+
+    manager.setOnlyWifi(settings.getBoolean(Constants.PREFS_WIFI, false));
+    manager.setOnlyWifiInit(true);
+
   }
 
   /**
@@ -116,10 +122,10 @@ public class MainActivity extends Activity {
     boolean startFirst = settings.getBoolean(Constants.PREFS_START_FIRST, true);
     if (startFirst) {
       Intent intent = new Intent(this, InfoWelcomeActivity_.class);
-      startActivity(intent);
+      startActivityForResult(intent, 1);
     } else {
       Intent intent = new Intent(this, ServerActivity_.class);
-      startActivity(intent);
+      startActivityForResult(intent, 1);
     }
   }
 
@@ -231,8 +237,16 @@ public class MainActivity extends Activity {
     if (progressDialog != null) {
       progressDialog.dismiss();
     }
-    String text = getText(R.string.toast_exported).toString() + getText(R.string.toast_imported_contacts);
-    Toast toast = Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT);
-    toast.show();
+    Editor editor = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE).edit();
+    editor.putBoolean(Constants.PREFS_START_FIRST, true);
+    editor.commit();
+    finish();
+  }
+
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    if (resultCode == 1) {
+      finish();
+    }
   }
 }

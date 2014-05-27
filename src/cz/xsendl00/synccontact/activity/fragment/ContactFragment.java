@@ -36,7 +36,7 @@ import cz.xsendl00.synccontact.utils.GroupRow;
 /**
  * Fragment for contact data.
  *
- * @author portilo
+ * @author xsendl00
  */
 @EFragment
 public class ContactFragment extends Fragment implements
@@ -219,7 +219,7 @@ public class ContactFragment extends Fragment implements
           if (list.contains(contactRow)) {
             Integer id = contactManager.getLocalGroupsContacts().keyAt(i);
             for (GroupRow groupRow : contactManager.getLocalGroups()) {
-              if (groupRow.getId() == id) {
+              if (groupRow.getId().equals(id)) {
                 groupRow.setSync(result);
               }
             }

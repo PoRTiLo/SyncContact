@@ -6,40 +6,31 @@
     android:layout_marginLeft="@dimen/margin_8"
     android:layout_marginRight="@dimen/margin_8" >
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:paddingBottom="@dimen/margin_8"
         android:paddingTop="@dimen/margin_8" >
 
         <TextView
-            android:id="@+id/textView1"
+            android:id="@+id/setting_text"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:gravity="center"
             android:paddingBottom="@dimen/margin_20"
             android:paddingTop="@dimen/margin_20"
-            android:text="@string/info_server_added"
+            android:text="Settings"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
-        <TextView
-            android:id="@+id/textView2"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:gravity="center"
-            android:paddingBottom="@dimen/margin_12"
-            android:text="@string/info_text"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
 
-        <TextView
-            android:id="@+id/textView3"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:gravity="center"
-            android:text="@string/info_warning"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="@color/red" />
-    </LinearLayout>
+        <CheckBox
+            android:id="@+id/setting_check"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center" 
+            android:layout_below="@+id/setting_text" 
+            android:text="Synchronization only by WI-FI." />
+        
+    </RelativeLayout>
 
 </ScrollView>

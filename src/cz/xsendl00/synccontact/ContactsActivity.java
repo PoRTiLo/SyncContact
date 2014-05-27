@@ -1,5 +1,9 @@
 package cz.xsendl00.synccontact;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.UiThread;
@@ -22,12 +26,15 @@ import cz.xsendl00.synccontact.activity.fragment.GroupFragment;
 import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.utils.Constants;
+import cz.xsendl00.synccontact.utils.ContactRow;
+import cz.xsendl00.synccontact.utils.GroupRow;
+import cz.xsendl00.synccontact.utils.RowComparator;
 import cz.xsendl00.synccontact.utils.Utils;
 
 /**
  * Contact activity.
  *
- * @author portilo
+ * @author xsendl00
  */
 @EActivity(R.layout.activity_contacts)
 public class ContactsActivity extends Activity {
@@ -43,15 +50,11 @@ public class ContactsActivity extends Activity {
     getActionBar().setDisplayHomeAsUpEnabled(true);
     Intent intent = getIntent();
     first = intent.getBooleanExtra(Constants.INTENT_FIRST, false);
-
     contactManager = ContactManager.getInstance(getApplicationContext());
-    init();
     if (!contactManager.isLocalContactsInit() || !contactManager.isLocalGroupsInit()) {
       loadData();
-    } else {
-      init();
     }
-
+    init();
   }
 
   @Override
@@ -233,10 +236,22 @@ public class ContactsActivity extends Activity {
     // show list of contact
     ProgressDialog progressDialog = new ProgressDialog(ContactsActivity.this);
     progressDialog.setCanceledOnTouchOutside(false);
+    progressDialog.setTitle(getText(R.string.progress_saving));
     progressDialog.show();
-
-    Integer id = new AndroidDB().addGroup(ContactsActivity.this, name, null);
-    Log.i(TAG, "GROUP id:" + id);
+    String uuid = ContactRow.generateUUID();
+    Integer id = new AndroidDB().addGroup(ContactsActivity.this, name, null, uuid);
+    Log.i(TAG, "new GROUP id: " + id);
+    GroupRow groupRow = new GroupRow();
+    groupRow.setId(id);
+    groupRow.setName(name);
+    groupRow.setSize(0);
+    groupRow.setUuid(uuid);
+    groupRow.setSync(true);
+    groupRow.setDeleted(false);
+    contactManager.getLocalGroups().add(groupRow);
+    List<ContactRow> list = new ArrayList<ContactRow>();
+    contactManager.getLocalGroupsContacts().append(id, list);
+    Collections.sort(contactManager.getLocalGroups(), new RowComparator());
     progressDialog.dismiss();
 
     Intent i = new Intent(ContactsActivity.this, ContactsDetailActivity_.class);

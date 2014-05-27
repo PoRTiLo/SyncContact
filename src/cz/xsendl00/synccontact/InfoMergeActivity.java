@@ -15,7 +15,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 /**
  * Activity before merge activity. Show base info.
  *
- * @author portilo
+ * @author xsendl00
  */
 @EActivity(R.layout.activity_info_merge)
 public class InfoMergeActivity extends Activity {

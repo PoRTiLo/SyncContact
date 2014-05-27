@@ -17,7 +17,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 /**
  * Info LDAp import data.
  *
- * @author portilo
+ * @author xsendl00
  */
 @EActivity(R.layout.activity_info_server)
 public class InfoServerContactsActivity extends Activity {

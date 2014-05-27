@@ -10,12 +10,16 @@ import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.api.BackgroundExecutor;
 
+import com.unboundid.ldap.sdk.LDAPException;
+
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.content.SharedPreferences.Editor;
@@ -28,6 +32,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 import cz.xsendl00.synccontact.activity.fragment.ContactServerFragment;
 import cz.xsendl00.synccontact.activity.fragment.GroupServerFragment;
@@ -45,7 +50,7 @@ import cz.xsendl00.synccontact.utils.Utils;
 /**
  * Activity for data from server.
  *
- * @author portilo
+ * @author xsendl00
  */
 @EActivity(R.layout.activity_contacts_server)
 public class ContactsServerActivity extends Activity {
@@ -124,16 +129,25 @@ public class ContactsServerActivity extends Activity {
    */
   @Background(id = "loadData")
   protected void loadData() {
-    contactManager.initContactsServer(handler);
-    progressDialog.incrementProgressBy(20);
-    contactManager.initGroupsServer(handler);
-    progressDialog.incrementProgressBy(20);
-    contactManager.getServerContact2Import();
-    progressDialog.incrementProgressBy(20);
-    if (progressDialog != null) {
-      progressDialog.dismiss();
+    try {
+      contactManager.initContactsServer(handler);
+      progressDialog.incrementProgressBy(20);
+      contactManager.initGroupsServer(handler);
+      progressDialog.incrementProgressBy(20);
+      contactManager.getServerContact2Import();
+      progressDialog.incrementProgressBy(20);
+      if (progressDialog != null) {
+        progressDialog.dismiss();
+      }
+      init();
+    } catch (LDAPException e) {
+      e.printStackTrace();
+      if (progressDialog != null) {
+        progressDialog.dismiss();
+      }
+      errorDialog(e.getExceptionMessage());
     }
-    init();
+
   }
 
   /**
@@ -142,12 +156,53 @@ public class ContactsServerActivity extends Activity {
   @Background(id = "loadData")
   public void reinitData() {
     setRefreshActionButtonState(true);
-    contactManager.initContactsServer(handler);
-    contactManager.initGroupsServer(handler);
-    contactManager.getServerContact2Import(true);
-    fragmnetCall();
-    setRefreshActionButtonState(false);
+    try {
+      contactManager.initContactsServer(handler);
+      contactManager.initGroupsServer(handler);
+      contactManager.getServerContact2Import(true);
+      fragmnetCall();
+      setRefreshActionButtonState(false);
+    } catch (LDAPException e) {
+      e.printStackTrace();
+      errorDialog(e.getExceptionMessage());
+    }
+
   }
+  @UiThread
+  public void errorDialog(final String error) {
+    AlertDialog.Builder builder = new AlertDialog.Builder(ContactsServerActivity.this);
+    final TextView edit = new TextView(ContactsServerActivity.this);
+    edit.setText("Error to connection: " + contactManager.getAccountData().getHost() + ", " + contactManager.getAccountData().getBaseDn());
+    builder.setView(edit);
+    builder.setCancelable(false);
+    //builder.setCanceledOnTouchOutside(false);
+    builder.setTitle(ContactsServerActivity.this.getText(R.string.dialog_error_text));
+    builder.setPositiveButton(ContactsServerActivity.this.getText(R.string.button_ok), new DialogInterface.OnClickListener() {
+
+      @Override
+      public void onClick(DialogInterface dialog, int id) {
+        // User clicked OK button
+        setResult(Constants.TRUST_YES);
+      }
+    });
+    builder.setNeutralButton(ContactsServerActivity.this.getText(R.string.button_show), new DialogInterface.OnClickListener() {
+
+      @Override
+      public void onClick(DialogInterface dialog, int which) {
+      }
+    });
+    AlertDialog dialog = builder.create();
+    dialog.show();
+    dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(new View.OnClickListener() {
+
+      @Override
+      public void onClick(View v) {
+        edit.setText(error);
+      }
+    });
+  }
+
+
 
   /**
    * Show ProgressBar instead of button for refresh (R.id.action_add_group).
@@ -180,11 +235,12 @@ public class ContactsServerActivity extends Activity {
       Toast toast = Toast.makeText(getApplicationContext(), str, Toast.LENGTH_LONG);
       toast.show();
       contactManager.setLocalContactsInit(false);
+      contactManager.setLocalGroupsInit(false);
       new Thread(new Runnable() {
 
         @Override
         public void run() {
-          contactManager.getLocalContacts();
+          contactManager.getLocalGroupsContacts();
         }
       }).start();
     }

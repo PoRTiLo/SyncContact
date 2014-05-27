@@ -15,7 +15,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 /**
  * Activity which show info.
  *
- * @author portilo
+ * @author xsendl00
  *
  */
 @EActivity(R.layout.activity_help)

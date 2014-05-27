@@ -55,16 +55,16 @@ public class RowFirstGroupAdapter extends BaseAdapter {
     holder = null;
 
     LayoutInflater inflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-
+    View view = convertView;
     if (convertView == null) {
-      convertView = inflater.inflate(R.layout.row_group, null);
+      view = inflater.inflate(R.layout.row_group, null);
       holder = new ViewHolder();
-      holder.groupName = (TextView) convertView.findViewById(R.id.row_group_name);
-      holder.groupSize = (TextView) convertView.findViewById(R.id.row_group_size);
-      holder.checkSync = (CheckBox) convertView.findViewById(R.id.row_group_sync);
-      convertView.setTag(holder);
+      holder.groupName = (TextView) view.findViewById(R.id.row_group_name);
+      holder.groupSize = (TextView) view.findViewById(R.id.row_group_size);
+      holder.checkSync = (CheckBox) view.findViewById(R.id.row_group_sync);
+      view.setTag(holder);
     } else {
-      holder = (ViewHolder) convertView.getTag();
+      holder = (ViewHolder) view.getTag();
     }
     holder.checkSync.setTag(position);
     holder.checkSync.setOnCheckedChangeListener(par);

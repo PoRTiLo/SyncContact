@@ -106,11 +106,12 @@ public class ServerUtilities {
    * @param context context
    * @param handler handler
    * @param googleContacts contacts
+   * @throws LDAPException
    */
   public void addContactToServer(final ServerInstance ldapServer,
       final Context context,
       final Handler handler,
-      List<GoogleContact> googleContacts) {
+      List<GoogleContact> googleContacts) throws LDAPException {
     LDAPConnection connection = null;
 
     try {
@@ -129,9 +130,6 @@ public class ServerUtilities {
           // notification(context, googleContact.getUuid());
         }
       }
-    } catch (LDAPException e) {
-      // e.get
-      e.printStackTrace();
     } finally {
       if (connection != null) {
         connection.close();
@@ -349,10 +347,11 @@ public class ServerUtilities {
    * @param context context of activity.
    * @param handler handler of activity.
    * @return List of GroupRow
+   * @throws LDAPException
    */
   public static List<GroupRow> fetchLDAPGroups(final ServerInstance ldapServer,
       final Context context,
-      final Handler handler) {
+      final Handler handler) throws LDAPException {
     List<GroupRow> groupsServer = new ArrayList<GroupRow>();
     LDAPConnection connection = null;
     try {
@@ -370,8 +369,6 @@ public class ServerUtilities {
         }
         groupsServer.add(groupRow);
       }
-    } catch (LDAPException e) {
-      e.printStackTrace();
     } finally {
       if (connection != null) {
         connection.close();
@@ -432,10 +429,11 @@ public class ServerUtilities {
    * @param context context of activity.
    * @param handler handler of activity.
    * @return List of ContactRow
+   * @throws LDAPException LDAPException
    */
   public static List<ContactRow> fetchLDAPContactsNameUUID(final ServerInstance ldapServer,
       final Context context,
-      final Handler handler) {
+      final Handler handler) throws LDAPException {
     List<ContactRow> contactsServer = new ArrayList<ContactRow>();
     LDAPConnection connection = null;
     try {
@@ -450,8 +448,6 @@ public class ServerUtilities {
         contactsServer.add(contactRow);
       }
       Log.i(TAG, "From server download contacts : " + searchResult.getSearchEntries().size());
-    } catch (LDAPException e) {
-      e.printStackTrace();
     } finally {
       if (connection != null) {
         connection.close();
@@ -469,11 +465,12 @@ public class ServerUtilities {
    * @param handler handler
    * @param timestamp only contact which are newer than timestamp
    * @return list of server's contacts
+   * @throws LDAPException LDAPException
    */
   public Map<String, GoogleContact> fetchModifyContactsServer(final ServerInstance ldapServer,
       final Context context,
       final Handler handler,
-      String timestamp) {
+      String timestamp) throws LDAPException {
     LDAPConnection connection = null;
     Map<String, GoogleContact> contactsServer = new HashMap<String, GoogleContact>();
     try {
@@ -491,8 +488,6 @@ public class ServerUtilities {
             e.getAttributeValue(Constants.UUID) + ", has att:" + e.hasAttribute(Constants.UUID));
         contactsServer.put(e.getAttributeValue(Constants.UUID), Mapping.mappingContactFromLDAP(e));
       }
-    } catch (LDAPException e) {
-      e.printStackTrace();
     } finally {
       if (connection != null) {
         connection.close();
@@ -583,13 +578,13 @@ public class ServerUtilities {
             + ldapServer.getAccountdData().getBaseDn(), SearchScope.SUB, filter, Constants.CN);
         for (SearchResultEntry e : searchResult.getSearchEntries()) {
           Log.i(TAG, "if exist group:" + e.toLDIFString());
-          if (e.hasAttribute(Constants.UUID)) {
+          if (e.hasAttribute(Constants.CN)) {
             found = true;
             break;
           }
         }
         if (found) { // exist on server ->deleted
-          String deleteDN = Constants.UUID + "=" + groupRow.getUuid() + ","
+          String deleteDN = Constants.CN + "=" + groupRow.getUuid() + ","
               + Constants.ACCOUNT_OU_GROUPS + ldapServer.getAccountdData().getBaseDn();
           LDAPResult ldapResult = connection.delete(deleteDN);
           Log.i(TAG, "Remove group : " + groupRow.getUuid() + "---" + ldapResult.toString());

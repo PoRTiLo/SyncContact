@@ -11,7 +11,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 /**
  * A data kind representing an event.
  *
- * @author portilo
+ * @author xsendl00
  */
 public class EventSync extends AbstractType implements ContactInterface {
 

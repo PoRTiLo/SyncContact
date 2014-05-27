@@ -15,6 +15,64 @@ public class AbstractRow {
   protected String lastSyncTime;
   protected boolean isConverted;
   protected boolean deleted;
+  protected String accouNamePrevious;
+  protected String accouTypePrevious;
+
+
+  /**
+   * @return Returns the accouNamePrevious.
+   */
+  public String getAccouNamePrevious() {
+    return accouNamePrevious;
+  }
+
+
+
+
+
+
+  /**
+   * @param accouNamePrevious The accouNamePrevious to set.
+   */
+  public void setAccouNamePrevious(String accouNamePrevious) {
+    this.accouNamePrevious = accouNamePrevious;
+  }
+
+
+
+
+
+
+  /**
+   * @return Returns the sync.
+   */
+  public Boolean getSync() {
+    return sync;
+  }
+
+
+
+
+
+  /**
+   * @return Returns the accouTypePrevious.
+   */
+  public String getAccouTypePrevious() {
+    return accouTypePrevious;
+  }
+
+
+
+
+
+  /**
+   * @param accouTypePrevious The accouTypePrevious to set.
+   */
+  public void setAccouTypePrevious(String accouTypePrevious) {
+    this.accouTypePrevious = accouTypePrevious;
+  }
+
+
 
 
 
@@ -141,5 +199,14 @@ public class AbstractRow {
   public String toStringSync() {
     return "Id: " + id + ", sync: " + sync;
 
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString() {
+    return "AbstractRow [name=" + name + ", id=" + id + ", uuid=" + uuid + ", sync=" + sync
+        + ", idTable=" + idTable + ", lastSyncTime=" + lastSyncTime + ", isConverted="
+        + isConverted + ", deleted=" + deleted + ", accouNamePrevious=" + accouNamePrevious
+        + ", accouTypePrevious=" + accouTypePrevious + "]";
   }
 }

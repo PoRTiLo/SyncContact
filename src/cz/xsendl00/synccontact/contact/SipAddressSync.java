@@ -12,7 +12,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 /**
  * A data kind representing a SIP address for the contact.
  *
- * @author portilo
+ * @author xsendl00
  */
 public class SipAddressSync extends AbstractType implements ContactInterface {
 

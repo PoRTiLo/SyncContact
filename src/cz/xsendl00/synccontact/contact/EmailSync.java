@@ -11,7 +11,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 /**
  * A data kind representing an email address.
  *
- * @author portilo
+ * @author xsendl00
  */
 public class EmailSync extends AbstractType implements ContactInterface {
 

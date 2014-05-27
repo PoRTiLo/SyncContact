@@ -13,7 +13,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 /**
  * Notes about the contact.
  *
- * @author portilo
+ * @author xsendl00
  */
 public class NoteSync extends AbstractType implements ContactInterface {
 

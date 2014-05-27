@@ -31,7 +31,7 @@ import cz.xsendl00.synccontact.utils.ContactRow;
 /**
  * Fragment for contact.
  *
- * @author portilo
+ * @author xsendl00
  */
 @EFragment
 public class ContactServerFragment extends Fragment implements

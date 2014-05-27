@@ -1,7 +1,6 @@
 package cz.xsendl00.synccontact.database;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,7 +35,7 @@ import cz.xsendl00.synccontact.utils.Utils;
 /**
  * Class for working with Android database like update contact, get contact ...
  *
- * @author portilo
+ * @author xsendl00
  */
 @EBean
 public class AndroidDB {
@@ -48,17 +47,19 @@ public class AndroidDB {
   private static final String TAG = "AndroidDB";
   private static final int MAX_OPERATIONS_IYELD = 480;
 
-  public void removeContactFromGroup(final Context context, final List<Integer> contacts, final Integer groupId) {
+  public void removeContactsFromGroup(final Context context, final List<Integer> contacts, final Integer groupId) {
     for (Integer rawId : contacts) {
       String[] projection = new String[]{Data._ID};
       String where = Data.RAW_CONTACT_ID + "=" + rawId + " AND "
           + Data.MIMETYPE + "='" + CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE + "' AND "
           + Data.DATA1 + "=" + groupId;
-
       Cursor cursor = context.getContentResolver().query(Data.CONTENT_URI, projection, where, null, null);
       List<String> ids = new ArrayList<String>();
       while (cursor.moveToNext()) {
         ids.add(cursor.getString(cursor.getColumnIndex(Data._ID)));
+      }
+      if (cursor != null && !cursor.isClosed()) {
+        cursor.close();
       }
       try {
         for (String id : ids) {
@@ -74,40 +75,22 @@ public class AndroidDB {
 
 
   public void addContact2Group(final Context context, final List<ContactRow> contacts, Integer groupId) {
-    ArrayList<ContentProviderOperation> op = new ArrayList<ContentProviderOperation>();
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     for (ContactRow contactRow : contacts) {
-      op.add(ContentProviderOperation.newInsert(Data.CONTENT_URI)
+      ops.add(ContentProviderOperation.newInsert(Data.CONTENT_URI)
           .withValue(Data.RAW_CONTACT_ID, contactRow.getId())
           .withValue(Data.MIMETYPE, CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE)
           .withValue(Data.DATA1, groupId)
           .build());
-      if (op.size() > MAX_OPERATIONS_IYELD) {
-        try {
-          ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, op);
-          for (ContentProviderResult a : contactUri) {
-            Log.i(TAG, "res:" + a.toString());
-          }
-        } catch (RemoteException e) {
-          e.printStackTrace();
-        } catch (OperationApplicationException e) {
-          e.printStackTrace();
-        }
-        op.clear();
+      if (ops.size() > MAX_OPERATIONS_IYELD) {
+        applyBatchSimply(context, ops, "addContact2Group");
+        ops.clear();
       }
     }
-    try {
-      ContentProviderResult[] contactUri = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, op);
-      for (ContentProviderResult a : contactUri) {
-        Log.i(TAG, "res:" + a.toString());
-      }
-    } catch (RemoteException e) {
-      e.printStackTrace();
-    } catch (OperationApplicationException e) {
-      e.printStackTrace();
-    }
+    applyBatchSimply(context, ops, "addContact2Group");
   }
 
-  public int addGroup(final Context context, final String name, final String notes) {
+  public int addGroup(final Context context, final String name, final String notes, final String uuid) {
     Integer resultId = null;
     ArrayList<ContentProviderOperation> op = new ArrayList<ContentProviderOperation>();
     op.add(ContentProviderOperation.newInsert(Groups.CONTENT_URI)
@@ -118,7 +101,7 @@ public class AndroidDB {
         .withValue(Groups.SYNC1, "1")
         //.withValue(RawContacts.SYNC2, new Utils().createTimestamp())
         //.withValue(RawContacts.SYNC3, AndroidDB.SET_CONVERT)
-        .withValue(Groups.SYNC4, ContactRow.generateUUID())
+        .withValue(Groups.SYNC4, uuid)
         .build());
 
     try {
@@ -149,9 +132,9 @@ public class AndroidDB {
    * @param contactsDirty contactsDirty list of contact for set dirty bit to 0
    */
   public void cleanModifyStatusNewTimestamp(final Context context,
-      final Map<String, GoogleContact> contactsDirty) {
+      final Map<String, GoogleContact> contactsDirty, String timestamp) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
-    String timestamp = new Utils().createTimestamp();
+
     for (Map.Entry<String, GoogleContact> entry : contactsDirty.entrySet()) {
       ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
           ContentUris.withAppendedId(ContactsContract.RawContacts.CONTENT_URI, entry.getValue().getId()))
@@ -185,9 +168,8 @@ public class AndroidDB {
   }
 
   public void cleanModifyStatusNewTimestampGroup(final Context context,
-      final List<GroupRow> groupRows) {
+      final List<GroupRow> groupRows, String timestamp) {
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
-    String timestamp = new Utils().createTimestamp();
     for (GroupRow groupRow : groupRows) {
       ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
           ContentUris.withAppendedId(ContactsContract.Groups.CONTENT_URI, groupRow.getId()))
@@ -455,13 +437,11 @@ public class AndroidDB {
   }
 
   public void updateContactsSync(final Context context, final List<ContactRow> contactRows, final boolean sync) {
-
     // disable sync group if one object of group is set to unsync
     if (!sync) {
       //get all groups
       getGroupsWithThisMember(context, contactRows);
     }
-
     ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
     for (ContactRow contactRow : contactRows) {
       ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
@@ -579,6 +559,8 @@ public class AndroidDB {
   private Uri addIsSyncAdapter(Uri uri, boolean isSyncOperation) {
     if (isSyncOperation) {
       return uri.buildUpon()
+          .appendQueryParameter(RawContacts.ACCOUNT_NAME, Constants.ACCOUNT_NAME)
+          .appendQueryParameter(RawContacts.ACCOUNT_TYPE, Constants.ACCOUNT_TYPE)
           .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true")
           .build();
     }
@@ -695,8 +677,30 @@ public class AndroidDB {
     applyBatchSimply(context, ops, "exportContactsFromSyncAccount");
     Log.i(TAG, "Contacts exported");
     removeRowData(context);
+    exportGroupsFromSyncAccount(context);
   }
 
+  public void exportGroupsFromSyncAccount(final Context context) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    List<GroupRow> groupRows = GroupRow.fetchGroups(context.getContentResolver(), null);
+    for (GroupRow groupRow : groupRows) {
+      if (Constants.ACCOUNT_NAME.equals(groupRow.getAccouNamePrevious()) && Constants.ACCOUNT_TYPE.equals(groupRow.getAccouTypePrevious())) {
+        ContentProviderOperation.Builder operationBuilder  = ContentProviderOperation.newUpdate(
+            ContentUris.withAppendedId(Groups.CONTENT_URI, groupRow.getId()))
+            .withValue(Groups.ACCOUNT_NAME, null)
+            .withValue(Groups.SYNC3, SET_EXPRT)
+            .withValue(Groups.ACCOUNT_TYPE, null);
+        if (ops.size() >= MAX_OPERATIONS_IYELD) {
+          applyBatchSimply(context, ops, "exportGroupsFromSyncAccount");
+          ops.clear();
+        }
+        ops.add(operationBuilder.build());
+        Log.i(TAG, groupRow.getId() + ", exportGroups to NULL ");
+      }
+    }
+    applyBatchSimply(context, ops, "exportGroupsFromSyncAccount");
+    Log.i(TAG, "Contacts exported");
+  }
 
   private void removeRowData(final Context context) {
     try {
@@ -782,16 +786,58 @@ public class AndroidDB {
     return list;
   }
 
+//
+//  private void dirtyContactsWithinDirtyGroups(Context context) {
+//    ContentResolver cr = context.getContentResolver();
+//    Cursor c = cr.query(uriWithAccountAndIsSyncAdapter(Groups.CONTENT_URI),
+//            GROUPS_ID_PROJECTION, Groups.DIRTY + "=1", null, null);
+//    try {
+//        if (c.getCount() > 0) {
+//            String[] updateArgs = new String[1];
+//            ContentValues updateValues = new ContentValues();
+//            while (c.moveToNext()) {
+//                // For each, "touch" all data rows with this group id; this will mark contacts
+//                // in this group as dirty (per ContactsContract).  We will then know to upload
+//                // them to the server with the modified group information
+//                long id = c.getLong(0);
+//                updateValues.put(GroupMembership.GROUP_ROW_ID, id);
+//                updateArgs[0] = Long.toString(id);
+//                cr.update(Data.CONTENT_URI, updateValues,
+//                        MIMETYPE_GROUP_MEMBERSHIP_AND_ID_EQUALS, updateArgs);
+//            }
+//            // Really delete groups that are marked deleted
+//            cr.delete(uriWithAccountAndIsSyncAdapter(Groups.CONTENT_URI), Groups.DELETED + "=1",
+//                    null);
+//            // Clear the dirty flag for all of our groups
+//            updateValues.clear();
+//            updateValues.put(Groups.DIRTY, 0);
+//            cr.update(uriWithAccountAndIsSyncAdapter(Groups.CONTENT_URI), updateValues, null,
+//                    null);
+//        }
+//    } finally {
+//        c.close();
+//    }
+//}
+
   public List<GroupRow> deleteGroups(final Context context) {
     String where = Groups.DELETED + "<>0";
     List<GroupRow> groups = GroupRow.fetchGroups(context.getContentResolver(), where);
     List<GroupRow> list = new ArrayList<GroupRow>();
     for (GroupRow groupRow : groups) {
-      GroupRow gr = new GroupRow();
-      gr.setDeleted(true);
-      gr.setUuid(groupRow.getUuid());
-      list.add(gr);
-      Uri uri = Uri.withAppendedPath(RawContacts.CONTENT_URI, groupRow.getId().toString());
+      where = Data.MIMETYPE + "='" + Groups.CONTENT_ITEM_TYPE + "' AND " + Data.DATA1 + "=" + groupRow.getId();
+      Cursor cursor = context.getContentResolver().query(Data.CONTENT_URI, new String[]{Data._ID}, where, null, null);
+      List<Integer> list2 = new ArrayList<Integer>();
+      while (cursor.moveToNext()) {
+        list2.add(cursor.getInt(cursor.getColumnIndex(Data._ID)));
+      }
+      for (Integer i : list2) {
+        Uri uri = Uri.withAppendedPath(Groups.CONTENT_URI, i.toString());
+        int deleted = context.getContentResolver().delete(addIsSyncAdapter(uri, true), null, null);
+        Log.i(TAG, "deleted group data: " + i + ", result:" + deleted);
+      }
+      groupRow.setDeleted(true);
+      list.add(groupRow);
+      Uri uri = Uri.withAppendedPath(Groups.CONTENT_URI, groupRow.getId().toString());
       int deleted = context.getContentResolver().delete(addIsSyncAdapter(uri, true), null, null);
         //RawContacts._ID + " = ?", new String[] { id.toString() });
       Log.i(TAG, "deleted group: " + groupRow.getId() + ", result:" + deleted);
@@ -869,61 +915,61 @@ public class AndroidDB {
     return contacts;
   }
 
-  /**
-   * Newer timestamp of last synchronization. Get from database.
-   * @param contentResolver contentResolver
-   * @return last timestamp.
-   */
-  public String newerTimestamp(final Context context) {
-    Cursor cursor = null;
-    String time = null;
-    try {
-      cursor = context.getContentResolver().query(RawContacts.CONTENT_URI, new String[]{RawContacts.SYNC2}, null, null, null);
-      List<String> times = new ArrayList<String>();
-      while (cursor.moveToNext()) {
-        String str = cursor.getString(cursor.getColumnIndex(RawContacts.SYNC2));
-        if (str != null) {
-          times.add(str);
-        }
-      }
-      if (!times.isEmpty()) {
-        Collections.sort(times);
-        time = times.get(times.size() - 1);
-      }
-    } catch (Exception ex) {
-      ex.printStackTrace();
-    } finally {
-      if (cursor != null && !cursor.isClosed()) {
-        cursor.close();
-      }
-    }
-    return time;
-  }
+//  /**
+//   * Newer timestamp of last synchronization. Get from database.
+//   * @param contentResolver contentResolver
+//   * @return last timestamp.
+//   */
+//  public String newerTimestamp(final Context context) {
+//    Cursor cursor = null;
+//    String time = null;
+//    try {
+//      cursor = context.getContentResolver().query(RawContacts.CONTENT_URI, new String[]{RawContacts.SYNC2}, null, null, null);
+//      List<String> times = new ArrayList<String>();
+//      while (cursor.moveToNext()) {
+//        String str = cursor.getString(cursor.getColumnIndex(RawContacts.SYNC2));
+//        if (str != null) {
+//          times.add(str);
+//        }
+//      }
+//      if (!times.isEmpty()) {
+//        Collections.sort(times);
+//        time = times.get(times.size() - 1);
+//      }
+//    } catch (Exception ex) {
+//      ex.printStackTrace();
+//    } finally {
+//      if (cursor != null && !cursor.isClosed()) {
+//        cursor.close();
+//      }
+//    }
+//    return time;
+//  }
 
-  /**
-   * Newer timestamp of last synchronization. Get from database.
-   * @param contentResolver contentResolver
-   * @return last timestamp.
-   */
-  public String getModifiedTime(ContentResolver contentResolver, Integer id) {
-    Cursor cursor = null;
-    String time = null;
-    try {
-      cursor = contentResolver.query(
-          ContactsContract.Contacts.CONTENT_URI,
-          new String[]{ContactsContract.Contacts.CONTACT_LAST_UPDATED_TIMESTAMP},
-          RawContacts._ID + "=" + id, null, null);
-      while (cursor.moveToNext()) {
-        time = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.CONTACT_LAST_UPDATED_TIMESTAMP));
-        break;
-      }
-    } catch (Exception ex) {
-      ex.printStackTrace();
-    } finally {
-      if (cursor != null && !cursor.isClosed()) {
-        cursor.close();
-      }
-    }
-    return time;
-  }
+//  /**
+//   * Newer timestamp of last synchronization. Get from database.
+//   * @param contentResolver contentResolver
+//   * @return last timestamp.
+//   */
+//  public String getModifiedTime(ContentResolver contentResolver, Integer id) {
+//    Cursor cursor = null;
+//    String time = null;
+//    try {
+//      cursor = contentResolver.query(
+//          ContactsContract.Contacts.CONTENT_URI,
+//          new String[]{ContactsContract.Contacts.CONTACT_LAST_UPDATED_TIMESTAMP},
+//          RawContacts._ID + "=" + id, null, null);
+//      while (cursor.moveToNext()) {
+//        time = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.CONTACT_LAST_UPDATED_TIMESTAMP));
+//        break;
+//      }
+//    } catch (Exception ex) {
+//      ex.printStackTrace();
+//    } finally {
+//      if (cursor != null && !cursor.isClosed()) {
+//        cursor.close();
+//      }
+//    }
+//    return time;
+//  }
 }

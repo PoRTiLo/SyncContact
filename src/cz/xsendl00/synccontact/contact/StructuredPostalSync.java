@@ -14,7 +14,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 /**
  * A data kind representing a postal addresses.
  *
- * @author portilo
+ * @author xsendl00
  */
 public class StructuredPostalSync extends AbstractType implements ContactInterface {
 

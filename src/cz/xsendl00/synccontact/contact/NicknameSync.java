@@ -12,7 +12,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 /**
  * A data kind representing the contact's nickname. For example, for Bob Parr ("Mr. Incredible"):
  *
- * @author portilo
+ * @author xsendl00
  */
 public class NicknameSync extends AbstractType implements ContactInterface {
 

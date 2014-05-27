@@ -13,7 +13,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 /**
  * A object of contact.
  *
- * @author portilo
+ * @author xsendl00
  */
 public class GoogleContact {
 

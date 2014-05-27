@@ -8,8 +8,12 @@ import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.UiThread;
 
+import com.unboundid.ldap.sdk.LDAPException;
+
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,6 +26,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.TextView;
 import cz.xsendl00.synccontact.activity.fragment.RowMergerAdapter;
 import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.contact.GoogleContact;
@@ -37,7 +42,7 @@ import cz.xsendl00.synccontact.utils.Utils;
 /**
  * Activity for Merge contact.
  *
- * @author portilo
+ * @author xsendl00
  */
 @EActivity(R.layout.activity_contacts_merge)
 public class ContactsMergeActivity extends Activity implements
@@ -123,20 +128,61 @@ public class ContactsMergeActivity extends Activity implements
     }
   }
 
+  @UiThread
+  public void errorDialog(final String error) {
+    AlertDialog.Builder builder = new AlertDialog.Builder(ContactsMergeActivity.this);
+    final TextView edit = new TextView(ContactsMergeActivity.this);
+    edit.setText("Error to connection: " + contactManager.getAccountData().getHost() + ", " + contactManager.getAccountData().getBaseDn());
+    builder.setView(edit);
+    builder.setCancelable(false);
+    //builder.setCanceledOnTouchOutside(false);
+    builder.setTitle(ContactsMergeActivity.this.getText(R.string.dialog_error_text));
+    builder.setPositiveButton(ContactsMergeActivity.this.getText(R.string.button_ok), new DialogInterface.OnClickListener() {
+
+      @Override
+      public void onClick(DialogInterface dialog, int id) {
+        // User clicked OK button
+        setResult(Constants.TRUST_YES);
+      }
+    });
+    builder.setNeutralButton(ContactsMergeActivity.this.getText(R.string.button_show), new DialogInterface.OnClickListener() {
+
+      @Override
+      public void onClick(DialogInterface dialog, int which) {
+      }
+    });
+    AlertDialog dialog = builder.create();
+    dialog.show();
+    dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(new View.OnClickListener() {
+
+      @Override
+      public void onClick(View v) {
+        edit.setText(error);
+      }
+    });
+  }
+
   /**
    * Initialize data for list in GUI.
    */
   @Background
   protected void initTask() {
-    contactManager.initContactsServer(handler);
-    contactManager.initGroupsServer(handler);
+    try {
+      contactManager.initContactsServer(handler);
+      contactManager.initGroupsServer(handler);
+    } catch (LDAPException e) {
+      if (ContactsMergeActivity.this.progressDialog != null) {
+        ContactsMergeActivity.this.progressDialog.dismiss();
+      }
+      errorDialog(e.getExceptionMessage());
+    }
+
     for (ContactRow contactRowServer : contactManager.getContactsServer()) {
       int pos = 0;
       for (ContactRow contactRowLocal : contactManager.getLocalContacts()) {
         if (contactRowServer.getName() != null && contactRowLocal.getName() != null
             && contactRowServer.getName().equals(contactRowLocal.getName())) {
-          if (contactRowLocal.isSync()
-              && !contactRowLocal.getUuid().equals(contactRowServer.getUuid())) {
+          if (!contactRowLocal.getUuid().equals(contactRowServer.getUuid())) {
             contactRowServer.setIdTable(pos);
             contactRowServer.setId(contactRowLocal.getId());
             contactRowsActivity.add(contactRowServer);
@@ -308,10 +354,15 @@ public class ContactsMergeActivity extends Activity implements
       googleContacts.add(googleContact);
     }
 
-    serverUtilities.addContactToServer(new ServerInstance(contactManager.getAccountData()),
-        getApplicationContext(), handler, googleContacts);
-    util1.stopTime(TAG, "importContacts2Server");
-    contactManager.initContactsServer(handler);
+
+    try {
+      serverUtilities.addContactToServer(new ServerInstance(contactManager.getAccountData()),
+          getApplicationContext(), handler, googleContacts);
+      util1.stopTime(TAG, "importContacts2Server");
+      contactManager.initContactsServer(handler);
+    } catch (LDAPException e) {
+      errorDialog(e.getExceptionMessage());
+    }
     // contactManager.reloadContact();
   }
 

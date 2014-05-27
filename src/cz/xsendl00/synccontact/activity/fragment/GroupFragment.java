@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EFragment;
-import org.androidannotations.annotations.UiThread;
 
 import android.app.Fragment;
 import android.content.Intent;
@@ -34,7 +33,7 @@ import cz.xsendl00.synccontact.utils.GroupRow;
 /**
  * Fragment of group.
  *
- * @author portilo
+ * @author xsendl00
  */
 @EFragment
 public class GroupFragment extends Fragment implements
@@ -245,8 +244,9 @@ public class GroupFragment extends Fragment implements
   /**
    * Update adapter in main thread.
    */
-  @UiThread
+  //@UiThread
   public void updateAdapter() {
+    Log.i(TAG, "groupfragmnet adapter ");
     adapter.notifyDataSetChanged();
     isSelectedAll();
   }

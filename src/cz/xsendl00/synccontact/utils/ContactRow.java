@@ -20,9 +20,8 @@ public class ContactRow extends AbstractRow {
 
   private static final String TAG = "ContactRow";
   private List<String> groupsId;
-  private String accouNamePrevious;
-  private String accouTypePrevious;
-  private String accountPreviousId;
+
+  //private String accountPreviousId;
   private String timestamp;
 
   public ContactRow() {
@@ -381,17 +380,17 @@ public class ContactRow extends AbstractRow {
         + ", accouTypePrevious=" + accouTypePrevious + ", timestamp=" + timestamp + ", uuid="
         + uuid + "]";
   }
-  /**
-   * @return Returns the accountPreviousId.
-   */
-  public String getAccountPreviousId() {
-    return accountPreviousId;
-  }
-
-  /**
-   * @param accountPreviousId The accountPreviousId to set.
-   */
-  public void setAccountPreviousId(String accountPreviousId) {
-    this.accountPreviousId = accountPreviousId;
-  }
+//  /**
+//   * @return Returns the accountPreviousId.
+//   */
+//  public String getAccountPreviousId() {
+//    return accountPreviousId;
+//  }
+//
+//  /**
+//   * @param accountPreviousId The accountPreviousId to set.
+//   */
+//  public void setAccountPreviousId(String accountPreviousId) {
+//    this.accountPreviousId = accountPreviousId;
+//  }
 }

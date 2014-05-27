@@ -20,7 +20,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 
 /**
  * Connection to server instance.
- * @author portilo
+ * @author xsendl00
  *
  */
 public class ServerInstance implements Serializable {
@@ -94,9 +94,9 @@ public class ServerInstance implements Serializable {
         throw new LDAPException(ResultCode.LOCAL_ERROR, "Cannot initialize SSL", e);
       }
     }
-
+    Log.i(TAG, "before");
     final LDAPConnection conn = createLDAPConnection(socketFactory);
-
+    Log.i(TAG, "after");
     if (accountData.getEncryption() == Constants.STARTTLS_INT) {
       Log.d(TAG, "Trying to connect with: STARTLS");
       final SSLUtil sslUtil = new SSLUtil(new MyTrustManager(context.getFilesDir().getPath().toString() + Constants.CERT_NAME, handler, context));

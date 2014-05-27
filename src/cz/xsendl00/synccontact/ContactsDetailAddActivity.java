@@ -3,6 +3,7 @@
 package cz.xsendl00.synccontact;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.androidannotations.annotations.EActivity;
@@ -23,12 +24,14 @@ import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.database.AndroidDB;
 import cz.xsendl00.synccontact.utils.Constants;
 import cz.xsendl00.synccontact.utils.ContactRow;
+import cz.xsendl00.synccontact.utils.GroupRow;
+import cz.xsendl00.synccontact.utils.RowComparator;
 import cz.xsendl00.synccontact.utils.Utils;
 
 /**
  * Show contacts of group.
  *
- * @author portilo
+ * @author xsendl00
  */
 @EActivity
 public class ContactsDetailAddActivity extends ListActivity {
@@ -37,7 +40,6 @@ public class ContactsDetailAddActivity extends ListActivity {
   private ContactManager contactManager;
   private Integer groupId;
   private List<Integer> selectedIds;
-  private List<ContactRow> contactRows;
   private boolean isSync;
 
   @Override
@@ -61,17 +63,10 @@ public class ContactsDetailAddActivity extends ListActivity {
    */
   @UiThread
   public void init() {
-    this.contactRows = contactManager.getLocalContacts();
-    if (!contactRows.isEmpty()) {
+    if (!contactManager.getLocalContacts().isEmpty()) {
       Log.i(TAG, "is not empty");
-      String[] values = new String[contactRows.size()];
-      int i = 0;
-
-      for (ContactRow contactRow : contactRows) {
-        values[i++] = contactRow.getName();
-      }
       ArrayAdapter<ContactRow> adapter = new ArrayAdapter<ContactRow>(this,
-          android.R.layout.simple_list_item_multiple_choice, contactRows);
+          android.R.layout.simple_list_item_multiple_choice, contactManager.getLocalContacts());
       setListAdapter(adapter);
 
     } else {
@@ -87,7 +82,7 @@ public class ContactsDetailAddActivity extends ListActivity {
 
     int pos = 0;
     Log.i(TAG, selectedIds.toString());
-    for (ContactRow contactRow : contactRows) {
+    for (ContactRow contactRow : contactManager.getLocalContacts()) {
       if (selectedIds.contains(contactRow.getId())) {
         //Log.i(TAG, contactRow.getName());
         getListView().setItemChecked(pos, true);
@@ -124,35 +119,51 @@ public class ContactsDetailAddActivity extends ListActivity {
    * @return thread
    */
   private Thread save(final ProgressDialog progressDialog) {
-    contactManager.setLocalGroupsContactsInit(false);
-    contactManager.setLocalGroupsInit(false);
     final Runnable runnable = new Runnable() {
       @Override
       public void run() {
      // SAVE TO db
 
+        GroupRow actualGroup = null;
+        for (GroupRow groupRow : contactManager.getLocalGroups()) {
+          if (groupRow.getId().equals(groupId)) {
+            actualGroup = groupRow;
+            break;
+          }
+        }
+
+        // get selected contact
         final List<ContactRow> selected = new ArrayList<ContactRow>();
         SparseBooleanArray checked = getListView().getCheckedItemPositions();
         for (int i = 0; i < checked.size(); i++) {
           if (checked.valueAt(i)) {
             ContactRow contactRow = (ContactRow) getListView().getItemAtPosition(checked.keyAt(i));
+            if (isSync) {
+              contactRow.setSync(true);
+            }
             selected.add(contactRow);
             Log.i("xxxx", i + " " + contactRow.toString());
           }
         }
-
+        // add new selected contact to group
+        List<ContactRow> contactRows = contactManager.getLocalGroupsContacts().get(groupId);
+        final List<ContactRow> updateList = new ArrayList<ContactRow>();
+        if (contactRows != null) {
+          for (ContactRow contactRow : selected) {
+            if (!contactRows.contains(contactRow)) {
+              contactRows.add(contactRow);
+              updateList.add(contactRow);
+              if (actualGroup != null && actualGroup.getSync() != null) {
+                actualGroup.setSize(actualGroup.getSize() + 1);
+              }
+            }
+          }
+        }
         // add to group
-        //selected
         Thread addThread = new Thread(new Runnable() {
 
           @Override
           public void run() {
-            List<ContactRow> updateList = new ArrayList<ContactRow>();
-            for (ContactRow contactRow : selected) {
-              if (!selectedIds.contains(contactRow.getId())) {
-                updateList.add(contactRow);
-              }
-            }
             new AndroidDB().addContact2Group(ContactsDetailAddActivity.this, updateList, groupId);
             // set contacts to sync
             if (isSync) {
@@ -162,33 +173,43 @@ public class ContactsDetailAddActivity extends ListActivity {
         });
 
         addThread.start();
-        // remove to gtoup
 
+        // remove to group
+        final List<Integer> toDelete = new ArrayList<Integer>();
+        final List<ContactRow> toNoSync = new ArrayList<ContactRow>();
+        for (Integer id : selectedIds) {
+          boolean found = false;
+          for (ContactRow contactRow : selected) {
+            if (contactRow.getId().equals(id)) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            for (ContactRow contactRow : contactRows) {
+              if (contactRow.getId().equals(id)) {
+                contactRow.setSync(false);
+                contactRows.remove(contactRow);
+                break;
+              }
+            }
+            toDelete.add(id);
+            ContactRow setContact = new ContactRow();
+            setContact.setId(id);
+            toNoSync.add(setContact);
+            if (actualGroup != null && actualGroup.getSize() != null) {
+              actualGroup.setSize(actualGroup.getSize() - 1);
+            }
+          }
+        }
         Thread removeThread = new Thread(new Runnable() {
 
           @Override
           public void run() {
-            List<Integer> toDelete = new ArrayList<Integer>();
-            List<ContactRow> toNoSync = new ArrayList<ContactRow>();
-            for (Integer id : selectedIds) {
-              boolean found = false;
-              for (ContactRow contactRow : selected) {
-                if (contactRow.getId() == id) {
-                  found = true;
-                  break;
-                }
-              }
-              if (!found) {
-                toDelete.add(id);
-                ContactRow setContact = new ContactRow();
-                setContact.setId(id);
-                toNoSync.add(setContact);
-              }
-            }
             if (isSync) {
               new AndroidDB().updateContactsSync(ContactsDetailAddActivity.this, toNoSync, false);
             }
-            new AndroidDB().removeContactFromGroup(ContactsDetailAddActivity.this, toDelete, groupId);
+            new AndroidDB().removeContactsFromGroup(ContactsDetailAddActivity.this, toDelete, groupId);
           }
         });
         removeThread.start();
@@ -199,32 +220,23 @@ public class ContactsDetailAddActivity extends ListActivity {
         } catch (InterruptedException e) {
           e.printStackTrace();
         }
-
-        new AndroidDB().setGroupModify(ContactsDetailAddActivity.this, groupId);
-//        new Thread(new Runnable() {
-//
-//          @Override
-//          public void run() {
-            contactManager.setLocalContactsInit(false);
-            contactManager.getLocalContacts();
-            contactManager.setLocalGroupsContactsInit(false);
-            contactManager.getLocalGroupsContacts();
-            contactManager.setLocalGroupsInit(false);
-            contactManager.getLocalGroups();
-//          }
-//        }).start();
-
+        if (contactRows != null) {
+          Collections.sort(contactRows, new RowComparator());
+        }
         if (progressDialog != null) {
           progressDialog.dismiss();
         }
-        go2Back();
+        goBack2Activity();
       }
     };
     return Utils.performOnBackgroundThread(runnable);
   }
 
+  /**
+   * Go back to previous activity.
+   */
   @UiThread
-  public void go2Back() {
+  public void goBack2Activity() {
     Toast toast = Toast.makeText(getApplicationContext(), getText(R.string.toast_saved), Toast.LENGTH_SHORT);
     toast.show();
     finish();

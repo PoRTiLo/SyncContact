@@ -31,7 +31,7 @@ import java.util.Locale;
  * FROM http://www.java2s.com/Code/Java/Collections-Data-Structure/NaturalOrderComparator.htm
  * Comparator for ContactRow. Compare by name.
  *
- * @author portilo
+ * @author xsendl00
  *
  */
 public class RowComparator implements Comparator<AbstractRow> {

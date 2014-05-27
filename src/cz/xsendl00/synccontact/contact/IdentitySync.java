@@ -17,7 +17,7 @@ import cz.xsendl00.synccontact.utils.Constants;
  * This can be used as a signal by the aggregator to combine raw contacts into contacts,
  * e.g. if two contacts have Identity rows with the same NAMESPACE and IDENTITY values the
  * aggregator can know that they refer to the same person.
- * @author portilo
+ * @author xsendl00
  *
  */
 public class IdentitySync extends AbstractType implements ContactInterface {

@@ -3,8 +3,9 @@ package cz.xsendl00.synccontact.utils;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Locale;
+import java.util.TimeZone;
 
 import org.androidannotations.annotations.EBean;
 
@@ -14,7 +15,7 @@ import android.util.Log;
 
 /**
  * Utilities for all.
- * @author portilo
+ * @author xsendl00
  *
  */
 @EBean
@@ -73,10 +74,42 @@ public class Utils {
    */
   @SuppressLint("SimpleDateFormat")
   public String timestamptoDate(String timestamp) {
-    SimpleDateFormat df1 = new SimpleDateFormat("yyyyMMddHHmmss", Locale.UK);
     String out = null;
+    if (timestamp == null) {
+      out = "No synchronization.";
+    } else {
+
+    }
+
+
     try {
-      out = df1.parse(timestamp).toString();
+
+      SimpleDateFormat df1 = new SimpleDateFormat("yyyyMMddHHmmss");
+      df1.setTimeZone(TimeZone.getTimeZone("UTC"));
+      Date date = df1.parse(timestamp);
+
+      TimeZone tz = TimeZone.getTimeZone("Europe/Prague");
+      SimpleDateFormat destFormat = new SimpleDateFormat("HH:mm:ss: dd.MM.yyyy");
+      destFormat.setTimeZone(tz);
+
+
+      out = destFormat.format(date);
+
+
+
+
+
+
+
+
+//
+//      out = df1.parse(timestamp).toString();
+//
+//      Calendar cal = Calendar.getInstance();
+//      cal.setTime(date);
+//      Log.i(TAG, cal.getTime().toString());
+//      cal.add(Calendar.HOUR_OF_DAY, 2);
+//      Log.i(TAG, cal.getTime().toString());
     } catch (ParseException e) {
       Log.e(TAG, "Can not formated timestamp from db to readable string :" + out);
       out = "No synchronization.";

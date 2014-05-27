@@ -14,7 +14,7 @@ import cz.xsendl00.synccontact.utils.Constants;
 /**
  * A data kind representing an organization.
  *
- * @author portilo
+ * @author xsendl00
  */
 public class OrganizationSync extends AbstractType implements ContactInterface {
 

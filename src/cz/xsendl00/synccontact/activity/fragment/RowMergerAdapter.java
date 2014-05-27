@@ -17,7 +17,7 @@ import cz.xsendl00.synccontact.utils.ContactRow;
 /**
  * Adapter for merge row.
  *
- * @author portilo
+ * @author xsendl00
  */
 public class RowMergerAdapter extends BaseAdapter {
 
@@ -69,7 +69,7 @@ public class RowMergerAdapter extends BaseAdapter {
     LayoutInflater inflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 
     View view  = convertView;
-    if (view == null) {
+    if (convertView == null) {
       view = inflater.inflate(R.layout.row_merge, null);
       holder = new ViewHolder();
       holder.nameLocal = (TextView) view.findViewById(R.id.merge_local_contact);

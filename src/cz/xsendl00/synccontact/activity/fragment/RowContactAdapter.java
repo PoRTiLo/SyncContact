@@ -55,20 +55,21 @@ public class RowContactAdapter extends BaseAdapter {
 
     LayoutInflater inflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 
+    View view = convertView;
     if (convertView == null) {
-      convertView = inflater.inflate(R.layout.row_contact, null);
+      view = inflater.inflate(R.layout.row_contact, null);
       holder = new ViewHolder();
-      holder.contactName = (TextView) convertView.findViewById(R.id.row_contact_name);
-      holder.checkSync = (CheckBox) convertView.findViewById(R.id.row_contact_sync);
-      convertView.setTag(holder);
+      holder.contactName = (TextView) view.findViewById(R.id.row_contact_name);
+      holder.checkSync = (CheckBox) view.findViewById(R.id.row_contact_sync);
+      view.setTag(holder);
     } else {
-      holder = (ViewHolder) convertView.getTag();
+      holder = (ViewHolder) view.getTag();
     }
     holder.checkSync.setTag(position);
     holder.checkSync.setOnCheckedChangeListener(par);
     ContactRow contact = (ContactRow) getItem(position);
     holder.contactName.setText(contact.getName());
     holder.checkSync.setChecked(contact.isSync());
-    return convertView;
+    return view;
   }
 }

@@ -4,10 +4,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.unboundid.ldap.sdk.LDAPException;
+
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
@@ -50,7 +54,43 @@ public class ContactManager {
   private List<GroupRow> serverGroup2Import;
   private Context context;
 
+  private boolean onlyWifi = false;
 
+
+  /**
+   * @return Returns the onlyWifi.
+   */
+  public boolean isOnlyWifi() {
+    return onlyWifi;
+  }
+
+
+
+  /**
+   * @param onlyWifi The onlyWifi to set.
+   */
+  public void setOnlyWifi(boolean onlyWifi) {
+    this.onlyWifi = onlyWifi;
+  }
+
+
+  /**
+   * @return Returns the onlyWifiInit.
+   */
+  public boolean isOnlyWifiInit() {
+    return onlyWifiInit;
+  }
+
+
+  /**
+   * @param onlyWifiInit The onlyWifiInit to set.
+   */
+  public void setOnlyWifiInit(boolean onlyWifiInit) {
+    this.onlyWifiInit = onlyWifiInit;
+  }
+
+
+  private boolean onlyWifiInit = false;
 
   private ContactManager(Context context) {
     this.context = context;
@@ -86,10 +126,12 @@ public class ContactManager {
   public List<ContactRow> getLocalContacts() {
     String where = RawContacts.DELETED + "<>1";
     if (localContacts == null) {
+      Log.i(TAG, "getLocalContacts is null");
       localContacts = ContactRow.fetchAllRawContact(context.getContentResolver(), where);
       localContactsInit = true;
     }
     if (!localContactsInit) {
+      Log.i(TAG, "getLocalContacts add ALL");
       localContacts.clear();
       localContacts.addAll(ContactRow.fetchAllRawContact(context.getContentResolver(), where));
       localContactsInit = true;
@@ -238,8 +280,9 @@ public class ContactManager {
    * Download all contact (only uuid, name) from LDAP server.
    *
    * @param handler for check connection.
+   * @throws LDAPException
    */
-  public void initContactsServer(Handler handler) {
+  public void initContactsServer(Handler handler) throws LDAPException {
     Utils util = new Utils();
     util.startTime(TAG, "initContactsServer");
     if (accountData == null) {
@@ -259,8 +302,9 @@ public class ContactManager {
    * Download all groups (uuid, name) from LDAP server.
    *
    * @param handler for check connection.
+   * @throws LDAPException
    */
-  public void initGroupsServer(Handler handler) {
+  public void initGroupsServer(Handler handler) throws LDAPException {
     Utils util = new Utils();
     util.startTime(TAG, "initGroupsServer");
     if (accountData == null) {
@@ -391,5 +435,21 @@ public class ContactManager {
    */
   public void setLocalGroupsContactsInit(boolean localGroupsContactsInit) {
     this.localGroupsContactsInit = localGroupsContactsInit;
+  }
+
+  public boolean checkInternet() {
+    ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+
+    if (activeNetwork != null && activeNetwork.isConnectedOrConnecting()) {
+      boolean isWiFi = activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
+      if (!isWiFi) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+    return false;
   }
 }

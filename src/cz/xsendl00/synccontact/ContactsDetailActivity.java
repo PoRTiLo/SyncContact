@@ -1,7 +1,6 @@
 package cz.xsendl00.synccontact;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
@@ -19,7 +18,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import cz.xsendl00.synccontact.client.ContactManager;
 import cz.xsendl00.synccontact.database.AndroidDB;
@@ -30,20 +28,19 @@ import cz.xsendl00.synccontact.utils.Utils;
 /**
  * Show contacts of group.
  *
- * @author portilo
+ * @author xsendl00
  */
 @EActivity
 public class ContactsDetailActivity extends ListActivity {
 
   @Bean
   protected AndroidDB androidDB;
-  protected LinearLayout linearLayoutProgress;
   private static final String TAG = "ContactsDetailActivity";
   private ContactManager contactManager;
   private Integer groupId;
   private boolean isSync;
-  private List<ContactRow> contactRows;
-  ArrayAdapter<ContactRow> adapter;
+  //private List<ContactRow> contactRows;
+  private ArrayAdapter<ContactRow> adapter;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -56,7 +53,6 @@ public class ContactsDetailActivity extends ListActivity {
     this.setTitle(groupName);
     contactManager = ContactManager.getInstance(ContactsDetailActivity.this);
     if (contactManager.getLocalGroupsContacts() == null || contactManager.getLocalGroupsContacts().size() < 0) {
-
       loadData();
     } else {
       init();
@@ -75,9 +71,14 @@ public class ContactsDetailActivity extends ListActivity {
           reloadGui();
         }
       }).start();
+    } else {
+      reloadGui();
     }
   }
 
+  /**
+   * Reload GUI.
+   */
   @UiThread
   public void reloadGui() {
     adapter.notifyDataSetChanged();
@@ -90,13 +91,7 @@ public class ContactsDetailActivity extends ListActivity {
    */
   @UiThread
   public void init() {
-    this.contactRows = contactManager.getLocalGroupsContacts().get(groupId);
-    if (contactRows != null) {
-      String[] values = new String[this.contactRows.size()];
-      int i = 0;
-      for (ContactRow contactRow : this.contactRows) {
-        values[i++] = contactRow.getName();
-      }
+    if (contactManager.getLocalGroupsContacts().get(groupId) != null) {
       adapter = new ArrayAdapter<ContactRow>(this,
           android.R.layout.simple_list_item_1, contactManager.getLocalGroupsContacts().get(groupId));
       setListAdapter(adapter);
@@ -109,6 +104,7 @@ public class ContactsDetailActivity extends ListActivity {
 
   /**
    * Load data into {@link ContactManager}.
+   * @return thread
    */
   public Thread loadData() {
     final ProgressDialog progressDialog = ProgressDialog.show(ContactsDetailActivity.this, "",
@@ -137,9 +133,9 @@ public class ContactsDetailActivity extends ListActivity {
       case R.id.action_add_poeple:
         intent = new Intent(this, ContactsDetailAddActivity_.class);
         ArrayList<Integer> values = null;
-        if (contactRows != null) {
+        if (contactManager.getLocalGroupsContacts().get(groupId) != null) {
           values = new ArrayList<Integer>();
-          for (ContactRow contactRow : this.contactRows) {
+          for (ContactRow contactRow : this.contactManager.getLocalGroupsContacts().get(groupId)) {
             values.add(contactRow.getId());
           }
         }
@@ -167,9 +163,8 @@ public class ContactsDetailActivity extends ListActivity {
 
   @Override
   protected void onListItemClick(ListView l, View v, int position, long id) {
-    ContactRow contactRow = contactRows.get(position);
+    ContactRow contactRow = contactManager.getLocalGroupsContacts().get(groupId).get(position);
     int idContact = androidDB.getIdContact(ContactsDetailActivity.this,
-        //contactManager.getContactsLocal().get(position).getId());
         contactManager.getLocalGroupsContacts().get(groupId).get(position).getId());
     Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, idContact);
     Intent i = new Intent(Intent.ACTION_VIEW);

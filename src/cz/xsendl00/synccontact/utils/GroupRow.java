@@ -78,7 +78,7 @@ public class GroupRow extends AbstractRow {
     try {
       String[] projection = new String[]{ContactsContract.Groups._ID, ContactsContract.Groups.TITLE,
           ContactsContract.Groups.SYNC1, ContactsContract.Groups.SYNC2, ContactsContract.Groups.SYNC3,
-          ContactsContract.Groups.SYNC4};
+          ContactsContract.Groups.SYNC4, ContactsContract.Groups.ACCOUNT_NAME, ContactsContract.Groups.ACCOUNT_TYPE};
       cursor = contentResolver.query(ContactsContract.Groups.CONTENT_URI, projection, where, null,
           ContactsContract.Groups.TITLE + " COLLATE LOCALIZED ASC");
       groups = new ArrayList<GroupRow>();
@@ -89,6 +89,8 @@ public class GroupRow extends AbstractRow {
         groupRow.setSync(cursor.getInt(cursor.getColumnIndex(ContactsContract.Groups.SYNC1)) == 1);
         groupRow.setLastSyncTime(cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.SYNC2)));
         groupRow.setUuid(cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.SYNC4)));
+        groupRow.setAccouTypePrevious(cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.ACCOUNT_TYPE)));
+        groupRow.setAccouNamePrevious(cursor.getString(cursor.getColumnIndex(ContactsContract.Groups.ACCOUNT_NAME)));
         groups.add(groupRow);
       }
     } catch (Exception ex) {

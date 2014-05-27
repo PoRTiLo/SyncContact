@@ -58,7 +58,7 @@ public class RowGroupAdapter extends BaseAdapter {
     LayoutInflater inflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 
     View view = convertView;
-    if (view == null) {
+    if (convertView == null) {
       view = inflater.inflate(R.layout.row_group, null);
       holder = new ViewHolder();
       holder.groupName = (TextView) view.findViewById(R.id.row_group_name);

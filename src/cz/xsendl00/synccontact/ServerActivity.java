@@ -118,6 +118,8 @@ public class ServerActivity extends Activity {
       if (resultCode == RESULT_OK) {
         Log.i(TAG, "Back from ServerRemoveActivity");
         removed = data.getBooleanExtra("REMOVED", false);
+        finish();
+        super.onActivityResult(requestCode, resultCode, data);
       }
     } else if (requestCode == SERVER_CHANGED) {
       if (resultCode == RESULT_OK) {
