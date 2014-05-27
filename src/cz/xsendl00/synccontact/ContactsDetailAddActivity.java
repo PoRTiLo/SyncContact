@@ -199,18 +199,20 @@ public class ContactsDetailAddActivity extends ListActivity {
         } catch (InterruptedException e) {
           e.printStackTrace();
         }
-        new Thread(new Runnable() {
 
-          @Override
-          public void run() {
+        new AndroidDB().setGroupModify(ContactsDetailAddActivity.this, groupId);
+//        new Thread(new Runnable() {
+//
+//          @Override
+//          public void run() {
             contactManager.setLocalContactsInit(false);
             contactManager.getLocalContacts();
             contactManager.setLocalGroupsContactsInit(false);
             contactManager.getLocalGroupsContacts();
             contactManager.setLocalGroupsInit(false);
             contactManager.getLocalGroups();
-          }
-        }).start();
+//          }
+//        }).start();
 
         if (progressDialog != null) {
           progressDialog.dismiss();

@@ -184,6 +184,24 @@ public class AndroidDB {
 //    }
   }
 
+  public void cleanModifyStatusNewTimestampGroup(final Context context,
+      final List<GroupRow> groupRows) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+    String timestamp = new Utils().createTimestamp();
+    for (GroupRow groupRow : groupRows) {
+      ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
+          ContentUris.withAppendedId(ContactsContract.Groups.CONTENT_URI, groupRow.getId()))
+          .withValue(Groups.DIRTY, 0)
+          .withValue(Groups.SYNC2, timestamp);
+      if (ops.size() >= MAX_OPERATIONS_IYELD) {
+        applyBatchSimply(context, ops, "cleanModifyStatus group");
+        ops.clear();
+      }
+      ops.add(operationBuilder.build());
+    }
+    applyBatchSimply(context, ops, "cleanModifyStatus group");
+  }
+
   /**
    * Clear dirty bit in raw_contact.
    *
@@ -369,6 +387,23 @@ public class AndroidDB {
     applyBatchSimply(context, op, "");
 
     return true;
+  }
+
+  public void setGroupModify(Context context, Integer id) {
+    ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+      ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(
+          ContentUris.withAppendedId(Groups.CONTENT_URI, id))
+          .withValue(Groups.DIRTY, 1);
+      ops.add(operationBuilder.build());
+
+    try {
+      ContentProviderResult[] con = context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+      Log.i(TAG, "group: " + id + ", set to modify done: " + con.length);
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    } catch (OperationApplicationException e) {
+      e.printStackTrace();
+    }
   }
 
   public void updateGroupsUuid(Context context, List<GroupRow> groupRows) {
@@ -741,7 +776,26 @@ public class AndroidDB {
       Uri uri = Uri.withAppendedPath(RawContacts.CONTENT_URI, contactRow.getId().toString());
       int deleted = context.getContentResolver().delete(addIsSyncAdapter(uri, true), null, null);
         //RawContacts._ID + " = ?", new String[] { id.toString() });
-    Log.i(TAG, "deleted: " + contactRow.getId() + ", result:" + deleted);
+      Log.i(TAG, "deleted: " + contactRow.getId() + ", result:" + deleted);
+
+    }
+    return list;
+  }
+
+  public List<GroupRow> deleteGroups(final Context context) {
+    String where = Groups.DELETED + "<>0";
+    List<GroupRow> groups = GroupRow.fetchGroups(context.getContentResolver(), where);
+    List<GroupRow> list = new ArrayList<GroupRow>();
+    for (GroupRow groupRow : groups) {
+      GroupRow gr = new GroupRow();
+      gr.setDeleted(true);
+      gr.setUuid(groupRow.getUuid());
+      list.add(gr);
+      Uri uri = Uri.withAppendedPath(RawContacts.CONTENT_URI, groupRow.getId().toString());
+      int deleted = context.getContentResolver().delete(addIsSyncAdapter(uri, true), null, null);
+        //RawContacts._ID + " = ?", new String[] { id.toString() });
+      Log.i(TAG, "deleted group: " + groupRow.getId() + ", result:" + deleted);
+
     }
     return list;
   }

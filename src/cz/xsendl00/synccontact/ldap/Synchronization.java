@@ -135,26 +135,22 @@ public class Synchronization {
       } else if (localContact.isDeleted()) {
         difference2Server.put(entry.getKey(), localContact);
       } else {
-        // compare by edit time, newer winning
-        //String time = androidDB.getModifiedTime(context.getContentResolver(), localContact.getId());
-        //if (time == null) {
-        //  time = timestamp;
-        //} else {
-          //TODO: covert to timestamp
-        //  ;
-       // }
-        // local time is newer
         Log.i(TAG, "contact_time : " + timestamp + ", server_time : " + serverContact.getTimestamp());
         if (timestamp.compareTo(serverContact.getTimestamp()) > 0) {
           difference2Server.put(entry.getKey(), localContact);
         } else { // server contacts is newer or value is same
           difference2Local.put(entry.getKey(), serverContact);
         }
-        // get ContactsContract.ContactsColumns.CONTACT_LAST_UPDATED_TIMESTAMP
-        //conflictServer.put(entry.getKey(), serverContact);
       }
     }
     utils.stopTime(TAG, "resolve conflict, conflictServer : "  + conflictServer.size());
+
+    // update group
+    try {
+      serverUtilities.removeOrAddorUpdateServerGroup(ldapServer, context, handler, localGroupsModify);
+    } catch (LDAPException e) {
+      e.printStackTrace();
+    }
 
     // update db contact.db
     Thread localThread = updateLocalDatabse(context, difference2Local);
@@ -171,9 +167,19 @@ public class Synchronization {
  // remove contact from local database
     final Map<String, GoogleContact> toDeleteOnserver = androidDB.deleteContacts(context); //, deletedLocalContactIds);
 
+    // remove group local
+    final List<GroupRow> toDeleteGroupOnServer = androidDB.deleteGroups(context); //, deletedLocalContactIds);
+    // update group
+    try {
+      serverUtilities.removeOrAddorUpdateServerGroup(ldapServer, context, handler, toDeleteGroupOnServer);
+    } catch (LDAPException e) {
+      e.printStackTrace();
+    }
+
     updateServerContacts(context, handler, ldapServer, toDeleteOnserver);
         // set dirty flag to disable (0)
     androidDB.cleanModifyStatusNewTimestamp(context, contactsLocalDirty);
+    androidDB.cleanModifyStatusNewTimestampGroup(context, localGroupsModify);
 //      }
 //    }).start();
   }
